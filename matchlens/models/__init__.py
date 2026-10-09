@@ -4,14 +4,12 @@ from matchlens.models.match_record import (
     Event,
     Frame,
     Match,
-    PeriodBoundary,
     Player,
     PlayerPosition,
     Team,
     normalise_event,
     normalise_frame,
     normalise_xy,
-    was_on_pitch,
 )
 from matchlens.models.refs import Ref
 
@@ -23,7 +21,6 @@ __all__ = [
     "Frame",
     "Match",
     "Outcome",
-    "PeriodBoundary",
     "Phase",
     "Player",
     "PlayerPosition",
@@ -33,5 +30,4 @@ __all__ = [
     "normalise_event",
     "normalise_frame",
     "normalise_xy",
-    "was_on_pitch",
 ]

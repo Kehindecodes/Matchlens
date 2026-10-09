@@ -17,7 +17,7 @@ def test_group_a_enum_values_match_the_data_model():
     assert {a.value for a in Action} == {
         "pass", "carry", "shot", "tackle", "interception", "clearance", "block",
         "aerial_duel", "save", "foul", "throw_in", "corner", "goal_kick", "free_kick",
-        "penalty",
+        "penalty", "substitution", "red_card", "yellow_card", "period_start", "period_end",
     }  # fmt: skip
     assert {o.value for o in Outcome} == {
         "complete", "incomplete", "blocked", "goal", "saved", "off_target", "won", "lost",

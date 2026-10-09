@@ -114,6 +114,53 @@ After a goal at 61:04, a reading at 62:00 covers 61:04–62:00 — 56 seconds. T
 
 For a few minutes after every goal, red card and half time, the system knows less, says less, and says so. That is correct — the game genuinely just changed and there is not yet much to know about the new state. It also means fewer moments fire immediately after a goal, which is the opposite of the naive failure mode where a system floods the viewer precisely when the baseline is least reliable.
 
+## D16 · `Player` is immutable; roster state is derived from events — SETTLED 9 Oct
+
+### The problem
+
+`Player` sits in group A, which invariant 2 says is append-only, never edited. But `on_clock_ms` / `off_clock_ms` change when a player is substituted or sent off. That is a direct contradiction, and it breaks something worse than tidiness: **if the verifier's entity check reads mutable state, verification stops being reproducible.** A claim verified at minute 60 could verify differently when P4 and P5 re-check it against stored data, so the post-match report would disagree with what actually shipped.
+
+### The resolution
+
+`on_clock_ms` and `off_clock_ms` **come off the entity.** They were fields pretending to be events.
+
+- **`Player` holds identity only:** `player_id`, `team_id`, `shirt`, `name`, `position`, `is_starter`. Loaded pre-match, never touched again.
+- **Who is on the pitch at clock X is derived** from the roster plus the roster-changing events in the log.
+- `was_on_pitch(player, clock_ms)` is a function over the frozen event log, **not** a model helper.
+
+```
+enters  = is_starter ? 0 : clock of the substitution that brought them on (else never)
+leaves  = clock of the substitution taking them off, or of their red card, or match end
+```
+
+Because it is computed from an immutable log, re-deriving it later always gives the same answer.
+
+### Why the injury case settles it
+
+An injury substitution, a tactical substitution and a red card are three different football events that all end a player's time on the pitch. A mutable `off_clock_ms` would be one field written by three code paths with no record of *why*. As events the reason comes for free — and a red card additionally triggers an epoch boundary, which a field write never could, because a write is not something other components can react to.
+
+### Required changes
+
+**1. `Action` gains the roster and clock events.** `EpochTrigger` already names `red_card` and `half_time`, but nothing emitted them — **epoch detection had nothing to detect from.** Add: `substitution`, `red_card`, `yellow_card`, `period_start`, `period_end`.
+
+`Event`'s definition widens from "every on-ball action" to "every on-ball action, plus the match events that change the roster or the clock". Positional fields are null for these. A separate `MatchEvent` entity would be cleaner but it is a 23rd entity and a second stream to order against the first — not worth it at this timeline.
+
+**2. `Event` gains `player_on`** (nullable, set only for `substitution`). `player` holds the player coming **off**.
+
+Recommended over two paired events (`substitution_off` / `substitution_on`) because pairing would then rest on a same-clock convention, and **a double substitution at one clock is ambiguous** — which matters, since the 58:00 double change is the hinge of the demo narrative and "Boateng replaces Mensah" would be wrong half the time. `Event` already carries `receiver` as an action-specific nullable field, so this follows existing precedent. A red card is a single event with no pairing; an injury with no replacement is a substitution with `player_on` null.
+
+**3. `Epoch.player_counts` is derived** from the same log, consistent with everything else.
+
+**4. `Match.period_boundaries` is derived** from `period_start` / `period_end` events. It held end-of-half times including added time, which cannot be known pre-match — so it was either not pre-match data or another mutated field. Same problem, same fix.
+
+**5. `F2` changes.** It currently asks for `was_on_pitch` as a model helper with tested boundary semantics. Under D16 it cannot live on the model. The boundary semantics still need deciding and testing — inclusive start, exclusive end — but in the module that reads the log.
+
+### Also settled: the roster loads before the stream
+
+`Team` and `Player` are created **before** streaming, as a pre-match setup message. Three reasons: events reference `player` and `team` by ID, so an event arriving first is a dangling reference; `Team.attack_direction_by_period` is needed to normalise coordinates and the very first frame needs it; and the verifier's entity check would fail spuriously on a roster that has not landed.
+
+**Ingest must refuse the stream until the roster is loaded** — an acceptance criterion on `S2`, not an assumption.
+
 ---
 
 # OPEN — Kehinde decides

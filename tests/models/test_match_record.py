@@ -10,7 +10,6 @@ from matchlens.models import (
     Frame,
     Match,
     Outcome,
-    PeriodBoundary,
     Phase,
     Player,
     PlayerPosition,
@@ -18,7 +17,6 @@ from matchlens.models import (
     normalise_event,
     normalise_frame,
     normalise_xy,
-    was_on_pitch,
 )
 
 
@@ -40,10 +38,6 @@ def make_match(teams=None):
         pitch_length_m=105.0,
         pitch_width_m=68.0,
         kickoff_at=datetime(2026, 10, 9, 15, 0, tzinfo=UTC),
-        period_boundaries=(
-            PeriodBoundary(period=1, start_clock_ms=0, end_clock_ms=2_850_000),
-            PeriodBoundary(period=2, start_clock_ms=3_750_000, end_clock_ms=6_660_000),
-        ),
         archetype_id="tight_contest",
         seed=7,
         teams=teams or (make_team(), make_team("t-away", is_home=False, direction=-1)),
@@ -58,8 +52,6 @@ def make_player(**overrides):
         name="Dale Okoro",
         position="ST",
         is_starter=True,
-        on_clock_ms=0,
-        off_clock_ms=None,
     )
     return Player(**{**base, **overrides})
 
@@ -101,6 +93,31 @@ def make_event(**overrides):
         under_pressure=False,
         body_part=BodyPart.RIGHT_FOOT,
         frame_ref=10,
+        player_on=None,
+    )
+    return Event(**{**base, **overrides})
+
+
+def make_match_event(action, **overrides):
+    """A roster or clock event: positional fields are null."""
+    base = dict(
+        event_id="e-m",
+        seq=12,
+        clock_ms=3_480_000,
+        period=2,
+        action=action,
+        player="p-9",
+        team="t-home",
+        start_x=None,
+        start_y=None,
+        end_x=None,
+        end_y=None,
+        outcome=None,
+        receiver=None,
+        under_pressure=None,
+        body_part=None,
+        frame_ref=10,
+        player_on=None,
     )
     return Event(**{**base, **overrides})
 
@@ -175,20 +192,6 @@ def test_match_requires_one_home_team_and_consistent_match_id():
         make_match(teams=(make_team(), stray))
 
 
-def test_period_boundaries_must_be_ordered_and_non_overlapping():
-    m = make_match()
-    with pytest.raises(ValidationError):
-        Match(
-            **{
-                **m.model_dump(),
-                "period_boundaries": (
-                    PeriodBoundary(period=1, start_clock_ms=0, end_clock_ms=3_000_000),
-                    PeriodBoundary(period=2, start_clock_ms=2_000_000, end_clock_ms=6_000_000),
-                ),
-            }
-        )
-
-
 def test_models_are_immutable_after_construction():
     with pytest.raises(ValidationError):
         make_event().clock_ms = 0
@@ -222,36 +225,76 @@ def test_frame_carrier_must_be_on_the_frame():
     assert make_frame(carrier=None).carrier is None
 
 
-# --- Player and was_on_pitch -------------------------------------------------
+# --- Player (identity only, D16) ----------------------------------------------
 
 
-def test_starter_enters_at_kickoff():
+@pytest.mark.parametrize("field", ["on_clock_ms", "off_clock_ms"])
+def test_player_rejects_mutable_pitch_time_fields(field):
     with pytest.raises(ValidationError):
-        make_player(on_clock_ms=60_000)
+        make_player(**{field: 0})
 
 
-def test_player_cannot_leave_before_entering():
+def test_match_rejects_stored_period_boundaries():
+    data = make_match().model_dump()
     with pytest.raises(ValidationError):
-        make_player(is_starter=False, on_clock_ms=1_000_000, off_clock_ms=900_000)
+        Match(**data, period_boundaries=())
 
 
-def test_starter_on_pitch_from_kickoff_to_the_end_when_off_clock_is_null():
-    p = make_player()
-    assert was_on_pitch(p, 0)
-    assert was_on_pitch(p, 6_660_000)
+# --- match events (D16) --------------------------------------------------------
 
 
-def test_was_on_pitch_boundary_is_inclusive_start_exclusive_end():
-    sub = make_player(is_starter=False, on_clock_ms=1_000_000, off_clock_ms=2_000_000)
-    assert not was_on_pitch(sub, 999_999)
-    assert was_on_pitch(sub, 1_000_000)
-    assert was_on_pitch(sub, 1_999_999)
-    assert not was_on_pitch(sub, 2_000_000)
+def test_player_on_is_set_only_for_substitutions():
+    sub = make_match_event(Action.SUBSTITUTION, player_on="p-14")
+    assert sub.player_on == "p-14"
+    assert make_event().player_on is None
+    for action in (Action.RED_CARD, Action.YELLOW_CARD):
+        with pytest.raises(ValidationError):
+            make_match_event(action, player_on="p-14")
+    with pytest.raises(ValidationError):
+        make_event(player_on="p-14")
 
 
-def test_unused_substitute_was_never_on_pitch():
-    bench = make_player(is_starter=False, on_clock_ms=None, off_clock_ms=None)
-    assert not was_on_pitch(bench, 3_000_000)
+def test_substitution_without_a_replacement_is_legal():
+    assert make_match_event(Action.SUBSTITUTION).player_on is None
+
+
+@pytest.mark.parametrize(
+    "action",
+    [
+        Action.SUBSTITUTION,
+        Action.RED_CARD,
+        Action.YELLOW_CARD,
+        Action.PERIOD_START,
+        Action.PERIOD_END,
+    ],
+)
+def test_match_events_round_trip_with_null_positional_fields(action):
+    kwargs = (
+        {"player": None, "team": None} if action in (Action.PERIOD_START, Action.PERIOD_END) else {}
+    )
+    e = make_match_event(action, **kwargs)
+    assert Event.model_validate_json(e.model_dump_json()) == e
+
+
+@pytest.mark.parametrize("field", ["start_x", "start_y", "end_x", "end_y"])
+def test_match_events_must_not_carry_positions(field):
+    with pytest.raises(ValidationError):
+        make_match_event(Action.RED_CARD, **{field: 1.0})
+
+
+@pytest.mark.parametrize(
+    "field", ["start_x", "end_y", "outcome", "under_pressure", "player", "team"]
+)
+def test_on_ball_events_require_positions_outcome_and_actors(field):
+    with pytest.raises(ValidationError):
+        make_event(**{field: None})
+
+
+def test_period_events_have_no_actor_but_cards_and_substitutions_do():
+    assert make_match_event(Action.PERIOD_END, player=None, team=None).player is None
+    for action in (Action.SUBSTITUTION, Action.RED_CARD, Action.YELLOW_CARD):
+        with pytest.raises(ValidationError):
+            make_match_event(action, player=None)
 
 
 # --- coordinate normalisation ------------------------------------------------
@@ -292,3 +335,9 @@ def test_normalise_frame_is_pure():
 def test_normalise_rejects_a_period_the_team_has_no_direction_for():
     with pytest.raises(KeyError):
         normalise_event(make_event(period=3), make_team())
+
+
+def test_normalise_event_leaves_a_match_event_unchanged():
+    away = make_team("t-away", is_home=False, direction=-1)
+    card = make_match_event(Action.RED_CARD, team="t-away")
+    assert normalise_event(card, away) == card

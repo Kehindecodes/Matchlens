@@ -28,20 +28,6 @@ class _Record(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid")
 
 
-class PeriodBoundary(_Record):
-    """Where one period starts and ends on the match clock, added time included."""
-
-    period: Annotated[int, Field(ge=1)]
-    start_clock_ms: ClockMs
-    end_clock_ms: ClockMs
-
-    @model_validator(mode="after")
-    def _ends_after_it_starts(self):
-        if self.end_clock_ms <= self.start_clock_ms:
-            raise ValueError(f"period {self.period} must end after it starts")
-        return self
-
-
 class Team(_Record):
     team_id: str
     match_id: str
@@ -57,11 +43,10 @@ class Team(_Record):
 
 
 class Player(_Record):
-    """One squad member.
+    """One squad member: identity only, loaded pre-match and never touched again (D16).
 
-    `on_clock_ms` / `off_clock_ms` are what the verifier's entity check reads. A null
-    `off_clock_ms` means the player finished the match. A null `on_clock_ms` means an unused
-    substitute who never entered.
+    There is deliberately no on/off clock. Who was on the pitch at a given clock is derived from
+    `is_starter` plus the `substitution` and `red_card` events in the log, so it is reproducible.
     """
 
     player_id: str
@@ -69,43 +54,20 @@ class Player(_Record):
     shirt: int
     name: str
     position: str
-    is_starter: bool
-    on_clock_ms: ClockMs | None
-    off_clock_ms: ClockMs | None
-
-    @model_validator(mode="after")
-    def _consistent_pitch_time(self):
-        if self.is_starter and self.on_clock_ms != 0:
-            raise ValueError("a starter enters at kickoff, so on_clock_ms must be 0")
-        if self.off_clock_ms is not None:
-            if self.on_clock_ms is None:
-                raise ValueError("a player who never entered cannot have left")
-            if self.off_clock_ms <= self.on_clock_ms:
-                raise ValueError("off_clock_ms must be after on_clock_ms")
-        return self
-
-
-def was_on_pitch(player: Player, clock_ms: int) -> bool:
-    """Whether `player` was on the pitch at `clock_ms`.
-
-    The interval is inclusive at the start and exclusive at the end: `on_clock_ms <= clock_ms <
-    off_clock_ms`. A claim at exactly `on_clock_ms` is valid; a claim at exactly `off_clock_ms`
-    is not. A null `off_clock_ms` has no upper bound, and a null `on_clock_ms` (unused
-    substitute) is never on the pitch.
-    """
-    if player.on_clock_ms is None or clock_ms < player.on_clock_ms:
-        return False
-    return player.off_clock_ms is None or clock_ms < player.off_clock_ms
+    is_starter: bool  # whether they started the match
 
 
 class Match(_Record):
-    """The root record. Holds exactly two teams: every signal is per-team."""
+    """The root record. Holds exactly two teams: every signal is per-team.
+
+    Period boundaries are not stored: added time is unknown at kickoff, so they are derived from
+    the `period_start` / `period_end` events (D16).
+    """
 
     match_id: str
     pitch_length_m: Annotated[float, Field(gt=0)]
     pitch_width_m: Annotated[float, Field(gt=0)]
     kickoff_at: AwareDatetime  # notional start time
-    period_boundaries: Annotated[tuple[PeriodBoundary, ...], Field(min_length=1)]
     archetype_id: str
     seed: int  # regenerates a byte-identical match
     teams: tuple[Team, Team]
@@ -118,13 +80,6 @@ class Match(_Record):
             raise ValueError("exactly one team must be the home team")
         if any(t.match_id != self.match_id for t in self.teams):
             raise ValueError("every team must belong to this match")
-        return self
-
-    @model_validator(mode="after")
-    def _periods_are_ordered_and_do_not_overlap(self):
-        for prev, nxt in zip(self.period_boundaries, self.period_boundaries[1:], strict=False):
-            if nxt.period <= prev.period or nxt.start_clock_ms < prev.end_clock_ms:
-                raise ValueError("period boundaries must be ordered and non-overlapping")
         return self
 
 
@@ -166,8 +121,29 @@ class Frame(_Record):
         return self
 
 
+MATCH_EVENTS = frozenset(
+    {
+        Action.SUBSTITUTION,
+        Action.RED_CARD,
+        Action.YELLOW_CARD,
+        Action.PERIOD_START,
+        Action.PERIOD_END,
+    }
+)
+_NO_ACTOR = frozenset({Action.PERIOD_START, Action.PERIOD_END})
+
+
 class Event(_Record):
-    """One on-ball action. Every action is recorded, not just the interesting ones.
+    """One entry in the match log: an on-ball action, or a match event (D16).
+
+    Every on-ball action is recorded, not just the interesting ones. Match events are
+    `substitution`, `red_card`, `yellow_card`, `period_start` and `period_end`; they change the
+    roster or the clock, and their positional fields, `outcome`, `under_pressure`, `receiver` and
+    `body_part` are null.
+
+    `player` is the actor. For a substitution it is the player coming *off*, and `player_on` is
+    the one coming on (null for a replacement-less injury). `player` and `team` are null only for
+    the period events. `player_on` is null for every other action.
 
     `frame_ref` is the `seq` of the Frame this event aligns to. It is mandatory, so positional
     context is always recoverable. `receiver` is set for passes; `body_part` for actions where
@@ -179,17 +155,65 @@ class Event(_Record):
     clock_ms: ClockMs
     period: Annotated[int, Field(ge=1)]
     action: Action
-    player: str
-    team: str
-    start_x: float
-    start_y: float
-    end_x: float  # for a shot, where it arrived
-    end_y: float
-    outcome: Outcome
+    player: str | None
+    team: str | None
+    start_x: float | None
+    start_y: float | None
+    end_x: float | None  # for a shot, where it arrived
+    end_y: float | None
+    outcome: Outcome | None
     receiver: str | None
-    under_pressure: bool  # generator-set
+    player_on: str | None  # substitutions only
+    under_pressure: bool | None  # generator-set
     body_part: BodyPart | None
     frame_ref: Annotated[int, Field(ge=0)]
+
+    @model_validator(mode="after")
+    def _shape_matches_the_action(self):
+        if self.action in MATCH_EVENTS:
+            unexpected = [
+                name
+                for name in (
+                    "start_x",
+                    "start_y",
+                    "end_x",
+                    "end_y",
+                    "outcome",
+                    "receiver",
+                    "under_pressure",
+                    "body_part",
+                )  # fmt: skip
+                if getattr(self, name) is not None
+            ]
+            if unexpected:
+                raise ValueError(f"{self.action} must not set {', '.join(unexpected)}")
+            if self.action in _NO_ACTOR:
+                if self.player is not None or self.team is not None:
+                    raise ValueError(f"{self.action} has no player or team")
+            elif self.player is None or self.team is None:
+                raise ValueError(f"{self.action} needs a player and a team")
+            if self.player_on is not None and self.action is not Action.SUBSTITUTION:
+                raise ValueError("player_on is set only for a substitution")
+        else:
+            missing = [
+                name
+                for name in (
+                    "player",
+                    "team",
+                    "start_x",
+                    "start_y",
+                    "end_x",
+                    "end_y",
+                    "outcome",
+                    "under_pressure",
+                )  # fmt: skip
+                if getattr(self, name) is None
+            ]
+            if missing:
+                raise ValueError(f"{self.action} needs {', '.join(missing)}")
+            if self.player_on is not None:
+                raise ValueError("player_on is set only for a substitution")
+        return self
 
 
 # --- read-time coordinate normalisation ----------------------------------------------------------
@@ -208,6 +232,8 @@ def normalise_xy(x: float, y: float, direction: AttackDirection) -> tuple[float,
 def normalise_event(event: Event, team: Team) -> Event:
     """`event` seen from `team`'s perspective in the event's period."""
     d = team.attack_direction(event.period)
+    if event.start_x is None:  # a match event has no position to normalise
+        return event.model_copy()
     sx, sy = normalise_xy(event.start_x, event.start_y, d)
     ex, ey = normalise_xy(event.end_x, event.end_y, d)
     return event.model_copy(update={"start_x": sx, "start_y": sy, "end_x": ex, "end_y": ey})

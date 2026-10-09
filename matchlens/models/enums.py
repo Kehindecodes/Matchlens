@@ -29,6 +29,12 @@ class Action(StrEnum):
     GOAL_KICK = "goal_kick"
     FREE_KICK = "free_kick"
     PENALTY = "penalty"
+    # Match events (D16): they change the roster or the clock, and carry no positions.
+    SUBSTITUTION = "substitution"
+    RED_CARD = "red_card"
+    YELLOW_CARD = "yellow_card"
+    PERIOD_START = "period_start"
+    PERIOD_END = "period_end"
 
 
 class Outcome(StrEnum):

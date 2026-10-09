@@ -46,7 +46,7 @@ Update the **Status** column when a ticket moves. Statuses: `todo`, `wip`, `done
 **U2** — every shot carries a 0–1 value with distance and angle kept. Named `shot_quality`, never xG.
 **U3** — territory, possession control, pressing intensity, chance quality, line height. `confidence` low on thin samples. Line height and compactness come from the frame window; the other four from events.
 **U4** — `w = n/(n+k)`, k ≈ 15 min. At minute 4 the prior dominates; by minute 30 the match baseline does. No z-score flood in the opening minutes. Under **D15**, `n` also resets at every epoch boundary, so this same shrinkage handles the mini cold start after a goal. **Blocked on O9** — what the thin post-break window blends against.
-**U5** — readings carry `epoch_id`; a baseline never averages across a structural break. **Unblocked:** D15 clamps the window to the epoch start, so `epoch_id` is unambiguous and no straddling case exists. Implement `window_start = max(clock - nominal_window, epoch.start_clock_ms)`.
+**U5** — readings carry `epoch_id`; a baseline never averages across a structural break. **Unblocked:** D15 clamps the window to the epoch start, so `epoch_id` is unambiguous and no straddling case exists. Implement `window_start = max(clock - nominal_window, epoch.start_clock_ms)`. **D16 also made this possible at all** — `red_card` and `half_time` were epoch triggers that nothing emitted until the match events were added to `Action`. `score_state` and `player_counts` derive from the same log.
 **U6** — worth it for your own calibration work, not for judges.
 
 ## Reference data — offline, runs in parallel

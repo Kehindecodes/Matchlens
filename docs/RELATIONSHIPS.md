@@ -75,6 +75,8 @@ Read `A — B` as "one A relates to this many B".
 | `Event` | `Frame` | **exactly 1** | Via `frame_ref`. Mandatory — positional context must always be recoverable |
 | `Event` | `Player` (`player`) | 1 | Nullable only if you model period boundaries as events |
 | `Event` | `Player` (`receiver`) | 0..1 | Passes only |
+| `Event` | `Player` (`player_on`) | 0..1 | Substitutions only. `player` is the one coming off (D16) |
+| `Player` | `Event` (`substitution`, `red_card`) | 0..* | ⚠️ **How roster state is known.** `on_clock_ms` / `off_clock_ms` are not fields — who was on the pitch at a clock is derived from `is_starter` plus these events, so the verifier's entity check is reproducible (D16) |
 | `Frame` | `Player` (`carrier`) | 0..1 | Null when the ball is loose or in flight |
 | `Frame` | `Player` (`players`) | exactly 22 | Fewer after a sending-off — do not hardcode 22 |
 
@@ -100,7 +102,7 @@ Read `A — B` as "one A relates to this many B".
 |---|---|---|---|
 | `Match` | `Moment` | 0..* (≈30–60) | |
 | `Moment` | `Epoch` | exactly 1 | Game state when it fired |
-| `Moment` | subject | exactly 1 | ⚠️ **Polymorphic** — a `Team` or a `Player`. Use a discriminated union. A bare ID string means the verifier's entity check cannot know whether to look up `on_clock_ms` or a team. |
+| `Moment` | subject | exactly 1 | ⚠️ **Polymorphic** — a `Team` or a `Player`. Use a discriminated union. A bare ID string means the verifier's entity check cannot know whether to derive an on-pitch window for a player or skip the check for a team. |
 | `SignalReading` | `Moment` | **many-to-many** | One reading can contribute to more than one moment; one moment cites several readings |
 | `Event` | `Moment` | many-to-many | Same shape, via `trigger_event_ids` |
 | `Moment` | `Claim` | **0..\*** | Kehinde's example, with one correction: zero is legal. A moment whose claims are all dropped produces **no renditions and is never shown** — but the `Moment` row stays, because why it fired and why nothing shipped is the audit trail. |
@@ -141,7 +143,7 @@ These are the ones most likely to be modelled as bare strings and cause trouble 
 
 | Field | Points at | Why it must be discriminated |
 |---|---|---|
-| `Moment.subject` | `Team` \| `Player` | The verifier's entity check must know whether to validate `on_clock_ms` (player) or nothing (team). It also decides which lenses *could* care, so scope dispatch depends on it. |
+| `Moment.subject` | `Team` \| `Player` | The verifier's entity check must know whether to derive an on-pitch window from the log (player) or skip the check (team). It also decides which lenses *could* care, so scope dispatch depends on it. |
 | `Claim.evidence_ids` | `Event` \| `SignalReading` \| `Run` | The verifier recomputes a value from the evidence. It cannot recompute without knowing the kind. |
 | `ProducerAction.target_id` | `Moment` \| `Rendition` \| `Lens` | Muting a lens, suppressing a rendition and pinning a moment are different operations. |
 
