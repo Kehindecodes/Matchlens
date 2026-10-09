@@ -22,7 +22,7 @@ The root record everything hangs off, and the thing a demo replays.
 | `match_id` | Unique identifier |
 | `pitch_length_m`, `pitch_width_m` | Metres, so coordinates can be interpreted |
 | `kickoff_at` | Notional start time |
-| `period_boundaries` | Clock values where each half starts and ends, including added time |
+| `period_boundaries` | **Derived** from `period_start` / `period_end` events, not stored pre-match (D16) — added time cannot be known at kickoff, so storing it here meant another mutated field |
 | `archetype_id` | Which archetype generated this fixture |
 | `seed` | Regenerates a byte-identical match. Tests and the demo video depend on this |
 
@@ -43,8 +43,16 @@ Almost every signal is per-team, so they need stable identity and a known attack
 |---|---|
 | `player_id`, `team_id` | |
 | `shirt`, `name`, `position` | Names are fictional, to avoid real-player trademarks |
-| `is_starter` | |
-| `on_clock_ms`, `off_clock_ms` | When they entered and left. Null `off_clock_ms` means they finished. **This is what the verifier's entity check reads.** |
+| `is_starter` | Whether they started the match. The only time-related thing stored on a player |
+
+⚠️ **`on_clock_ms` and `off_clock_ms` were removed — see D16.** They changed when a player was substituted or sent off, which contradicted the append-only rule and made verification irreproducible. Who was on the pitch at a given clock is **derived** from `is_starter` plus the `substitution` and `red_card` events in the log:
+
+```
+enters = is_starter ? 0 : clock of the substitution that brought them on (else never)
+leaves = clock of the substitution taking them off, or of their red card, or match end
+```
+
+`was_on_pitch(player, clock_ms)` is a function over the frozen event log, **not** a method on this model. It is what the verifier's entity check calls.
 
 ### Frame
 A positional snapshot of everyone on the pitch. Memory only — never a row per frame in a database.
@@ -64,7 +72,7 @@ A positional snapshot of everyone on the pitch. Memory only — never a row per 
 | `players` | Array of `[player_id, x, y, speed]`. **Positional arrays, not objects** — key names would roughly double the payload |
 
 ### Event
-Every on-ball action. **Not key moments — every action**, roughly 1,800 per match, one every 3–4 seconds of play.
+Every on-ball action, **plus the match events that change the roster or the clock** (D16). **Not key moments — every action**, roughly 1,800 per match, one every 3–4 seconds of play.
 
 Selection must happen *after* the record is complete. If the log only held interesting events, the verifier could never recompute a count, because the boring events making up the denominator were never written.
 
@@ -73,11 +81,12 @@ Selection must happen *after* the record is complete. If the log only held inter
 | `event_id` | **What claims cite as evidence** |
 | `seq` | Aligns the event to the frame stream |
 | `clock_ms`, `period` | |
-| `action` | `pass`, `carry`, `shot`, `tackle`, `interception`, `clearance`, `foul`, `throw_in`, … |
+| `action` | See the `Action` enum. On-ball actions plus `substitution`, `red_card`, `yellow_card`, `period_start`, `period_end` — the positional fields are null for those |
 | `player`, `team` | |
 | `start_x`, `start_y`, `end_x`, `end_y` | Metres. For a shot, where it arrived |
 | `outcome` | `complete`, `incomplete`, `blocked`, `goal`, `saved`, … |
 | `receiver` | Intended or actual recipient, for passes |
+| `player_on` | The player coming on. **Set only for `substitution`**, where `player` is the one coming off. Null for a red card or an injury with no replacement. Explicit pairing rather than two paired events, because a double substitution at one clock would otherwise be ambiguous — and the 58:00 double change is the hinge of the demo narrative |
 | `under_pressure` | Whether an opponent was within pressing distance at execution. **Generator-set** |
 | `body_part` | Foot, head, other. Feeds shot quality |
 | `frame_ref` | The frame this aligns to, so positional context can be recovered |
@@ -121,6 +130,8 @@ Interpretive claims are accepted by the verifier only if they cite a reading. No
 A stretch of match with constant game state. A red card or a goal changes the game, and averaging a baseline across one corrupts it.
 
 `epoch_id`, `match_id`, `start_clock_ms`, `score_state`, `player_counts`, `trigger` (`goal` | `red_card` | `half_time`).
+
+`score_state` and `player_counts` are **derived** from the event log, same as the roster (D16). The `trigger` values now have events that produce them — before D16, `red_card` and `half_time` were triggers nothing could emit.
 
 ### ShotValue
 The richest source of genuine insight is accumulated shot quality diverging from the scoreline, which the score actively hides.
@@ -275,7 +286,7 @@ Every closed set in the model, named. **Closed sets are enums, not strings** —
 | Type | Values | Used by |
 |---|---|---|
 | `Phase` | `in_play` · `stopped` · `set_piece` | `Frame.phase` |
-| `Action` | `pass` · `carry` · `shot` · `tackle` · `interception` · `clearance` · `block` · `aerial_duel` · `save` · `foul` · `throw_in` · `corner` · `goal_kick` · `free_kick` · `penalty` | `Event.action` |
+| `Action` | **On-ball:** `pass` · `carry` · `shot` · `tackle` · `interception` · `clearance` · `block` · `aerial_duel` · `save` · `foul` · `throw_in` · `corner` · `goal_kick` · `free_kick` · `penalty`<br>**Match events (D16):** `substitution` · `red_card` · `yellow_card` · `period_start` · `period_end` | `Event.action`. The match events drive the derived roster and the epoch triggers |
 | `Outcome` | `complete` · `incomplete` · `blocked` · `goal` · `saved` · `off_target` · `won` · `lost` · `out_of_play` | `Event.outcome` |
 | `BodyPart` | `left_foot` · `right_foot` · `head` · `other` | `Event.body_part` |
 | `Zone` | `defensive_third` · `middle_third` · `final_third` | `Possession.start_zone`, `end_zone` |

@@ -54,7 +54,7 @@ Write the question into `docs/QUESTIONS.md` with the ticket ID and what you need
 These are not preferences. Breaking one breaks the product's central claim, which is that nothing it says is unverifiable.
 
 1. **Frames never reach an LLM.** Agents read events, possessions, signal readings and above. Enforce this in the data access layer with a test that fails if an agent-facing read touches `Frame` — not by convention, not by code review.
-2. **Groups A and B are append-only.** Nothing in the match record or derived understanding is edited after emission. Ever.
+2. **Groups A and B are append-only.** Nothing in the match record or derived understanding is edited after emission. Ever. **Anything that looks like mutable state is derived from the log instead** — who is on the pitch, the score, the player counts, the period boundaries. If you find yourself wanting to update a group A row, you have found an event that is missing (D16).
 3. **Corrections are new events, not edits.** A VAR reversal is a football event. Derived state is recomputed; the narrative log is not rewritten.
 4. **Everything has an ID, and every derived object cites its inputs.** Runs cite frames. Readings cite events. Claims cite readings and events.
 5. **A claim with no citable evidence is dropped at source.** It is not softened, hedged or passed through. Verification fails closed.
