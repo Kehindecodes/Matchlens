@@ -18,6 +18,7 @@ Solo entry to the Microsoft Premier League Hackathon ("Inside the Game").
 | `docs/BACKLOG.md` | Every ticket, with tier, dependencies and acceptance criteria |
 | `docs/tickets/<ID>.md` | The full brief for one ticket. Read this before starting it. |
 | `docs/QUESTIONS.md` | Where you write anything you are not allowed to decide |
+| `docs/LEARNING-PLAN.md` | Which tickets Kehinde writes himself, and why. **Read this before picking a ticket.** |
 
 ---
 
@@ -37,6 +38,16 @@ Write the question into `docs/QUESTIONS.md` with the ticket ID and what you need
 - Any cut — dropping a criterion, a signal, a check, a lens
 - A library not in the pinned stack below
 - Anything where the honest answer is "I guessed"
+
+### Tickets that are not yours to implement
+
+MatchLens is a learning project. Two things are firsts for Kehinde — **building an event-driven system** and **orchestrating AI agents** — and the tickets carrying those lessons are his to write.
+
+- **🧑 in `docs/BACKLOG.md` means do not implement it.** Not even if it is blocking. Not even if you could do it faster. Especially not if you could do it faster — speed is not what these tickets are for. If a 🧑 ticket blocks you, say so and pick up something else.
+- **🤝 means implement it, but Kehinde owns the test or the schema.** The ticket note says which. Do not also write that test; leave it failing or absent and say so.
+- If you believe a 🧑 ticket is mis-assigned, write it in `docs/QUESTIONS.md`. Do not decide it yourself.
+
+The currently reserved tickets are **D1, U4, A1, A3, A5, S6**, plus the roster projection inside A1/U5 and the `Claim` schema design before A2. `docs/LEARNING-PLAN.md` has the reasoning.
 
 ### Decide yourself. Do not ask.
 

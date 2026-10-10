@@ -16,7 +16,7 @@ class Settings(BaseSettings):
     frame_rate_hz: int = 2  # D13
     signal_window_ms: int = 300_000  # nominal; D15 clamps the effective window to the epoch
     baseline_k_minutes: int = 15
-    match_seed: int = 1
+    match_seed: int = 1  # the demo match: the video and the tests run on this seed (F3)
 
     # Lenses
     default_lens_id: str = "match_casual"
