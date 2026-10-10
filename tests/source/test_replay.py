@@ -241,4 +241,5 @@ def test_cli_replays_a_seed_and_prints_the_goals(capsys):
     out = capsys.readouterr().out
     assert code == 0
     assert out.count("GOAL") == 3
+    assert out.count("Added time announced") == 2  # one per half
     assert "Full time" in out

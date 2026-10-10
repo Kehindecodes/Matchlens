@@ -141,6 +141,10 @@ An injury substitution, a tactical substitution and a red card are three differe
 
 ### Required changes
 
+**0. Validated against a real feed, 10 Oct.** Screenshots of the Premier League app's live commentary — which is the Opta/Stats Perform event feed with a sentence template applied — confirm this design. Substitutions appear there as **one event naming both players**, exactly the `player_on` shape. The feed showed **three substitutions at 71' and two at 63'**, so the multi-sub-at-one-clock case is real and common, which is precisely why explicit pairing beat the same-clock convention. Yellow cards, "First Half begins" and "First Half ends, Ipswich Town 0, Fulham 0" all appear as events too.
+
+It also surfaced one event type we were missing: **`added_time_announced`** ("Fourth official has announced 1 minutes of added time"). Added, with a nullable `added_time_ms`. It is good casual-lens material — *"five minutes added, Calder have one more push"* — and it is how a viewer knows the match is not over.
+
 **1. `Action` gains the roster and clock events.** `EpochTrigger` already names `red_card` and `half_time`, but nothing emitted them — **epoch detection had nothing to detect from.** Add: `substitution`, `red_card`, `yellow_card`, `period_start`, `period_end`.
 
 `Event`'s definition widens from "every on-ball action" to "every on-ball action, plus the match events that change the roster or the clock". Positional fields are null for these. A separate `MatchEvent` entity would be cleaner but it is a 23rd entity and a second stream to order against the first — not worth it at this timeline.
