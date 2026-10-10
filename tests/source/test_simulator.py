@@ -28,9 +28,17 @@ def on_ball_events(played: Played) -> list[Event]:
     return [e for e in played.events if e.action in ON_BALL]
 
 
-# --- determinism (invariant 9) ---------------------------------------------------------------
-# The byte-identical test (same seed twice, compared serialised) is deliberately absent: Kehinde
-# writes it himself (docs/tickets/F3.md). These guard the conditions it depends on.
+def test_same_seed_is_byte_identical():
+    seed: int = 2
+    frame_rate_hz: int = 2
+    match_1: str = "\n".join(
+        item.model_dump_json() for item in simulate(seed=seed, frame_rate_hz=frame_rate_hz)
+    )
+    match_2: str = "\n".join(
+        item.model_dump_json() for item in simulate(seed=seed, frame_rate_hz=frame_rate_hz)
+    )
+
+    assert match_1 == match_2
 
 
 def test_simulator_uses_no_global_rng_and_no_wall_time():
