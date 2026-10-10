@@ -21,6 +21,7 @@ docs/
   DECISIONS.md          Settled decisions + the OPEN ones awaiting Kehinde
   BACKLOG.md            Every ticket: tier, dependencies, criteria, status
   QUESTIONS.md          Where Claude Code writes what it may not decide
+  LEARNING-PLAN.md      Which tickets Kehinde writes himself, and why
   tickets/F1..F4        Phase 0 — ready to start
   tickets/S1..S6        Phase 1 — ready to start
 ```
@@ -58,6 +59,8 @@ The build order is F1 → F2 → F3 → F4, then S1 → S2 → S3 → S4 → S5.
 Kehinde is building this to learn, not to receive a finished system. **Product and architecture decisions are his; implementation decisions are Claude Code's.** The split is written out in `CLAUDE.md` and it is not advisory.
 
 When Claude Code hits something it may not decide — anything marked OPEN, any invariant change, any new entity, anything changing what a viewer sees, any cut — it writes the question into `docs/QUESTIONS.md` and **stops**, rather than picking a sensible default and carrying on. A default chosen quietly is a decision taken away from someone who is trying to learn from making it.
+
+**Some tickets are reserved, not delegated.** Two things are firsts here — building an event-driven system and orchestrating AI agents — so the tickets carrying those lessons (🧑 in `docs/BACKLOG.md`) are Kehinde's to write, and Claude Code leaves them alone even when they block. `docs/LEARNING-PLAN.md` explains which and why.
 
 Brainstorming, trade-offs and reversals happen in conversation with Kehinde, and the outcome lands in `docs/DECISIONS.md` before code follows it.
 

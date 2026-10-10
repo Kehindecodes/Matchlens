@@ -4,6 +4,14 @@ Dependency-ordered. Tiers: **T1** required to submit · **T2** required to compe
 
 Tickets with a file in `docs/tickets/` are ready to start. Tickets without one have a one-line spec here only — **ask Kehinde to expand it before starting**, because a ticket without a brief has not been thought through yet.
 
+## Who implements what
+
+See `docs/LEARNING-PLAN.md` for the reasoning. Two first-time skills are being learned here deliberately.
+
+- 🧑 **Kehinde writes this.** **Claude Code must not implement it**, even if it is blocking and even if you could do it faster. Leave it and move to another ticket.
+- 🤝 **Claude Code implements, Kehinde owns the test or the schema.** Read the ticket note.
+- Unmarked — Claude Code's, straightforwardly.
+
 Update the **Status** column when a ticket moves. Statuses: `todo`, `wip`, `done`, `blocked`, `cut`.
 
 ---
@@ -15,7 +23,7 @@ Update the **Status** column when a ticket moves. Statuses: `todo`, `wip`, `done
 |---|---|---|---|---|---|---|
 | F1 | Repo skeleton, module boundaries, config loading | 0.5 | — | T1 | done | ✅ |
 | F2 | Match-record models: Match, Team, Player, Event, Frame | 1 | F1 | T1 | done | ✅ |
-| F3 | Seeded simulator: frames + ~1,800 events, one archetype | 2 | F2 | T1 | todo | ✅ |
+| 🤝 F3 | Seeded simulator: frames + ~1,800 events, one archetype | 2 | F2 | T1 | done | ✅ |
 | F4 | Replay harness: load a match, step the clock, variable speed | 0.5 | F3 | T1 | todo | ✅ |
 
 ## Phase 1 · Walking skeleton — days 3–5
@@ -24,11 +32,11 @@ Update the **Status** column when a ticket moves. Statuses: `todo`, `wip`, `done
 | ID | Ticket | Est | Deps | Tier | Status | Brief |
 |---|---|---|---|---|---|---|
 | S1 | Thirteen module stubs with typed interfaces | 0.5 | F1 | T1 | todo | ✅ |
-| S2 | Ingest: frame window, event intake, **frame boundary test** | 1 | F3, S1 | T1 | todo | ✅ |
+| 🤝 S2 | Ingest: frame window, event intake, **frame boundary test** | 1 | F3, S1 | T1 | todo | ✅ |
 | S3 | SSE endpoint, ViewerSession, page showing clock and score | 1 | S1 | T1 | todo | ✅ |
 | S4 | One hardcoded moment → rendition → SSE → card on screen | 0.5 | S2, S3 | T1 | todo | ✅ |
 | S5 | Bicep, Container Apps, ACR, GitHub Actions with OIDC | 1.5 | S4 | T1 | todo | ✅ |
-| S6 | App Insights, one trace per moment across the agents | 0.5 | S5 | T2 | todo | ✅ |
+| 🧑 S6 | App Insights, one trace per moment across the agents | 0.5 | S5 | T2 | todo | ✅ |
 
 ## Phase 2 · Understanding — days 5–8
 *Ships: five signals producing readings with baselines and z-scores.*
@@ -38,7 +46,7 @@ Update the **Status** column when a ticket moves. Statuses: `todo`, `wip`, `done
 | U1 | Possession sequencing from events | 0.5 | S2 | T1 | todo | — |
 | U2 | ShotValue hand-calibrated lookup | 0.5 | S2 | T1 | todo | — |
 | U3 | Five signal functions emitting SignalReading | 2 | U1, U2 | T1 | todo | — |
-| U4 | Rolling baselines, shrinkage blend, `z_match` and `z_prior` | 1 | U3, R1 | T1 | todo | — |
+| 🧑 U4 | Rolling baselines, shrinkage blend, `z_match` and `z_prior` | 1 | U3, R1 | T1 | todo | — |
 | U5 | Epoch detection on goal, red card, half time | 0.5 | S2 | T1 | todo | — |
 | U6 | Debug page plotting signals and z-scores over the match | 0.5 | U4 | T2 | todo | — |
 
@@ -65,7 +73,7 @@ Update the **Status** column when a ticket moves. Statuses: `todo`, `wip`, `done
 | ID | Ticket | Est | Deps | Tier | Status | Brief |
 |---|---|---|---|---|---|---|
 | M1 | Spotter: thresholds, importance scoring, trigger citation | 1.5 | U4, U5 | T1 | todo | — |
-| M2 | Suppression: cooldown and duplicate detection | 0.5 | M1 | T1 | todo | — |
+| 🤝 M2 | Suppression: cooldown and duplicate detection | 0.5 | M1 | T1 | todo | — |
 | M3 | ~~Run detector from frames~~ | 2 | S2 | T3 | cut | — |
 | M4 | ~~Off-ball-run moments and running counts~~ | 1 | M3, M1 | T3 | cut | — |
 
@@ -96,8 +104,8 @@ Update the **Status** column when a ticket moves. Statuses: `todo`, `wip`, `done
 
 | ID | Ticket | Est | Deps | Tier | Status | Brief |
 |---|---|---|---|---|---|---|
-| D1 | `stream_offset_ms` and the per-session release queue | 1.5 | L3, S3 | T1 | todo | — |
-| D2 | Two sessions on different offsets, both correct | 0.5 | D1 | T1 | todo | — |
+| 🧑 D1 | `stream_offset_ms` and the per-session release queue | 1.5 | L3, S3 | T1 | todo | — |
+| 🤝 D2 | Two sessions on different offsets, both correct | 0.5 | D1 | T1 | todo | — |
 | D3 | Speed control for the judge path | 0.5 | D1, F4 | T1 | todo | — |
 | D4 | Catch-up on join, per lens, verified claims only | 1 | D1, M1 | T2 | todo | — |
 | D5 | OverlayPacket endpoint | 0.5 | L3 | T2 | todo | — |
@@ -113,11 +121,11 @@ Update the **Status** column when a ticket moves. Statuses: `todo`, `wip`, `done
 
 | ID | Ticket | Est | Deps | Tier | Status | Brief |
 |---|---|---|---|---|---|---|
-| A1 | Frozen-log reader: events strictly before clock X | 0.5 | S2 | T1 | todo | — |
-| A2 | Explainer agent emitting structured Claims, not prose | 2 | A1, M1 | T1 | todo | — |
-| A3 | Verifier: six checks, value recomputation, fails closed | 2 | A2 | T1 | todo | — |
+| 🧑 A1 | Frozen-log reader: events strictly before clock X | 0.5 | S2 | T1 | todo | — |
+| 🤝 A2 | Explainer agent emitting structured Claims, not prose | 2 | A1, M1 | T1 | todo | — |
+| 🧑 A3 | Verifier: six checks, value recomputation, fails closed | 2 | A2 | T1 | todo | — |
 | A4 | Lens-aware generation from each lens's surviving claim set | 1 | A3, L3 | T2 | todo | — |
-| A5 | Degradation ladder with automatic fallback L0→L4 | 0.5 | A4, L3 | T1 | todo | — |
+| 🧑 A5 | Degradation ladder with automatic fallback L0→L4 | 0.5 | A4, L3 | T1 | todo | — |
 | A6 | Evidence drawer in the UI | 0.5 | A3, L4 | T2 | todo | — |
 
 **A1** — a test proves the explainer cannot see the future (V2).
@@ -136,7 +144,7 @@ Update the **Status** column when a ticket moves. Statuses: `todo`, `wip`, `done
 | P1 | Producer view: all lenses live, idle vs broken | 1 | L4 | T2 | todo | — |
 | P2 | Mute circuit breaker, ProducerAction log, viewer notice | 1 | D1 | T2 | todo | — |
 | P3 | Rejected-claims view with reasons | 0.5 | A3, P1 | T2 | todo | — |
-| P4 | Archetype regression check in CI | 1 | R2, U3 | T2 | todo | — |
+| 🤝 P4 | Archetype regression check in CI | 1 | R2, U3 | T2 | todo | — |
 | P5 | Post-match report, produced unasked | 0.5 | A3, P4 | T2 | todo | — |
 
 **P1** — largely the same component as the J3 demo view. Build once.
