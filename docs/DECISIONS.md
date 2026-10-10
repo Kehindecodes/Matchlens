@@ -71,15 +71,15 @@ When player scope lands, `Run` is derived from frames by a detector, not emitted
 
 Dormant because player scope is deferred. Recorded so it is not re-decided wrongly later.
 
-## D13 · Keep Frames, drop the frame rate — PROPOSED 9 Oct, awaiting confirmation
+## D13 · Keep Frames, drop the frame rate — SETTLED 9 Oct
 
 Frames survive the loss of player scope, because **defensive line height is positional** — events only say where the ball-actor was. So are block width, compactness and average positions, which several analyst cards and two of three casual phase explainers lean on.
 
 But 10 Hz existed for run detection, which needs sub-second resolution to measure separation at peak. Line height needs 1–2 Hz.
 
-**Proposal:** 2 Hz. ~10,800 frames per match instead of ~54,000. The generator no longer needs smooth motion for 22 players, just formations that drift sensibly. It is a generator parameter, not a schema change, so raising it back to 10 Hz for player scope later costs nothing.
+**Decision:** 2 Hz. ~10,800 frames per match instead of ~54,000. The generator no longer needs smooth motion for 22 players, just formations that drift sensibly. It is a generator parameter, not a schema change, so raising it back to 10 Hz for player scope later costs nothing.
 
-Do not implement until Kehinde confirms. If unconfirmed when F3 starts, **ask**.
+Confirmed by Kehinde at the start of F3. `settings.frame_rate_hz` stays the single source of truth.
 
 ## D14 · `Rendition.suppression_reason`, and every closed set is a named enum — SETTLED 9 Oct
 
