@@ -302,6 +302,13 @@ def test_period_events_have_no_actor_but_cards_and_substitutions_do():
             make_match_event(action, player=None)
 
 
+@pytest.mark.parametrize("missing", ["player", "team"])
+def test_cards_and_substitutions_need_both_a_player_and_a_team(missing):
+    for action in (Action.SUBSTITUTION, Action.RED_CARD, Action.YELLOW_CARD):
+        with pytest.raises(ValidationError):
+            make_match_event(action, **{missing: None})
+
+
 def announce(**overrides):
     base = dict(player=None, team=None, added_time_ms=180_000)
     return make_match_event(Action.ADDED_TIME_ANNOUNCED, **{**base, **overrides})

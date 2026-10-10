@@ -132,6 +132,26 @@ MATCH_EVENTS = frozenset(
     }
 )
 _NO_ACTOR = frozenset({Action.PERIOD_START, Action.PERIOD_END, Action.ADDED_TIME_ANNOUNCED})
+_NOT_FOR_MATCH_EVENTS = (
+    "start_x",
+    "start_y",
+    "end_x",
+    "end_y",
+    "outcome",
+    "receiver",
+    "under_pressure",
+    "body_part",
+)
+_REQUIRED_FOR_ON_BALL = (
+    "player",
+    "team",
+    "start_x",
+    "start_y",
+    "end_x",
+    "end_y",
+    "outcome",
+    "under_pressure",
+)
 
 
 class Event(_Record):
@@ -180,56 +200,50 @@ class Event(_Record):
     @model_validator(mode="after")
     def _shape_matches_the_action(self):
         if self.action in MATCH_EVENTS:
-            unexpected = [
-                name
-                for name in (
-                    "start_x",
-                    "start_y",
-                    "end_x",
-                    "end_y",
-                    "outcome",
-                    "receiver",
-                    "under_pressure",
-                    "body_part",
-                )  # fmt: skip
-                if getattr(self, name) is not None
-            ]
-            if unexpected:
-                raise ValueError(f"{self.action} must not set {', '.join(unexpected)}")
-            if self.action in _NO_ACTOR:
-                if self.player is not None or self.team is not None:
-                    raise ValueError(f"{self.action} has no player or team")
-            elif self.player is None or self.team is None:
-                raise ValueError(f"{self.action} needs a player and a team")
-            if self.player_on is not None and self.action is not Action.SUBSTITUTION:
-                raise ValueError("player_on is set only for a substitution")
-            if self.action is Action.ADDED_TIME_ANNOUNCED:
-                if self.added_time_ms is None:
-                    raise ValueError("added_time_announced needs added_time_ms")
-            elif self.added_time_ms is not None:
-                raise ValueError("added_time_ms is set only for added_time_announced")
+            self._validate_match_event_fields()
+            self._validate_actor()
         else:
-            missing = [
-                name
-                for name in (
-                    "player",
-                    "team",
-                    "start_x",
-                    "start_y",
-                    "end_x",
-                    "end_y",
-                    "outcome",
-                    "under_pressure",
-                )  # fmt: skip
-                if getattr(self, name) is None
-            ]
-            if missing:
-                raise ValueError(f"{self.action} needs {', '.join(missing)}")
-            if self.player_on is not None:
-                raise ValueError("player_on is set only for a substitution")
-            if self.added_time_ms is not None:
-                raise ValueError("added_time_ms is set only for added_time_announced")
+            self._validate_on_ball_fields()
+        self._validate_player_on()
+        self._validate_added_time()
         return self
+
+    def _set_fields(self, names: tuple[str, ...]) -> list[str]:
+        return [n for n in names if getattr(self, n) is not None]
+
+    def _unset_fields(self, names: tuple[str, ...]) -> list[str]:
+        return [n for n in names if getattr(self, n) is None]
+
+    def _validate_match_event_fields(self) -> None:
+        """A roster or clock event carries no positions, outcome or ball detail."""
+        unexpected = self._set_fields(_NOT_FOR_MATCH_EVENTS)
+        if unexpected:
+            raise ValueError(f"{self.action} must not set {', '.join(unexpected)}")
+
+    def _validate_on_ball_fields(self) -> None:
+        """An on-ball action needs its actor, where it happened and how it ended."""
+        missing = self._unset_fields(_REQUIRED_FOR_ON_BALL)
+        if missing:
+            raise ValueError(f"{self.action} needs {', '.join(missing)}")
+
+    def _validate_actor(self) -> None:
+        """Period events and the announcement have no actor; the other match events need both."""
+        if self.action in _NO_ACTOR:
+            if self.player is not None or self.team is not None:
+                raise ValueError(f"{self.action} has no player or team")
+        elif self.player is None or self.team is None:
+            raise ValueError(f"{self.action} needs a player and a team")
+
+    def _validate_player_on(self) -> None:
+        if self.player_on is not None and self.action is not Action.SUBSTITUTION:
+            raise ValueError("player_on is set only for a substitution")
+
+    def _validate_added_time(self) -> None:
+        if self.action is Action.ADDED_TIME_ANNOUNCED:
+            if self.added_time_ms is None:
+                raise ValueError("added_time_announced needs added_time_ms")
+        elif self.added_time_ms is not None:
+            raise ValueError("added_time_ms is set only for added_time_announced")
 
 
 # --- read-time coordinate normalisation ----------------------------------------------------------
