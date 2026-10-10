@@ -24,7 +24,7 @@ Update the **Status** column when a ticket moves. Statuses: `todo`, `wip`, `done
 | F1 | Repo skeleton, module boundaries, config loading | 0.5 | — | T1 | done | ✅ |
 | F2 | Match-record models: Match, Team, Player, Event, Frame | 1 | F1 | T1 | done | ✅ |
 | 🤝 F3 | Seeded simulator: frames + ~1,800 events, one archetype | 2 | F2 | T1 | done | ✅ |
-| F4 | Replay harness: load a match, step the clock, variable speed | 0.5 | F3 | T1 | todo | ✅ |
+| F4 | Replay harness: load a match, step the clock, variable speed | 0.5 | F3 | T1 | done | ✅ |
 
 ## Phase 1 · Walking skeleton — days 3–5
 *Ships: all modules present, mostly stubbed. One hardcoded moment flows source → delivery → browser. **Deployed.***

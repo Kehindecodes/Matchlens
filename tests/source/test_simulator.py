@@ -43,9 +43,11 @@ def test_same_seed_is_byte_identical():
 
 def test_simulator_uses_no_global_rng_and_no_wall_time():
     for path in (REPO / "matchlens" / "source").glob("*.py"):
+        if path.name == "replay.py":
+            continue  # the pacing layer reads wall time by design; it is injected, see F4
         text = path.read_text()
         assert not re.search(r"^\s*(import random|from random)\b", text, re.M), path
-        assert not re.search(r"np\.random\.(?!default_rng|Generator)", text), path
+        assert not re.search(r"\b(?:np|numpy)\.random\.(?!default_rng\b|Generator\b)", text), path
         assert not re.search(r"\b(time\.time|perf_counter|monotonic|datetime\.now|utcnow)\b", text)
 
 
