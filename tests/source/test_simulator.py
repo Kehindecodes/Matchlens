@@ -4,6 +4,8 @@ import re
 from pathlib import Path
 from statistics import mean, pstdev
 
+import pytest
+
 from matchlens.config.settings import settings
 from matchlens.models import Action, Event, Frame, Outcome, Phase
 from matchlens.source.archetypes import COMEBACK
@@ -15,7 +17,7 @@ INTERVAL_MS = 1000 // settings.frame_rate_hz
 MIN = 60_000
 ON_BALL = [a for a in Action if a not in {
     Action.SUBSTITUTION, Action.RED_CARD, Action.YELLOW_CARD, Action.PERIOD_START,
-    Action.PERIOD_END,
+    Action.PERIOD_END, Action.ADDED_TIME_ANNOUNCED,
 }]  # fmt: skip
 REPO = Path(__file__).resolve().parents[2]
 
@@ -192,6 +194,20 @@ def test_period_events_bracket_both_halves(match_1):
     assert 0 < starts[0].clock_ms < INTERVAL_MS // 2
     assert starts[0].clock_ms < ends[0].clock_ms <= starts[1].clock_ms < ends[1].clock_ms
     assert 45 * MIN < ends[0].clock_ms < 49 * MIN
+
+
+def test_each_half_announces_its_added_time_before_it_ends(match_1):
+    announcements = [e for e in match_1.events if e.action is Action.ADDED_TIME_ANNOUNCED]
+    starts = [e for e in match_1.events if e.action is Action.PERIOD_START]
+    ends = [e for e in match_1.events if e.action is Action.PERIOD_END]
+    assert [e.period for e in announcements] == [1, 2]
+    for a, start, end in zip(announcements, starts, ends, strict=True):
+        assert a.player is None and a.team is None
+        assert a.added_time_ms is not None
+        assert a.added_time_ms >= MIN and a.added_time_ms % MIN == 0  # whole minutes, at least one
+        assert a.clock_ms - start.clock_ms == pytest.approx(45 * MIN, abs=INTERVAL_MS)
+        # the half does not end before the announced time has been played
+        assert end.clock_ms - a.clock_ms >= a.added_time_ms
 
 
 def test_archetype_has_a_double_substitution_at_a_single_clock(match_1):

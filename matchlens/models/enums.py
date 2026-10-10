@@ -35,6 +35,7 @@ class Action(StrEnum):
     YELLOW_CARD = "yellow_card"
     PERIOD_START = "period_start"
     PERIOD_END = "period_end"
+    ADDED_TIME_ANNOUNCED = "added_time_announced"
 
 
 class Outcome(StrEnum):

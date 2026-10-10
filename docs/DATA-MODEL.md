@@ -81,15 +81,18 @@ Selection must happen *after* the record is complete. If the log only held inter
 | `event_id` | **What claims cite as evidence** |
 | `seq` | Aligns the event to the frame stream |
 | `clock_ms`, `period` | |
-| `action` | See the `Action` enum. On-ball actions plus `substitution`, `red_card`, `yellow_card`, `period_start`, `period_end` — the positional fields are null for those |
+| `action` | See the `Action` enum. On-ball actions plus the match events `substitution`, `red_card`, `yellow_card`, `period_start`, `period_end`, `added_time_announced` — the positional fields are null for those |
 | `player`, `team` | |
 | `start_x`, `start_y`, `end_x`, `end_y` | Metres. For a shot, where it arrived |
 | `outcome` | `complete`, `incomplete`, `blocked`, `goal`, `saved`, … |
 | `receiver` | Intended or actual recipient, for passes |
 | `player_on` | The player coming on. **Set only for `substitution`**, where `player` is the one coming off. Null for a red card or an injury with no replacement. Explicit pairing rather than two paired events, because a double substitution at one clock would otherwise be ambiguous — and the 58:00 double change is the hinge of the demo narrative |
+| `added_time_ms` | How much added time the fourth official announced. **Set only for `added_time_announced`.** Needed at announcement time, so it cannot wait to be derived from `period_end` |
 | `under_pressure` | Whether an opponent was within pressing distance at execution. **Generator-set** |
 | `body_part` | Foot, head, other. Feeds shot quality |
 | `frame_ref` | The frame this aligns to, so positional context can be recovered |
+
+> **Rule of three on action-specific fields.** `receiver`, `player_on` and `added_time_ms` are each nullable and meaningful for one action. Three is the limit. **A fourth is the signal to switch to a discriminated payload union** — `ShotDetail`, `SubstitutionDetail`, `AddedTimeDetail` under one `detail` field — rather than widening `Event` again. Do not do that refactor pre-emptively; do it the moment a fourth is needed.
 
 ---
 
@@ -286,7 +289,7 @@ Every closed set in the model, named. **Closed sets are enums, not strings** —
 | Type | Values | Used by |
 |---|---|---|
 | `Phase` | `in_play` · `stopped` · `set_piece` | `Frame.phase` |
-| `Action` | **On-ball:** `pass` · `carry` · `shot` · `tackle` · `interception` · `clearance` · `block` · `aerial_duel` · `save` · `foul` · `throw_in` · `corner` · `goal_kick` · `free_kick` · `penalty`<br>**Match events (D16):** `substitution` · `red_card` · `yellow_card` · `period_start` · `period_end` | `Event.action`. The match events drive the derived roster and the epoch triggers |
+| `Action` | **On-ball:** `pass` · `carry` · `shot` · `tackle` · `interception` · `clearance` · `block` · `aerial_duel` · `save` · `foul` · `throw_in` · `corner` · `goal_kick` · `free_kick` · `penalty`<br>**Match events (D16):** `substitution` · `red_card` · `yellow_card` · `period_start` · `period_end` · `added_time_announced` | `Event.action`. The match events drive the derived roster and the epoch triggers |
 | `Outcome` | `complete` · `incomplete` · `blocked` · `goal` · `saved` · `off_target` · `won` · `lost` · `out_of_play` | `Event.outcome` |
 | `BodyPart` | `left_foot` · `right_foot` · `head` · `other` | `Event.body_part` |
 | `Zone` | `defensive_third` · `middle_third` · `final_third` | `Possession.start_zone`, `end_zone` |

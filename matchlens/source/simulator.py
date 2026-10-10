@@ -128,8 +128,13 @@ class _Engine:
         self.sides = [self._make_side(i, sq) for i, sq in enumerate((home, away))]
         self.match_id = match_id
 
-        added1, added2 = rng.uniform(60, 150), rng.uniform(180, 270)
-        self.period_ticks = {1: self._ticks(45 * 60 + added1), 2: self._ticks(45 * 60 + added2)}
+        added = {1: rng.uniform(60, 150), 2: rng.uniform(180, 270)}
+        # The fourth official announces whole minutes, at least one, and play never ends before
+        # the announced time has been played, so the half is stretched by two seconds if needed.
+        self.announced_ms = {p: max(int(a // 60), 1) * 60_000 for p, a in added.items()}
+        added = {p: max(a, self.announced_ms[p] / 1000 + 2.0) for p, a in added.items()}
+        self.regulation_ticks = self._ticks(45 * 60)
+        self.period_ticks = {p: self._ticks(45 * 60 + a) for p, a in added.items()}
 
         def idx(side: str) -> int:
             return 0 if side == "home" else 1
@@ -242,6 +247,13 @@ class _Engine:
                 if k == 0:
                     self._emit(Action.PERIOD_START, None, None)
                 self._step()
+                if k == self.regulation_ticks:
+                    self._emit(
+                        Action.ADDED_TIME_ANNOUNCED,
+                        None,
+                        None,
+                        added_time_ms=self.announced_ms[period],
+                    )
                 if k == n - 1:
                     self._emit(Action.PERIOD_END, None, None)
                 yield from self._flush()
@@ -450,6 +462,7 @@ class _Engine:
         body: BodyPart | None = None,
         pressure: bool | None = None,
         player_on: str | None = None,
+        added_time_ms: int | None = None,
         offset: int | None = None,
     ) -> None:
         if offset is None:
@@ -471,6 +484,7 @@ class _Engine:
                 outcome=outcome,
                 receiver=receiver,
                 player_on=player_on,
+                added_time_ms=added_time_ms,
                 under_pressure=pressure,
                 body_part=body,
                 frame_ref=self.frame_seq,

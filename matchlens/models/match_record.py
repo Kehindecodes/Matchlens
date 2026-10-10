@@ -128,22 +128,50 @@ MATCH_EVENTS = frozenset(
         Action.YELLOW_CARD,
         Action.PERIOD_START,
         Action.PERIOD_END,
+        Action.ADDED_TIME_ANNOUNCED,
     }
 )
-_NO_ACTOR = frozenset({Action.PERIOD_START, Action.PERIOD_END})
+_NO_ACTOR = frozenset({Action.PERIOD_START, Action.PERIOD_END, Action.ADDED_TIME_ANNOUNCED})
+_NOT_FOR_MATCH_EVENTS = (
+    "start_x",
+    "start_y",
+    "end_x",
+    "end_y",
+    "outcome",
+    "receiver",
+    "under_pressure",
+    "body_part",
+)
+_REQUIRED_FOR_ON_BALL = (
+    "player",
+    "team",
+    "start_x",
+    "start_y",
+    "end_x",
+    "end_y",
+    "outcome",
+    "under_pressure",
+)
 
 
 class Event(_Record):
     """One entry in the match log: an on-ball action, or a match event (D16).
 
     Every on-ball action is recorded, not just the interesting ones. Match events are
-    `substitution`, `red_card`, `yellow_card`, `period_start` and `period_end`; they change the
-    roster or the clock, and their positional fields, `outcome`, `under_pressure`, `receiver` and
-    `body_part` are null.
+    `substitution`, `red_card`, `yellow_card`, `period_start`, `period_end` and
+    `added_time_announced`; they change the roster or the clock, and their positional fields,
+    `outcome`, `under_pressure`, `receiver` and `body_part` are null.
 
     `player` is the actor. For a substitution it is the player coming *off*, and `player_on` is
     the one coming on (null for a replacement-less injury). `player` and `team` are null only for
-    the period events. `player_on` is null for every other action.
+    the period events and the added-time announcement. `player_on` is null for every other action.
+    `added_time_ms` is how much added time the fourth official announced, and is set only for
+    `added_time_announced` (it is needed when announced, so it cannot wait to be derived from
+    `period_end`).
+
+    Three action-specific nullable fields (`receiver`, `player_on`, `added_time_ms`) is the limit.
+    A fourth is the signal to move them into a discriminated `detail` union rather than widening
+    this model again (docs/DATA-MODEL.md).
 
     `frame_ref` is the `seq` of the Frame this event aligns to. It is mandatory, so positional
     context is always recoverable. `receiver` is set for passes; `body_part` for actions where
@@ -164,6 +192,7 @@ class Event(_Record):
     outcome: Outcome | None
     receiver: str | None
     player_on: str | None  # substitutions only
+    added_time_ms: ClockMs | None  # added_time_announced only
     under_pressure: bool | None  # generator-set
     body_part: BodyPart | None
     frame_ref: Annotated[int, Field(ge=0)]
@@ -171,49 +200,50 @@ class Event(_Record):
     @model_validator(mode="after")
     def _shape_matches_the_action(self):
         if self.action in MATCH_EVENTS:
-            unexpected = [
-                name
-                for name in (
-                    "start_x",
-                    "start_y",
-                    "end_x",
-                    "end_y",
-                    "outcome",
-                    "receiver",
-                    "under_pressure",
-                    "body_part",
-                )  # fmt: skip
-                if getattr(self, name) is not None
-            ]
-            if unexpected:
-                raise ValueError(f"{self.action} must not set {', '.join(unexpected)}")
-            if self.action in _NO_ACTOR:
-                if self.player is not None or self.team is not None:
-                    raise ValueError(f"{self.action} has no player or team")
-            elif self.player is None or self.team is None:
-                raise ValueError(f"{self.action} needs a player and a team")
-            if self.player_on is not None and self.action is not Action.SUBSTITUTION:
-                raise ValueError("player_on is set only for a substitution")
+            self._validate_match_event_fields()
+            self._validate_actor()
         else:
-            missing = [
-                name
-                for name in (
-                    "player",
-                    "team",
-                    "start_x",
-                    "start_y",
-                    "end_x",
-                    "end_y",
-                    "outcome",
-                    "under_pressure",
-                )  # fmt: skip
-                if getattr(self, name) is None
-            ]
-            if missing:
-                raise ValueError(f"{self.action} needs {', '.join(missing)}")
-            if self.player_on is not None:
-                raise ValueError("player_on is set only for a substitution")
+            self._validate_on_ball_fields()
+        self._validate_player_on()
+        self._validate_added_time()
         return self
+
+    def _set_fields(self, names: tuple[str, ...]) -> list[str]:
+        return [n for n in names if getattr(self, n) is not None]
+
+    def _unset_fields(self, names: tuple[str, ...]) -> list[str]:
+        return [n for n in names if getattr(self, n) is None]
+
+    def _validate_match_event_fields(self) -> None:
+        """A roster or clock event carries no positions, outcome or ball detail."""
+        unexpected = self._set_fields(_NOT_FOR_MATCH_EVENTS)
+        if unexpected:
+            raise ValueError(f"{self.action} must not set {', '.join(unexpected)}")
+
+    def _validate_on_ball_fields(self) -> None:
+        """An on-ball action needs its actor, where it happened and how it ended."""
+        missing = self._unset_fields(_REQUIRED_FOR_ON_BALL)
+        if missing:
+            raise ValueError(f"{self.action} needs {', '.join(missing)}")
+
+    def _validate_actor(self) -> None:
+        """Period events and the announcement have no actor; the other match events need both."""
+        if self.action in _NO_ACTOR:
+            if self.player is not None or self.team is not None:
+                raise ValueError(f"{self.action} has no player or team")
+        elif self.player is None or self.team is None:
+            raise ValueError(f"{self.action} needs a player and a team")
+
+    def _validate_player_on(self) -> None:
+        if self.player_on is not None and self.action is not Action.SUBSTITUTION:
+            raise ValueError("player_on is set only for a substitution")
+
+    def _validate_added_time(self) -> None:
+        if self.action is Action.ADDED_TIME_ANNOUNCED:
+            if self.added_time_ms is None:
+                raise ValueError("added_time_announced needs added_time_ms")
+        elif self.added_time_ms is not None:
+            raise ValueError("added_time_ms is set only for added_time_announced")
 
 
 # --- read-time coordinate normalisation ----------------------------------------------------------

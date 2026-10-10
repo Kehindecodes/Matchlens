@@ -188,6 +188,7 @@ class Replay:
 _KEY_ACTIONS = {
     Action.PERIOD_START,
     Action.PERIOD_END,
+    Action.ADDED_TIME_ANNOUNCED,
     Action.SUBSTITUTION,
     Action.RED_CARD,
     Action.YELLOW_CARD,
@@ -205,6 +206,8 @@ def _describe(e: Event, names: dict[str, str], shorts: dict[str, str]) -> str:
         return f"Kick off, half {e.period}"
     if e.action is Action.PERIOD_END:
         return f"End of half {e.period}"
+    if e.action is Action.ADDED_TIME_ANNOUNCED:
+        return f"Added time announced: {(e.added_time_ms or 0) // 60_000} min"
     if e.action is Action.SUBSTITUTION:
         return f"{team}  sub: {who} off, {names.get(e.player_on or '', '?')} on"
     if e.action in (Action.RED_CARD, Action.YELLOW_CARD):

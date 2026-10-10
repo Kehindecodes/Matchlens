@@ -19,6 +19,8 @@ from matchlens.models import (
     normalise_xy,
 )
 
+NO_ACTOR_EVENTS = (Action.PERIOD_START, Action.PERIOD_END, Action.ADDED_TIME_ANNOUNCED)
+
 
 def make_team(team_id="t-home", *, is_home=True, direction=1):
     return Team(
@@ -94,6 +96,7 @@ def make_event(**overrides):
         body_part=BodyPart.RIGHT_FOOT,
         frame_ref=10,
         player_on=None,
+        added_time_ms=None,
     )
     return Event(**{**base, **overrides})
 
@@ -118,6 +121,7 @@ def make_match_event(action, **overrides):
         body_part=None,
         frame_ref=10,
         player_on=None,
+        added_time_ms=None,
     )
     return Event(**{**base, **overrides})
 
@@ -266,11 +270,12 @@ def test_substitution_without_a_replacement_is_legal():
         Action.YELLOW_CARD,
         Action.PERIOD_START,
         Action.PERIOD_END,
+        Action.ADDED_TIME_ANNOUNCED,
     ],
 )
 def test_match_events_round_trip_with_null_positional_fields(action):
-    kwargs = (
-        {"player": None, "team": None} if action in (Action.PERIOD_START, Action.PERIOD_END) else {}
+    kwargs = ({"player": None, "team": None} if action in NO_ACTOR_EVENTS else {}) | (
+        {"added_time_ms": 180_000} if action is Action.ADDED_TIME_ANNOUNCED else {}
     )
     e = make_match_event(action, **kwargs)
     assert Event.model_validate_json(e.model_dump_json()) == e
@@ -295,6 +300,53 @@ def test_period_events_have_no_actor_but_cards_and_substitutions_do():
     for action in (Action.SUBSTITUTION, Action.RED_CARD, Action.YELLOW_CARD):
         with pytest.raises(ValidationError):
             make_match_event(action, player=None)
+
+
+@pytest.mark.parametrize("missing", ["player", "team"])
+def test_cards_and_substitutions_need_both_a_player_and_a_team(missing):
+    for action in (Action.SUBSTITUTION, Action.RED_CARD, Action.YELLOW_CARD):
+        with pytest.raises(ValidationError):
+            make_match_event(action, **{missing: None})
+
+
+def announce(**overrides):
+    base = dict(player=None, team=None, added_time_ms=180_000)
+    return make_match_event(Action.ADDED_TIME_ANNOUNCED, **{**base, **overrides})
+
+
+def test_the_added_time_announcement_carries_how_many_minutes_were_added():
+    e = announce(added_time_ms=240_000)
+    assert e.added_time_ms == 240_000
+    assert e.player is None and e.team is None
+
+
+def test_the_announcement_must_say_how_much_time_was_added():
+    with pytest.raises(ValidationError):
+        announce(added_time_ms=None)
+
+
+def test_added_time_cannot_be_negative():
+    with pytest.raises(ValidationError):
+        announce(added_time_ms=-1)
+
+
+def test_added_time_ms_is_set_only_for_the_announcement():
+    for action in (Action.RED_CARD, Action.YELLOW_CARD, Action.PERIOD_END, Action.SUBSTITUTION):
+        with pytest.raises(ValidationError):
+            make_match_event(action, added_time_ms=60_000)
+    with pytest.raises(ValidationError):
+        make_event(added_time_ms=60_000)
+
+
+def test_the_announcement_has_no_actor_and_no_positions():
+    for field, value in (
+        ("player", "p-9"),
+        ("team", "t-home"),
+        ("start_x", 1.0),
+        ("outcome", Outcome.GOAL),
+    ):
+        with pytest.raises(ValidationError):
+            announce(**{field: value})
 
 
 # --- coordinate normalisation ------------------------------------------------
