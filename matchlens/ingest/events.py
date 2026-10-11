@@ -20,7 +20,7 @@ class EventRepository(Protocol):
         ...
 
 
-class InMemoryEventRepository:
+class InMemoryEventRepository(EventRepository):
     def __init__(self) -> None:
         self._events: list[Event] = []
         self._clocks: list[int] = []
