@@ -45,7 +45,7 @@ Newest at the top. Kehinde answers inline and moves the resolved ones to `docs/D
 
 **What I did, so you can reverse it:** docstrings are the table sentences verbatim, and `test_docstring_is_the_architecture_sentence` reads them from `docs/ARCHITECTURE.md`, so editing the table is the one place to change them. The literal criterion is `test_responsibility_has_no_and`, with these five marked `xfail(strict=True)`. Once you pick, update the table and remove the entries from `_HAS_AND` in `tests/test_components.py`.
 
-**Answer:**
+**Answer:** Settled by D17. Personalization splits into Selection and Rendering (13 → 14 components), and the rule is restated: an "and" is a smell, tested by whether the halves fail independently, not banned. Ingest and Understanding keep theirs deliberately. In S1 the literal no-"and" test is removed and the stubs follow the new table.
 
 ## Q4 · S1's signatures need seven entity types that no ticket has modelled, and one of them is `Claim`  [ticket: S1]  [blocking: yes]
 

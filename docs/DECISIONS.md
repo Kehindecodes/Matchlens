@@ -167,6 +167,59 @@ Recommended over two paired events (`substitution_off` / `substitution_on`) beca
 
 ---
 
+## D17 · Personalization splits into Selection and Rendering — SETTLED 11 Oct
+
+The component table's own rule caught this one: *"Selects **and** renders the surviving claim set for one lens"* was two jobs in one row.
+
+**Component 7 becomes Selection — chooses which verified claims one lens shows. Component 8 becomes Rendering — turns one lens's selected claims into a rendition.** The count goes 13 → 14.
+
+### Why this is a real split and not bookkeeping
+
+**They fail independently.** Selection is deterministic logic over lens config: scope dispatch, `importance_threshold`, `max_cards_per_10min`, `allowed_claim_types`. Rendering turns a claim set into words — templates at L1, an agent at L0. A selection bug shows the wrong claims; a rendering bug reads badly. Different tests, different fixes.
+
+**The backlog already built them separately.** `L2` is selection, `L3` is rendering, and `L3` depends on `L2`. The architecture doc was lagging the plan, not the other way round.
+
+**It exposes the property that matters most to a buyer.** Trace the degradation ladder: `A4` and `A5` both depend on `L3`. Every model call lives in Rendering. **Selection is model-free by construction**, so a model outage can change how a card reads but can never change which claims a lens shows. Welded into one component, that guarantee is invisible and easy to break by accident.
+
+### Consequences
+
+- `S1`'s signatures become `select(moment, claims, lens) -> list[Claim]` and `render(moment, selected, lens) -> Rendition`. They compose; one `render()` doing both did not.
+- The module `personalization/` becomes `selection/` and `rendering/`.
+- **Selection writes nothing.** It passes a claim subset in process. `Rendition` is written once, by Rendering — so this adds a component boundary, not a storage boundary.
+- A lens whose subset comes back empty **still gets a rendition**, carrying the `suppression_reason` Selection resolved. Invariant 11 is unchanged and now has an unambiguous owner.
+- `L6` (team scope) spans both components — importance reweight is Selection, partisan framing is Rendering. That is fine; tickets need not map one-to-one onto components.
+
+**Timing was the deciding factor.** No code exists yet, so the whole cost was paid in markdown. After `S1` lands this split means moving modules.
+
+### The rule itself was restated
+
+"No 'and' in the sentence" is a syntax rule, and a syntax rule is satisfied by deleting the word — "Produces a rendition for one lens" reads clean and hides both jobs. The rule now tests independent failure instead, and says explicitly: rewrite the sentence, do not just delete the conjunction.
+
+**Components 2 and 3 keep their "and" under the restated rule.** Ingest's boundary enforcement is a consequence of exclusive ownership, not a second job — split it and you get a gatekeeper wrapping a buffer that can be bypassed by calling the buffer directly. Understanding's "possessions, shot quality, signal readings" is a list of objects, not verbs: one transformation over three quantities is one responsibility.
+
+---
+
+## D18 · Ingest is the sole writer of the raw record — SETTLED 11 Oct
+
+The component table said Ingest *"holds the recent frame window in memory and enforces the frame access boundary"* and said nothing about persistence. Step 2 of the data flow said Ingest *"persists events."* The ownership table said `Frame` and `Event` are written by *"Match Source (via Ingest)"* — naming two components for one entity, which breaks the single-writer rule that table exists to state.
+
+**Settled: Ingest writes `Match`, `Team`, `Player`, `Frame` and `Event`. Match Source produces a stream and writes nothing.**
+
+### Why Ingest and not Match Source
+
+A producer that also persists is a producer you cannot swap. The entire point of Match Source being one component is that the seeded simulator is replaced by a real provider feed later without anything downstream noticing. If Source writes, that swap drags storage concerns into the adapter.
+
+Ingest is the intake boundary, so it is the natural single custodian of **everything raw** — whether that record is an ephemeral in-memory frame window or a durable append-only event log. Those differ in storage tier and lifetime, not in ownership.
+
+### Consequences
+
+- The ownership table row reads **Ingest**, and the count of writing components goes 9 → 8.
+- `S2` owns event persistence. This was already true in practice; it is now written down.
+- A future real-feed adapter replaces Match Source only. Nothing about persistence moves.
+- This does **not** change component 2's one-sentence responsibility, which stays as written — "sole owner of the raw record" is what the existing sentence already means, and the frame access boundary is the load-bearing half.
+
+---
+
 # OPEN — Kehinde decides
 
 ## O9 · After a break, blend the thin window against what?

@@ -96,7 +96,7 @@ This is also the ticket that produces the clearest evidence for the pitch: one a
 Operationally the most important orchestration lesson and the cheapest. What happens when a model times out, rate-limits, or returns something unusable. Mostly free because L1 was built first — but **you want the fallback logic in your own hands**, because this is the part that decides whether the demo survives a bad afternoon.
 
 ### 🧑 S6 · Tracing — 0.5 day
-You cannot reason about agent handoffs you cannot see. One trace per moment across spotter → explainer → verifier → personalizer teaches you the real shape of your system, as opposed to the shape you drew.
+You cannot reason about agent handoffs you cannot see. One trace per moment across spotter → explainer → verifier → selection → rendering teaches you the real shape of your system, as opposed to the shape you drew.
 
 The part that always breaks — **trace context not propagating across the broker** — is itself the distributed-systems lesson.
 
@@ -107,7 +107,7 @@ Guards against the generator and the signals quietly co-adapting. Subtle and tra
 
 ## Also yours, though not tickets
 
-**Wire S4 by hand.** Pushing one hardcoded moment through all thirteen components is how you *feel* why the walking skeleton beats stage-by-stage building. Reading about it does not do that.
+**Wire S4 by hand.** Pushing one hardcoded moment through all fourteen components is how you *feel* why the walking skeleton beats stage-by-stage building. Reading about it does not do that.
 
 **🤝 Own F3's determinism test.** Delegate two days of football modelling; spend thirty minutes writing the byte-identical-match test. The lesson is in the property, not the implementation.
 

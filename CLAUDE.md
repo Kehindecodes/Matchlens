@@ -11,7 +11,7 @@ Solo entry to the Microsoft Premier League Hackathon ("Inside the Game").
 
 | File | What it holds |
 |---|---|
-| `docs/ARCHITECTURE.md` | The 13 components, their one-sentence responsibilities, how data moves |
+| `docs/ARCHITECTURE.md` | The 14 components, their one-sentence responsibilities, how data moves |
 | `docs/DATA-MODEL.md` | All 22 entities and their attributes |
 | `docs/RELATIONSHIPS.md` | How they connect, with cardinalities. Several enforce an invariant below — read it before modelling |
 | `docs/DECISIONS.md` | Settled decisions and the reasoning. **Do not relitigate these.** |
@@ -144,7 +144,8 @@ matchlens/
   spotting/          spotter, suppression
   explanation/       explainer agent (claims, never prose)
   verification/      the six checks
-  personalization/   scope dispatch, thresholds, rate limits, renderers
+  selection/         scope dispatch, thresholds, rate limits — no model calls, ever
+  rendering/         template renderers, then lens-aware generation
   catchup/           late-join summary per lens
   delivery/          SSE, per-session release queue, session clock
   lenses/            registry and the three presets
