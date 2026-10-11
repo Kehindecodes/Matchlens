@@ -39,7 +39,7 @@ There is also a semantic question inside it, which is A1's to settle either way:
 
 **What I did, so you can reverse it:** A. There is no `frozen_log` anywhere. `RecordReader` has `events_between`, which returns a tuple, so a later append cannot change what a reader already holds (`test_a_range_is_a_snapshot`). S2 is marked `wip`, not `done`, until this and `test_agents_cannot_reach_frames` are settled.
 
-**Answer:**
+**Answer:** A. Kehinde: S2 stops at the groundwork, and the criterion is dropped from S2. `frozen_log`, its no-future test and the inclusive/strict choice all belong to A1.
 
 ## Q5 · Five of the 13 architecture sentences contain "and"  [ticket: S1]  [blocking: no]
 
