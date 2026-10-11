@@ -24,6 +24,23 @@ Newest at the top. Kehinde answers inline and moves the resolved ones to `docs/D
 
 ---
 
+## Q6 · S2 asks for a `frozen_log` test, but the frozen-log reader is A1, which is yours  [ticket: S2]  [blocking: no]
+
+**What I need to know:** Whether S2 should build `frozen_log(clock_ms)` at all. S2's last criterion is "a test asserts `frozen_log(clock_ms)` returns nothing with `clock_ms` greater than the argument — the groundwork A1 builds on". But A1 is 🧑 ("Frozen-log reader: events strictly before clock X"), and `docs/LEARNING-PLAN.md` says the as-of read is exactly the lesson of A1. Writing `frozen_log` in S2 would write A1 for you.
+
+There is also a semantic question inside it, which is A1's to settle either way: **inclusive or strict.** The S2 criterion ("nothing greater than the argument") and the verifier's temporal check ("nothing cited from *after* the clock") allow an event *at* the clock, so a goal moment can cite its own goal. A1's title and `ARCHITECTURE.md` say "strictly before", which would exclude it.
+
+**Why I cannot decide it:** it is a 🧑 ticket (CLAUDE.md: do not implement it, not even if it is blocking), and the inclusive/strict choice changes what the explainer can see.
+
+**Options as I see them:**
+- A: S2 stops at the groundwork. `RecordReader.events_between(from, to)` is a half-open clock-range read with a snapshot guarantee, and A1 builds `frozen_log` and its no-future test on top. Drop the criterion from S2.
+- B: Move the criterion into A1's brief, word for word, so it is not lost.
+- C: S2 builds `frozen_log` as the criterion says, and A1 shrinks to the explainer-side test. Costs the lesson the learning plan reserves.
+
+**What I did, so you can reverse it:** A. There is no `frozen_log` anywhere. `RecordReader` has `events_between`, which returns a tuple, so a later append cannot change what a reader already holds (`test_a_range_is_a_snapshot`). S2 is marked `wip`, not `done`, until this and `test_agents_cannot_reach_frames` are settled.
+
+**Answer:**
+
 ## Q5 · Five of the 13 architecture sentences contain "and"  [ticket: S1]  [blocking: no]
 
 **What I need to know:** How to settle S1's criterion "each has its architecture-table sentence as its docstring, with no 'and' in it". The two halves conflict for five components, because the table they are copied from has an "and" in five sentences:
