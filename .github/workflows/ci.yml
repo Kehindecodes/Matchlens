@@ -1,5 +1,4 @@
-# The CI half of S5: every push and PR runs a pinned install, lint, format check, type check and
-# tests. Build, push to ACR and deploy on merge to main land with the rest of S5.
+
 name: CI
 
 on:
