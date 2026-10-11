@@ -15,7 +15,7 @@ No code is written yet. What exists is the design, settled decisions, and a depe
 ```
 CLAUDE.md               Invariants, vocabulary, stack, and who decides what. Read first.
 docs/
-  ARCHITECTURE.md       13 components, data flow, single-writer ownership
+  ARCHITECTURE.md       14 components, data flow, single-writer ownership
   DATA-MODEL.md         22 entities and their attributes
   RELATIONSHIPS.md      The ERD, cardinalities, and the ones that enforce an invariant
   DECISIONS.md          Settled decisions + the OPEN ones awaiting Kehinde
@@ -42,7 +42,7 @@ Tickets from Phase 2 onward have a one-line spec in `BACKLOG.md` and no file yet
 >
 > Before you begin: `F1` defines `frame_rate_hz` in config, and **D13 in DECISIONS.md is unresolved**. Do not pick a value. Add the setting, leave the value to me, and note it in `docs/QUESTIONS.md` if it blocks you.
 
-The build order is F1 → F2 → F3 → F4, then S1 → S2 → S3 → S4 → S5. **S4 is the milestone that matters**: one hardcoded moment travelling through all thirteen components into a browser. After that there is always something to look at.
+The build order is F1 → F2 → F3 → F4, then S1 → S2 → S3 → S4 → S5. **S4 is the milestone that matters**: one hardcoded moment travelling through all fourteen components into a browser. After that there is always something to look at.
 
 ---
 

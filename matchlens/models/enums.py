@@ -66,3 +66,103 @@ class RefKind(StrEnum):
     MOMENT = "moment"
     RENDITION = "rendition"
     LENS = "lens"
+
+
+# --- group B: derived understanding --------------------------------------------------------------
+
+
+class Zone(StrEnum):
+    DEFENSIVE_THIRD = "defensive_third"
+    MIDDLE_THIRD = "middle_third"
+    FINAL_THIRD = "final_third"
+
+
+class PossessionOutcome(StrEnum):
+    SHOT = "shot"
+    TURNOVER = "turnover"
+    FOUL = "foul"
+    OUT_OF_PLAY = "out_of_play"
+
+
+class Signal(StrEnum):
+    TERRITORY = "territory"
+    POSSESSION_CONTROL = "possession_control"
+    PRESSING_INTENSITY = "pressing_intensity"
+    CHANCE_QUALITY = "chance_quality"
+    LINE_HEIGHT = "line_height"
+
+
+class Trend(StrEnum):
+    RISING = "rising"
+    FALLING = "falling"
+    STEADY = "steady"
+
+
+class EpochTrigger(StrEnum):
+    GOAL = "goal"
+    RED_CARD = "red_card"
+    HALF_TIME = "half_time"
+
+
+# --- group C: editorial output -------------------------------------------------------------------
+# `Verdict` and `CheckName` belong to the `Claim` / six-check design and land with it.
+
+
+class MomentType(StrEnum):
+    GOAL = "goal"
+    CHANCE = "chance"
+    TACTICAL_SHIFT = "tactical_shift"
+    MILESTONE = "milestone"
+    PATTERN = "pattern"
+
+
+class ClaimType(StrEnum):
+    DESCRIPTIVE = "descriptive"
+    COMPARATIVE = "comparative"
+    INTERPRETIVE = "interpretive"
+
+
+class SuppressionReason(StrEnum):
+    """Declared in evaluation order: when several apply, the first one listed wins (D14)."""
+
+    OUT_OF_SCOPE = "out_of_scope"
+    MUTED = "muted"
+    DEGRADED = "degraded"
+    VERIFICATION_FAILED = "verification_failed"
+    CLAIMS_FILTERED_OUT = "claims_filtered_out"
+    BELOW_THRESHOLD = "below_threshold"
+    RATE_LIMITED = "rate_limited"
+
+
+# --- group D: delivery and configuration ---------------------------------------------------------
+
+
+class Scope(StrEnum):
+    MATCH = "match"
+    TEAM = "team"
+    PLAYER = "player"
+
+
+class Depth(StrEnum):
+    CASUAL = "casual"
+    ENGAGED = "engaged"
+    ANALYST = "analyst"
+
+
+class DetailLevel(StrEnum):
+    MINIMAL = "minimal"
+    STANDARD = "standard"
+    FULL = "full"
+
+
+class ProducerActionType(StrEnum):
+    SUPPRESS = "suppress"
+    HOLD = "hold"
+    RELEASE = "release"
+    PIN = "pin"
+
+
+class OverlayTemplate(StrEnum):
+    LOWER_THIRD = "lower_third"
+    STAT_BAR = "stat_bar"
+    TEAM_CARD = "team_card"

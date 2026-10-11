@@ -284,7 +284,7 @@ Signals must be checked against several archetypes, or the simulator and the sig
 
 ## Enumerated types
 
-Every closed set in the model, named. **Closed sets are enums, not strings** — the verifier's checks and the personalizer's dispatch both depend on these being exact, and a typo in a string field fails silently.
+Every closed set in the model, named. **Closed sets are enums, not strings** — the verifier's checks and Selection's scope dispatch both depend on these being exact, and a typo in a string field fails silently.
 
 | Type | Values | Used by |
 |---|---|---|
