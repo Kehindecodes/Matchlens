@@ -31,7 +31,7 @@ Update the **Status** column when a ticket moves. Statuses: `todo`, `wip`, `done
 
 | ID | Ticket | Est | Deps | Tier | Status | Brief |
 |---|---|---|---|---|---|---|
-| S1 | Thirteen module stubs with typed interfaces | 0.5 | F1 | T1 | todo | ✅ |
+| S1 | Thirteen module stubs with typed interfaces | 0.5 | F1 | T1 | done | ✅ |
 | 🤝 S2 | Ingest: frame window, event intake, **frame boundary test** | 1 | F3, S1 | T1 | todo | ✅ |
 | S3 | SSE endpoint, ViewerSession, page showing clock and score | 1 | S1 | T1 | todo | ✅ |
 | S4 | One hardcoded moment → rendition → SSE → card on screen | 0.5 | S2, S3 | T1 | todo | ✅ |
