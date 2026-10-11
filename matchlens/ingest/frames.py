@@ -1,9 +1,4 @@
-"""The frame window, and the only way to read it.
-
-Frames stop at Understanding (invariant 1). `FrameWindow` is private to Ingest; Understanding
-reads through `FrameAccess`, which Ingest hands out separately from the agent-facing record.
-Nothing here is ever written to storage.
-"""
+"""The frame window, and the only way to read it."""
 
 from collections import deque
 

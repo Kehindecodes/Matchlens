@@ -1,13 +1,14 @@
 """S2: Ingest accepts the stream, bounds the frame window and persists events.
 
-`test_agents_cannot_reach_frames` is Kehinde's to write (S2 is 🤝) and is deliberately absent.
+`test_agents_cannot_reach_frames` is Kehinde's (S2 is 🤝).
 """
 
 import pytest
 
 from matchlens.config.settings import settings
 from matchlens.ingest import Ingest, InMemoryEventRepository, RosterNotLoaded
-from matchlens.ingest.frames import FrameWindow
+from matchlens.ingest.frames import FrameAccess, FrameWindow
+from matchlens.ingest.record import RecordReader
 from matchlens.models import Event, Frame, Phase
 from tests.source.helpers import Played
 
@@ -171,3 +172,12 @@ def test_ingest_writes_to_the_repository_it_is_given(match_1: Played):
     for item in match_1.items[:200]:
         ingest.accept(item)
     assert len(repo) == sum(isinstance(i, Event) for i in match_1.items[:200])
+
+
+def test_agents_cannot_reach_frames(match_1: Played):
+    ingest = Ingest()
+    ingest.accept(item=match_1.setup)
+    record_reader: RecordReader = ingest.record()
+    frames_types = (Frame, FrameWindow, FrameAccess, Ingest)
+    has_match: bool = any(isinstance(value, frames_types) for value in vars(record_reader).values())
+    assert not has_match
