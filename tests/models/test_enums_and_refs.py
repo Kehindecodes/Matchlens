@@ -39,13 +39,14 @@ def test_ref_carries_kind_and_id_and_round_trips():
 
 
 def test_ref_accepts_kind_as_string_but_rejects_unknown_kind():
-    assert Ref(kind="team", id="t-1").kind is RefKind.TEAM
+    assert Ref(kind="team", id="t-1").kind is RefKind.TEAM  # pyright: ignore[reportArgumentType]
     with pytest.raises(ValidationError):
-        Ref(kind="stadium", id="x")
+        Ref(kind="stadium", id="x")  # pyright: ignore[reportArgumentType]
 
 
 def test_ref_is_hashable_and_immutable():
     ref = Ref(kind=RefKind.PLAYER, id="p-1")
-    assert {ref, Ref(kind=RefKind.PLAYER, id="p-1")} == {ref}
+    # frozen pydantic models are hashable at runtime; pyright cannot see the generated __hash__
+    assert {ref, Ref(kind=RefKind.PLAYER, id="p-1")} == {ref}  # pyright: ignore[reportUnhashable]
     with pytest.raises(ValidationError):
         ref.id = "p-2"

@@ -230,7 +230,9 @@ def test_from_seed_builds_the_same_stream_as_the_simulator():
     out = list(r)
     assert isinstance(out[0], MatchSetup)
     assert out[0].match.seed == 1
-    assert [i.seq for i in out[1:]] == list(range(len(out) - 1))
+    body = [i for i in out[1:] if isinstance(i, Frame | Event)]
+    assert len(body) == len(out) - 1
+    assert [i.seq for i in body] == list(range(len(out) - 1))
 
 
 # --- the CLI -----------------------------------------------------------------------------------

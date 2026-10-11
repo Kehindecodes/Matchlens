@@ -262,10 +262,11 @@ def normalise_xy(x: float, y: float, direction: AttackDirection) -> tuple[float,
 def normalise_event(event: Event, team: Team) -> Event:
     """`event` seen from `team`'s perspective in the event's period."""
     d = team.attack_direction(event.period)
-    if event.start_x is None:  # a match event has no position to normalise
-        return event.model_copy()
-    sx, sy = normalise_xy(event.start_x, event.start_y, d)
-    ex, ey = normalise_xy(event.end_x, event.end_y, d)
+    start_x, start_y, end_x, end_y = event.start_x, event.start_y, event.end_x, event.end_y
+    if start_x is None or start_y is None or end_x is None or end_y is None:
+        return event.model_copy()  # a match event has no position to normalise
+    sx, sy = normalise_xy(start_x, start_y, d)
+    ex, ey = normalise_xy(end_x, end_y, d)
     return event.model_copy(update={"start_x": sx, "start_y": sy, "end_x": ex, "end_y": ey})
 
 

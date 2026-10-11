@@ -50,14 +50,15 @@ class Replay:
         everything = list(items)
         if not everything or not isinstance(everything[0], MatchSetup):
             raise ValueError("the stream must start with the MatchSetup roster")
-        body = everything[1:]
+        body: list[Frame | Event] = []
         last_seq = -1
-        for item in body:
+        for item in everything[1:]:
             if not isinstance(item, Frame | Event):
                 raise ValueError(f"unexpected item in the stream: {type(item).__name__}")
             if item.seq <= last_seq:
                 raise ValueError("the stream must be in strictly increasing seq order")
             last_seq = item.seq
+            body.append(item)
         self.setup: MatchSetup = everything[0]
         self._items: Sequence[Frame | Event] = body
         self._clocks = [i.clock_ms for i in body]

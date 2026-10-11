@@ -5,10 +5,11 @@ match a real player (trademark risk, per DATA-MODEL).
 """
 
 from dataclasses import dataclass
+from typing import cast
 
 import numpy as np
 
-from matchlens.models import Player, Team
+from matchlens.models import AttackDirection, Player, Team
 
 PITCH_LENGTH_M = 105.0
 PITCH_WIDTH_M = 68.0
@@ -114,7 +115,9 @@ def build_squads(
             short_name=name[:3].upper(),
             formation=formation,
             is_home=is_home,
-            attack_direction_by_period={1: direction, 2: -direction},
+            attack_direction_by_period=cast(
+                dict[int, AttackDirection], {1: direction, 2: -direction}
+            ),
         )
         slots = FORMATIONS[formation]
         roles = [s.role for s in slots] + list(BENCH_ROLES)

@@ -248,6 +248,7 @@ def test_frame_player_count_drops_after_the_sending_off_and_is_never_hardcoded(m
 
 def test_nobody_acts_after_leaving_the_pitch(match_1):
     for e in on_ball_events(match_1):
+        assert e.player is not None
         assert was_on_pitch(match_1.windows, e.player, e.clock_ms), e
 
 
@@ -371,7 +372,7 @@ def test_the_archetype_scripts_a_comeback_with_an_equaliser_against_the_run_of_p
     # scoring team's own half.
     lo, hi = equaliser.clock_ms - 8 * MIN, equaliser.clock_ms - 45_000
     xs = [
-        attack_x(match_1, equaliser.team, f.period, f.ball_x)
+        attack_x(match_1, home.team_id, f.period, f.ball_x)
         for f in match_1.frames
         if lo <= f.clock_ms < hi and f.phase is Phase.IN_PLAY
     ]

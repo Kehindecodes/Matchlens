@@ -66,7 +66,7 @@ def _reading(**overrides) -> SignalReading:
         window_ms=300_000, value=0.6, baseline=0.5, z_match=1.2, z_prior=0.3,
         trend=Trend.RISING, confidence=0.8, epoch_id="e1",
     )  # fmt: skip
-    return SignalReading(**(fields | overrides))
+    return SignalReading.model_validate(fields | overrides)
 
 
 def test_a_reading_is_frozen():
@@ -105,7 +105,7 @@ def _moment(**overrides) -> Moment:
         trigger_reading_ids=("r1",), trigger_event_ids=(), epoch_id="e1",
         model="spotter", model_version="0",
     )  # fmt: skip
-    return Moment(**(fields | overrides))
+    return Moment.model_validate(fields | overrides)
 
 
 @pytest.mark.parametrize("kind", [RefKind.TEAM, RefKind.PLAYER])
@@ -130,7 +130,7 @@ def _rendition(**overrides) -> Rendition:
         headline="Home are camped in the final third", body="...", surviving_claim_ids=("c1",),
         suppressed=False, suppression_reason=None, rendered_at=NOW,
     )  # fmt: skip
-    return Rendition(**(fields | overrides))
+    return Rendition.model_validate(fields | overrides)
 
 
 def _silent(**overrides) -> Rendition:
@@ -180,7 +180,7 @@ def _lens(**overrides) -> Lens:
         detail_level=DetailLevel.STANDARD,
         language="en", focus_team="home", focus_player=None,
     )  # fmt: skip
-    return Lens(**(fields | overrides))
+    return Lens.model_validate(fields | overrides)
 
 
 def test_a_team_lens_needs_a_focus_team():
