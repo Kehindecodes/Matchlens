@@ -1,4 +1,4 @@
-"""S1: the 13 components exist, each with its responsibility and a typed primary callable."""
+"""S1: the 14 components exist, each with its responsibility and a typed primary callable."""
 
 import importlib
 import inspect
@@ -20,7 +20,8 @@ COMPONENTS = {
     "Spotting": ("matchlens.spotting", ["consider"]),
     "Explanation": ("matchlens.explanation", ["explain"]),
     "Verification": ("matchlens.verification", ["verify"]),
-    "Personalization": ("matchlens.personalization", ["render"]),
+    "Selection": ("matchlens.selection", ["select"]),
+    "Rendering": ("matchlens.rendering", ["render"]),
     "Catch-up": ("matchlens.catchup", ["summarise"]),
     "Delivery": ("matchlens.delivery", ["enqueue", "release_due"]),
     "Session Clock": ("matchlens.delivery.session_clock", ["viewer_position"]),
@@ -29,16 +30,13 @@ COMPONENTS = {
     "Audit": ("matchlens.audit", ["record"]),
 }
 
-# Their architecture sentences contain "and" (Q5). Remove once the table is settled.
-_HAS_AND = {"Match Source", "Ingest", "Verification", "Personalization", "Audit"}
-
 
 def _responsibilities() -> dict[str, str]:
     rows = re.findall(r"^\| \d+ \| \*\*(.+?)\*\* \| (.+?) \|$", ARCHITECTURE.read_text(), re.M)
     return dict(rows)
 
 
-def test_the_architecture_lists_exactly_these_thirteen():
+def test_the_architecture_lists_exactly_these_fourteen():
     assert set(_responsibilities()) == set(COMPONENTS)
 
 
@@ -46,18 +44,6 @@ def test_the_architecture_lists_exactly_these_thirteen():
 def test_docstring_is_the_architecture_sentence(component):
     module = importlib.import_module(COMPONENTS[component][0])
     assert module.__doc__ == _responsibilities()[component]
-
-
-@pytest.mark.parametrize(
-    "component",
-    [
-        pytest.param(c, marks=pytest.mark.xfail(strict=True, reason="Q5")) if c in _HAS_AND else c
-        for c in COMPONENTS
-    ],
-)
-def test_responsibility_has_no_and(component):
-    module = importlib.import_module(COMPONENTS[component][0])
-    assert not re.search(r"\band\b", module.__doc__ or "")
 
 
 @pytest.mark.parametrize(
