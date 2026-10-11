@@ -5,7 +5,7 @@ Until then events live in memory. The log is append-only (invariant 2): no updat
 """
 
 import bisect
-from typing import Protocol
+from typing import Protocol, override
 
 from matchlens.models import Event
 
@@ -29,6 +29,7 @@ class InMemoryEventRepository(EventRepository):
     def __len__(self) -> int:
         return len(self._events)
 
+    @override
     def append(self, event: Event) -> None:
         if event.event_id in self._ids:
             raise ValueError(f"event {event.event_id} is already stored; the log is append-only")
@@ -40,6 +41,7 @@ class InMemoryEventRepository(EventRepository):
         self._clocks.append(event.clock_ms)
         self._ids.add(event.event_id)
 
+    @override
     def between(self, from_clock_ms: int, to_clock_ms: int) -> tuple[Event, ...]:
         lo = bisect.bisect_left(self._clocks, from_clock_ms)
         hi = bisect.bisect_left(self._clocks, to_clock_ms)
