@@ -53,15 +53,16 @@ def pitch_windows(
     enters = {p.player_id: 0 if p.is_starter else None for p in players}
     leaves = {p.player_id: end_clock_ms for p in players}
     for e in events:
-        if e.action is Action.SUBSTITUTION:
-            if e.player_on is not None and enters[e.player_on] is None:
-                enters[e.player_on] = e.clock_ms
-            leaves[e.player] = min(leaves[e.player], e.clock_ms)
-        elif e.action is Action.RED_CARD:
-            leaves[e.player] = min(leaves[e.player], e.clock_ms)
+        if e.action not in (Action.SUBSTITUTION, Action.RED_CARD):
+            continue
+        assert e.player is not None  # the Event validator requires it for both
+        on = e.player_on
+        if e.action is Action.SUBSTITUTION and on is not None and enters[on] is None:
+            enters[on] = e.clock_ms
+        leaves[e.player] = min(leaves[e.player], e.clock_ms)
     return {
-        pid: (end_clock_ms, end_clock_ms) if enters[pid] is None else (enters[pid], leaves[pid])
-        for pid in enters
+        pid: (end_clock_ms, end_clock_ms) if start is None else (start, leaves[pid])
+        for pid, start in enters.items()
     }
 
 

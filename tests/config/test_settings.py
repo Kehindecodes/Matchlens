@@ -7,7 +7,7 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 
 def test_defaults_for_local_runs(monkeypatch):
     monkeypatch.chdir(REPO_ROOT / "tests")  # no .env here
-    s = Settings(_env_file=None)
+    s = Settings(_env_file=None)  # pyright: ignore[reportCallIssue]  # pydantic-settings init kwarg
     assert s.frame_rate_hz == 2  # D13
     assert s.signal_window_ms == 300_000
     assert s.baseline_k_minutes == 15
@@ -17,7 +17,7 @@ def test_defaults_for_local_runs(monkeypatch):
 def test_reads_environment(monkeypatch):
     monkeypatch.setenv("MATCHLENS_MATCH_SEED", "99")
     monkeypatch.setenv("MATCHLENS_LOG_LEVEL", "DEBUG")
-    s = Settings(_env_file=None)
+    s = Settings(_env_file=None)  # pyright: ignore[reportCallIssue]  # pydantic-settings init kwarg
     assert s.match_seed == 99
     assert s.log_level == "DEBUG"
 
@@ -26,7 +26,7 @@ def test_reads_dotenv_file(tmp_path, monkeypatch):
     monkeypatch.delenv("MATCHLENS_MODEL_NAME", raising=False)
     env = tmp_path / ".env"
     env.write_text("MATCHLENS_MODEL_NAME=from-dotenv\n")
-    assert Settings(_env_file=env).model_name == "from-dotenv"
+    assert Settings(_env_file=env).model_name  # pyright: ignore[reportCallIssue] == "from-dotenv"
 
 
 def test_module_level_settings_instance():

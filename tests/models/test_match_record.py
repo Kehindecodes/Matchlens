@@ -30,7 +30,7 @@ def make_team(team_id="t-home", *, is_home=True, direction=1):
         short_name="NOR" if is_home else "RIV",
         formation="4-3-3",
         is_home=is_home,
-        attack_direction_by_period={1: direction, 2: -direction},
+        attack_direction_by_period={1: direction, 2: -direction},  # pyright: ignore[reportArgumentType]
     )
 
 
@@ -241,7 +241,7 @@ def test_player_rejects_mutable_pitch_time_fields(field):
 def test_match_rejects_stored_period_boundaries():
     data = make_match().model_dump()
     with pytest.raises(ValidationError):
-        Match(**data, period_boundaries=())
+        Match(**data, period_boundaries=())  # pyright: ignore[reportCallIssue]
 
 
 # --- match events (D16) --------------------------------------------------------
