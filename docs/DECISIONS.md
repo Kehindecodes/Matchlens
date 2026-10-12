@@ -220,6 +220,29 @@ Ingest is the intake boundary, so it is the natural single custodian of **everyt
 
 ---
 
+## D19 · Postgres, not Cosmos DB — SETTLED 11 Oct
+
+Resolves O1. **The database is Azure Database for PostgreSQL (Flexible Server).**
+
+### Why Postgres
+
+- **The reads are relational.** Events by clock range, the frozen log (`clock_ms < t`), and U4's aggregates over a window are ordinary SQL with an index on `(match_id, clock_ms)`. In Cosmos for NoSQL they are a new query model to learn under deadline.
+- **Familiar ground, by design.** `docs/LEARNING-PLAN.md` puts the learning budget on event-driven systems and agent orchestration. Storage is not one of the lessons, so it should be the known tool.
+- **Cosmos's advantages do not bite here.** Partition keys and multi-region are for scale this build explicitly does not have: one match, one pipeline (see Scope guards). Native TTL is not needed — groups A and B are append-only and kept.
+
+### What was ruled out, and why
+
+**Azure Cosmos DB for PostgreSQL** looked like the best of both, but Microsoft no longer supports it for new projects. Its successor, elastic clusters in Azure Database for PostgreSQL, is sharded Postgres, which is pointless for one match.
+
+### Consequences
+
+- The pinned stack in `CLAUDE.md` reads Postgres in place of Cosmos DB.
+- **S2 is unchanged.** Event persistence stays behind a repository interface with an in-memory implementation. The Postgres implementation lands in S5, behind the same interface.
+- The Postgres client library is not chosen here. It is a new pinned dependency, so S5 asks before adding one.
+- The free tier is for new Azure accounts and lasts 12 months. Check it covers the whole judging window to 10 November before provisioning, and set the budget alert first, as S5 already says.
+
+---
+
 # OPEN — Kehinde decides
 
 ## O9 · After a break, blend the thin window against what?
@@ -234,10 +257,6 @@ My read is **(b)**, keeping the offline prior for genuine kickoff only — but i
 Either way `k` is a tuning parameter and `k ≈ 15 min` was fitted for kickoff. A post-break `k` may want to be smaller. Keep it configurable as `baseline_k_minutes_after_break`.
 
 Blocking `U4`, not `U5`.
-
-## O1 · Cosmos DB or Postgres
-
-Blocking `S5` (day 4). Cosmos has the better free tier and native TTL and partition keys; Postgres is the more familiar query model for the aggregate reads `U4` needs. Default to Cosmos on the free tier if forced.
 
 ## O3 · Team lens register — supporter-voiced or supporter-oriented
 

@@ -127,7 +127,7 @@ Pinned. Do not substitute without asking.
 | Tests | pytest |
 | Lint and format | ruff |
 | Frontend | Plain HTML and JS. No framework, no build step. |
-| Infra | Bicep, Azure Container Apps, Service Bus, Cosmos DB |
+| Infra | Bicep, Azure Container Apps, Service Bus, Azure Database for PostgreSQL (D19) |
 
 SSE rather than WebSocket because nothing the viewer sends needs duplex: lens switches, position reports and playback controls are low-frequency POSTs. SSE gives reconnection and `Last-Event-ID` for free, and `Last-Event-ID` maps onto the release buffer.
 

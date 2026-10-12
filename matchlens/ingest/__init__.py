@@ -1,13 +1,15 @@
 """Holds the recent frame window in memory and enforces the frame access boundary"""
 
-from matchlens.models import Frame
-from matchlens.source import StreamItem
+from matchlens.ingest.events import EventRepository, InMemoryEventRepository
+from matchlens.ingest.frames import FrameAccess
+from matchlens.ingest.intake import Ingest, RosterNotLoaded
+from matchlens.ingest.record import RecordReader
 
-
-def accept(item: StreamItem) -> None:
-    """Take one item off the Match Source stream. Stub: drops it until S2."""
-
-
-def frame_window(clock_ms: int, span_ms: int) -> list[Frame]:
-    """Frames in `(clock_ms - span_ms, clock_ms]`. Stub: empty until S2."""
-    return []
+__all__ = [
+    "EventRepository",
+    "FrameAccess",
+    "InMemoryEventRepository",
+    "Ingest",
+    "RecordReader",
+    "RosterNotLoaded",
+]

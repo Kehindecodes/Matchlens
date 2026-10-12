@@ -12,10 +12,10 @@ import pytest
 
 ARCHITECTURE = Path(__file__).parent.parent / "docs" / "ARCHITECTURE.md"
 
-# component name as in the architecture table -> (module, primary callables)
+# component name as in the architecture table -> (module, primary callables; dotted for methods)
 COMPONENTS = {
     "Match Source": ("matchlens.source", ["simulate"]),
-    "Ingest": ("matchlens.ingest", ["accept", "frame_window"]),
+    "Ingest": ("matchlens.ingest", ["Ingest.accept", "FrameAccess.frame_window"]),
     "Understanding": ("matchlens.understanding", ["observe"]),
     "Spotting": ("matchlens.spotting", ["consider"]),
     "Explanation": ("matchlens.explanation", ["explain"]),
@@ -51,10 +51,14 @@ def test_docstring_is_the_architecture_sentence(component):
     [(m, n) for m, names in COMPONENTS.values() for n in names],
 )
 def test_primary_callable_is_fully_annotated(module_name, name):
-    fn = getattr(importlib.import_module(module_name), name)
+    fn = importlib.import_module(module_name)
+    for part in name.split("."):
+        fn = getattr(fn, part)
     assert callable(fn)
     signature = inspect.signature(fn)
-    unannotated = [p for p, v in signature.parameters.items() if v.annotation is inspect._empty]
+    unannotated = [
+        p for p, v in signature.parameters.items() if v.annotation is inspect._empty and p != "self"
+    ]
     assert not unannotated, f"{name} has unannotated parameters: {unannotated}"
     assert signature.return_annotation is not inspect.Signature.empty
     typing.get_type_hints(fn)  # every annotation resolves
