@@ -12,6 +12,8 @@ from fastapi import FastAPI
 from matchlens.config.settings import settings
 from matchlens.delivery.http import create_app
 from matchlens.delivery.hub import MatchStateHub
+from matchlens.delivery.release import ReleaseQueues
+from matchlens.delivery.router import CardRouter
 from matchlens.delivery.sessions import SessionStore
 from matchlens.source.replay import Replay
 from matchlens.understanding.match_state import MatchStateTracker
@@ -34,6 +36,10 @@ async def run_local_feed(hub: MatchStateHub, replay: Replay) -> None:
 
 hub = MatchStateHub()
 sessions = SessionStore()
+queues = ReleaseQueues()
+router = CardRouter(
+    sessions, queues
+)  # Delivery's end of the bus: the pipeline publishes to receive
 
 
 @asynccontextmanager
@@ -46,4 +52,4 @@ async def _lifespan(_: FastAPI):
         feed.cancel()
 
 
-app = create_app(hub, sessions, lifespan=_lifespan)
+app = create_app(hub, sessions, queues, lifespan=_lifespan)

@@ -11,6 +11,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ConfigDict
 
 from matchlens.delivery.hub import MatchStateHub
+from matchlens.delivery.release import ReleaseQueues
 from matchlens.delivery.sessions import SessionStore, UnknownSession
 from matchlens.models import ViewerSession
 
@@ -28,11 +29,13 @@ class NewSession(BaseModel):
 def create_app(
     hub: MatchStateHub,
     sessions: SessionStore,
+    queues: ReleaseQueues | None = None,
     *,
     web_dir: Path = WEB_DIR,
     lifespan=None,
 ) -> FastAPI:
     app = FastAPI(title="MatchLens delivery", lifespan=lifespan)
+    queues = ReleaseQueues() if queues is None else queues
 
     def _session(session_id: str) -> ViewerSession:
         try:
@@ -61,6 +64,9 @@ def create_app(
         after = int(last_event_id) if last_event_id and last_event_id.isdigit() else None
         async for state in hub.follow(after):
             yield ServerSentEvent(data=state, event="match_state", id=str(state.seq))
+            # Cards carry no id: Last-Event-ID tracks the clock, and a released card is gone.
+            for card in queues.release_due(session, state.clock_ms):
+                yield ServerSentEvent(data=card, event="card")
 
     app.mount("/static", StaticFiles(directory=web_dir), name="static")
     return app

@@ -7,6 +7,7 @@ from datetime import UTC, datetime
 
 import numpy
 
+from matchlens import calltrace
 from matchlens.config.settings import settings
 from matchlens.models import (
     Action,
@@ -1104,6 +1105,7 @@ def simulate(
     The seed defaults to `settings.match_seed` (the demo match) and the rate to
     `settings.frame_rate_hz`, both read when called.
     """
+    calltrace.entered("Match Source")
     seed = settings.match_seed if seed is None else seed
     hz = settings.frame_rate_hz if frame_rate_hz is None else frame_rate_hz
     return _Engine(seed, archetype, hz, numpy.random.default_rng(seed)).run()

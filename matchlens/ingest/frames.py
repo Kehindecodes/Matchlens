@@ -2,6 +2,7 @@
 
 from collections import deque
 
+from matchlens import calltrace
 from matchlens.models import Frame
 
 
@@ -45,4 +46,5 @@ class FrameAccess:
 
     def frame_window(self, clock_ms: int, span_ms: int) -> list[Frame]:
         """Frames in `(clock_ms - span_ms, clock_ms]`."""
+        calltrace.entered("Ingest")
         return self._window.between(clock_ms, span_ms)

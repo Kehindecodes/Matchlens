@@ -39,6 +39,9 @@ class SessionStore:
         self._sessions[session.session_id] = session
         return session
 
+    def on_lens(self, lens_id: str) -> list[ViewerSession]:
+        return [s for s in self._sessions.values() if s.lens_id == lens_id]
+
     def get(self, session_id: str) -> ViewerSession:
         try:
             return self._sessions[session_id]

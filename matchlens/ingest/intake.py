@@ -1,5 +1,6 @@
 """Ingest: the single writer of the raw record (D18)."""
 
+from matchlens import calltrace
 from matchlens.config.settings import settings
 from matchlens.ingest.events import EventRepository, InMemoryEventRepository
 from matchlens.ingest.frames import FrameAccess, FrameWindow
@@ -34,6 +35,7 @@ class Ingest:
         self._player_ids: frozenset[str] = frozenset()
 
     def accept(self, item: StreamItem) -> None:
+        calltrace.entered("Ingest")
         if isinstance(item, MatchSetup):
             self._load_roster(item)
             return

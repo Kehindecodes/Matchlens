@@ -2,6 +2,7 @@
 
 from collections.abc import Sequence
 
+from matchlens import calltrace
 from matchlens.models import Claim, Moment, Rendition, Verification
 
 
@@ -12,3 +13,4 @@ def record(
     renditions: Sequence[Rendition],
 ) -> None:
     """Keep one moment's full trail for the post-match report. Stub: keeps nothing yet."""
+    calltrace.entered("Audit")

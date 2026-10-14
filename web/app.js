@@ -32,6 +32,19 @@ function show(state) {
   document.getElementById("period").textContent = state.period === 1 ? "1st half" : "2nd half";
 }
 
+function addCard(card) {
+  const li = document.createElement("li");
+  li.className = "card";
+  const time = document.createElement("time");
+  time.textContent = mmss(card.display_at_clock);
+  const h2 = document.createElement("h2");
+  h2.textContent = card.rendition.headline;
+  const p = document.createElement("p");
+  p.textContent = card.rendition.body;
+  li.append(time, h2, p);
+  document.getElementById("cards").prepend(li); // newest first
+}
+
 function setStatus(text, live) {
   const el = document.getElementById("status");
   el.textContent = text;
@@ -47,6 +60,7 @@ async function connect() {
   const source = new EventSource(`/stream?session_id=${encodeURIComponent(session.session_id)}`);
   source.addEventListener("open", () => setStatus(`live · ${session.lens_id}`, true));
   source.addEventListener("match_state", (e) => show(JSON.parse(e.data)));
+  source.addEventListener("card", (e) => addCard(JSON.parse(e.data)));
   source.addEventListener("error", () => {
     if (unloading) return; // a reload closes the stream; that is not a lost session
     setStatus("reconnecting…", false);
