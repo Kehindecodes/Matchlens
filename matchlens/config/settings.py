@@ -20,6 +20,10 @@ class Settings(BaseSettings):
 
     # Lenses
     default_lens_id: str = "match_casual"
+    default_language: str = "en"  # ISO 639-1
+
+    # Delivery
+    replay_speed: float = 1.0  # the in-process feed, until the pipeline sends over Service Bus
 
     # Models
     model_name: str = ""

@@ -24,6 +24,21 @@ Newest at the top. Kehinde answers inline and moves the resolved ones to `docs/D
 
 ---
 
+## Q7 · Should the page clock read like a football clock?  [ticket: S3]  [blocking: no]
+
+**What I need to know:** How the page shows the match clock. The simulator's `clock_ms` runs continuously across both halves, so the second half kicks off at 46:25 on the raw clock and the match ends at 94:44. A football viewer expects the second half to start at 45:00 and stoppage time to read as 45+2 or 90+3.
+
+**Why I cannot decide it:** it changes what a viewer sees (CLAUDE.md).
+
+**Options as I see them:**
+- A: Keep the raw clock. Nothing to build, but 46:25 at the second-half kickoff looks wrong to anyone who watches football.
+- B: A football clock: each half counts from its own start (0:00, then 45:00), with stoppage shown as 45+N and 90+N once the regulation time has passed. Needs each period's start clock and length on `MatchState`, both derivable from the `period_start` events.
+- C: B without the stoppage notation: 45:00 onwards in the second half, running past 90:00 into stoppage.
+
+**What I did, so you can reverse it:** A. The page shows `clock_ms` as mm:ss, plus "1st half" or "2nd half".
+
+**Answer:**
+
 ## Q6 · S2 asks for a `frozen_log` test, but the frozen-log reader is A1, which is yours  [ticket: S2]  [blocking: no]
 
 **What I need to know:** Whether S2 should build `frozen_log(clock_ms)` at all. S2's last criterion is "a test asserts `frozen_log(clock_ms)` returns nothing with `clock_ms` greater than the argument — the groundwork A1 builds on". But A1 is 🧑 ("Frozen-log reader: events strictly before clock X"), and `docs/LEARNING-PLAN.md` says the as-of read is exactly the lesson of A1. Writing `frozen_log` in S2 would write A1 for you.
