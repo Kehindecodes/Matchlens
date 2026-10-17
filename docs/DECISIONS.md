@@ -243,6 +243,87 @@ Resolves O1. **The database is Azure Database for PostgreSQL (Flexible Server).*
 
 ---
 
+## D20 · S4 is 🤝 — Claude Code wires it, Kehinde owns the call-path assertions — SETTLED 17 Oct
+
+The pack contradicted itself on who implements S4. `LEARNING-PLAN.md` said **"Wire S4 by hand"** — but said it under a heading reading *"Also yours, though not tickets"*, and S4 **is** a ticket; the backlog row was **unmarked**, which `CLAUDE.md` defines as Claude Code's; and the reserved list in `CLAUDE.md` omitted it. Three of the four places said delegate, one said do not.
+
+**Settled: S4 is 🤝.** Claude Code writes `apps/pipeline.py` and the wiring. Kehinde writes two of the four acceptance criteria himself:
+
+- all fourteen components appear in the call path
+- nothing is bypassed — no direct hop from Spotting to Delivery
+
+### Why not 🧑
+
+The wiring is half a day of stub glue, and the heuristic in `LEARNING-PLAN.md` sends glue to Claude Code. Typing `pipeline.py` teaches little. What teaches is the assertion: *"all fourteen components were entered"* is not a test of the code, it is a test of whether **this architecture composes** — and architecture is Kehinde's side of the split in `CLAUDE.md`.
+
+Same shape as F3 — delegate two days of football modelling, own the thirty-minute determinism test. The lesson lives in the property, not in the implementation.
+
+### Why not leave it unmarked
+
+Most of the walking-skeleton lesson is already reserved by *"own the debugging of anything in the event path"*. S4 failing on its first run **is** event-path debugging: `seq` out of order, state that did not reset, a card released before its clock. What was genuinely unclear was only who types the glue — and an unmarked row answered that wrongly.
+
+### The schedule decided it
+
+**20 October is the last day A2 and A3 can start.** S4 sits on the critical path to the deployed URL, and the remaining reserved work — the `Claim` schema, A1, A3, D1 — is where Kehinde's own hours have to go. Spending them on stub wiring while the agent gate closes is the wrong trade.
+
+---
+
+## D21 · Entailment is one rule over operands — SETTLED 18 Oct
+
+`entailment` and `coverage` were named in three places — the `CheckName` enum, `Verification.checks`, and A3's backlog note — and defined nowhere. This settles the first of the two.
+
+**Entailment is a single rule, not three per-type implementations:**
+
+> Every operand of a claim carries its own window and its own evidence. The check passes when each operand's evidence resolves to rows matching that operand's `subject` and `metric`.
+
+Arity varies by `claim_type`, the rule does not:
+
+| `claim_type` | Operands |
+|---|---|
+| `descriptive` | one |
+| `comparative` | two — the subject, and the thing compared against |
+| `interpretive` | one, plus a backing reading and the threshold the wording implies |
+
+### Why one rule rather than branches
+
+A fourth claim type later means adding an operand shape, not editing the verifier. Branching on `claim_type` inside the check puts claim-type knowledge in two places and they drift apart.
+
+### This rules out `comparison` as a string
+
+A comparative claim has two operands and the second one was unverifiable: `window` and `evidence_ids` cover the subject side only. If `comparison` is prose — `"up on the first half"` — the verifier has to parse English to know what to fetch, which is re-deriving meaning from a sentence: the exact failure the claims-not-prose decision exists to prevent.
+
+**The comparison operand carries its own window, evidence and value as structured fields.**
+
+### This rules out "unusually" as an adverb
+
+An interpretive claim has no number to recompute, so `value` does almost nothing and entailment carries the load. It checks that the cited reading's signal is the signal the claim is about, and that its z-score clears the threshold the wording implies.
+
+**So the threshold is a field on the claim, not a word in the text.** Otherwise the explainer can pass a prose-grade judgment through every other check untouched, and the whole structured-claims argument leaks at its weakest point.
+
+### Division of labour with `value`
+
+These two overlap unless the line is drawn explicitly:
+
+- **`value` recomputes from the record**, ignoring what the claim cited. Catches *the number is wrong*.
+- **`entailment` checks the claim's own evidence supports it.** Catches *the number is right but the citations have nothing to do with it*.
+
+The second failure matters more than it sounds: `evidence_ids` is what the evidence drawer (A6) shows and what the audit trail rests on. A claim with a correct number and unrelated citations passes `value`, ships, and collapses the moment a judge clicks through it.
+
+### Still open, and still Kehinde's
+
+This constrains the `Claim` schema. It does not finish it. Outstanding in the reserved half-day:
+
+- the operand's own field list, and whether `subject` and `metric` are enums
+- **`coverage`** — claim-side completeness (every signal that fired the moment is accounted for by a claim) or text-side (the sentence asserts nothing the claims do not support). The text-side reading **cannot run where Verification sits**, between Explanation and Selection, because no text exists yet
+- `value`'s tolerance policy — exact for counts, an epsilon for ratios
+- inclusive or strict for `temporal` — Q6's leftover, assigned to A1
+
+### L1 note
+
+If the pre-agent path constructs claims *from* readings rather than asserting things about them, entailment is near-vacuous at L1 and only earns its keep on the agent path. Honest to stub it there; it has to be real for A3.
+
+---
+
 # OPEN — Kehinde decides
 
 ## O9 · After a break, blend the thin window against what?
@@ -273,3 +354,9 @@ Decide by 16 Oct. Shipping three (territory, possession control, chance quality)
 ## O6 · Drop to T0 — no agents at all
 
 **Decide by 20 Oct.** That is the last day `A2` and `A3` could start and land. Saves 5 days, costs the Multi-Agent prize, keeps the product thesis because the thesis lives at L1.
+
+
+
+// Notes
+
+for comparative claims , we will need to get the get the windows and the events the comparison is againnst to verify entailment while for descriptive check from the evidenceIds alone is enough

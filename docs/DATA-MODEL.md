@@ -174,7 +174,7 @@ The record of checking one claim. Keeping the verdict *and its reasoning* as dat
 |---|---|
 | `verification_id`, `claim_id` | |
 | `verdict` | `pass` \| `fail` |
-| `checks` | Per-check results: **citation exists**, **temporal** (nothing cited from after the clock), **entity** (player was on the pitch), **value** (recomputed and compared), **entailment**, **narration coverage** |
+| `checks` | Per-check results: **citation exists**, **temporal** (nothing cited from after the clock), **entity** (player was on the pitch), **value** (recomputed independently from the record), **entailment** (each operand's evidence resolves to rows matching that operand's `subject` and `metric` — D21), **coverage** (not yet defined — see D21) |
 | `recomputed_value` | What the system calculated independently. Catches wrong numbers, the most common failure |
 | `failure_reason` | Readable |
 | `latency_ms` | Live play has a budget |
