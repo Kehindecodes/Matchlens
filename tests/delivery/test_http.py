@@ -15,6 +15,7 @@ import uvicorn
 from fastapi.testclient import TestClient
 
 from apps.delivery import run_local_feed
+from apps.pipeline import Pipeline
 from matchlens.delivery.http import create_app
 from matchlens.delivery.hub import MatchStateHub
 from matchlens.delivery.release import ReleaseQueues
@@ -228,7 +229,7 @@ def test_the_local_feed_publishes_a_ticking_clock():
     replay = Replay([setup, *frames], speed=50.0)
 
     async def run() -> list[int]:
-        feed = asyncio.create_task(run_local_feed(hub, replay))
+        feed = asyncio.create_task(run_local_feed(hub, replay, Pipeline(), lambda card: None))
         clocks = [state.clock_ms async for state in _take(hub.follow(), 5)]
         feed.cancel()
         return clocks
