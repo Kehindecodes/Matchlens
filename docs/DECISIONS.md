@@ -318,13 +318,30 @@ The second failure matters more than it sounds: `evidence_ids` is what the evide
 This constrains the `Claim` schema. It does not finish it. Outstanding in the reserved half-day:
 
 - the operand's own field list, and whether `subject` and `metric` are enums
-- **`coverage`** — claim-side completeness (every signal that fired the moment is accounted for by a claim) or text-side (the sentence asserts nothing the claims do not support). The text-side reading **cannot run where Verification sits**, between Explanation and Selection, because no text exists yet
+- ~~**`coverage`** — claim-side completeness or text-side~~ — settled as claim-side by **D22**
 - `value`'s tolerance policy — exact for counts, an epsilon for ratios
 - inclusive or strict for `temporal` — Q6's leftover, assigned to A1
 
 ### L1 note
 
 If the pre-agent path constructs claims *from* readings rather than asserting things about them, entailment is near-vacuous at L1 and only earns its keep on the agent path. Honest to stub it there; it has to be real for A3.
+
+---
+
+## D22 · Coverage is claim-side completeness — SETTLED 18 Oct
+
+Resolves the `coverage` item D21 left open.
+
+**`coverage` passes when every trigger that fired the moment is accounted for by a claim.** A trigger is any reading in `Moment.trigger_reading_ids` or event in `Moment.trigger_event_ids`. It is accounted for when it appears in the evidence of at least one of the moment's claims.
+
+### Why claim-side, for now
+
+- **It runs where Verification sits.** It needs only the moment and its claims, both of which exist between Explanation and Selection. The text-side reading needs the card's words, which do not exist until Rendering.
+- **It does real work at L1.** Template text is built only from claims, so a text-side check is close to automatic there. Claim-side still catches an explanation that leaves out why the moment fired.
+
+### Not ruled out
+
+Text-side coverage (the card asserts nothing the claims do not support) is where an AI writer can drift at L0. It is not part of this check. If it is wanted later, it is a separate check that runs after Rendering, once per lens, and that is a new decision.
 
 ---
 
