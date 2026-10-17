@@ -49,7 +49,7 @@ MatchLens is a learning project. Two things are firsts for Kehinde — **buildin
 
 The currently reserved tickets are **D1, U4, A1, A3, A5, S6**, plus the roster projection inside A1/U5 and the `Claim` schema design before A2. `docs/LEARNING-PLAN.md` has the reasoning.
 
-**S4 is 🤝, not unmarked (D20).** Wire `apps/pipeline.py`, but the two call-path criteria — all fourteen components entered, nothing bypassed — are Kehinde's. Leave them absent and say so.
+**S4 is 🤝, not unmarked (D20).** Claude Code wires `apps/pipeline.py`. The two call-path criteria were Kehinde's, then handed back to Claude Code on 18 Oct (D20, amended).
 
 ### Decide yourself. Do not ask.
 

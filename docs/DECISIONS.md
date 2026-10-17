@@ -266,6 +266,10 @@ Most of the walking-skeleton lesson is already reserved by *"own the debugging o
 
 **20 October is the last day A2 and A3 can start.** S4 sits on the critical path to the deployed URL, and the remaining reserved work — the `Claim` schema, A1, A3, D1 — is where Kehinde's own hours have to go. Spending them on stub wiring while the agent gate closes is the wrong trade.
 
+
+### Amended 18 Oct: the call-path tests were handed back
+
+Kehinde asked Claude Code to write the two call-path tests after all. They are in `tests/test_walking_skeleton.py`, marked strict `xfail` until Explanation returns a claim, because Verification is entered once per claim and today there are none. Everything else in D20 stands.
 ---
 
 ## D21 · Entailment is one rule over operands — SETTLED 18 Oct
