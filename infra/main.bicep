@@ -71,12 +71,35 @@ resource environment 'Microsoft.App/managedEnvironments@2024-03-01' = {
   }
 }
 
+// The app's pull identity exists, with AcrPull, before the app does: a system identity only
+// exists once the app does, so the app's first pull would come before its permission.
+resource pullIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
+  name: '${appName}-pull'
+  location: location
+}
+
+resource pullFromRegistry 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(registry.id, pullIdentity.id, acrPullRoleId)
+  scope: registry
+  properties: {
+    principalId: pullIdentity.properties.principalId
+    principalType: 'ServicePrincipal'
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', acrPullRoleId)
+  }
+}
+
 resource app 'Microsoft.App/containerApps@2024-03-01' = {
   name: appName
   location: location
   identity: {
-    type: 'SystemAssigned'
+    type: 'UserAssigned'
+    userAssignedIdentities: {
+      '${pullIdentity.id}': {}
+    }
   }
+  dependsOn: [
+    pullFromRegistry
+  ]
   properties: {
     environmentId: environment.id
     workloadProfileName: 'Consumption'
@@ -91,7 +114,7 @@ resource app 'Microsoft.App/containerApps@2024-03-01' = {
       registries: [
         {
           server: registry.properties.loginServer
-          identity: 'system'
+          identity: pullIdentity.id
         }
       ]
     }
@@ -117,16 +140,6 @@ resource app 'Microsoft.App/containerApps@2024-03-01' = {
         maxReplicas: 1
       }
     }
-  }
-}
-
-resource appPullsFromRegistry 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(registry.id, app.id, acrPullRoleId)
-  scope: registry
-  properties: {
-    principalId: app.identity.principalId
-    principalType: 'ServicePrincipal'
-    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', acrPullRoleId)
   }
 }
 
