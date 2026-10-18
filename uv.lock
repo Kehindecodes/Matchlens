@@ -1681,8 +1681,6 @@ name = "matchlens"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
-    { name = "agent-framework" },
-    { name = "azure-ai-projects" },
     { name = "fastapi" },
     { name = "numpy" },
     { name = "pydantic" },
@@ -1691,6 +1689,10 @@ dependencies = [
 ]
 
 [package.dev-dependencies]
+agents = [
+    { name = "agent-framework" },
+    { name = "azure-ai-projects" },
+]
 dev = [
     { name = "httpx" },
     { name = "pyright" },
@@ -1700,8 +1702,6 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "agent-framework", specifier = "==1.21.0" },
-    { name = "azure-ai-projects", specifier = "==2.7.0" },
     { name = "fastapi", specifier = "==0.141.1" },
     { name = "numpy", specifier = "==2.5.3" },
     { name = "pydantic", specifier = "==2.14.0" },
@@ -1710,6 +1710,10 @@ requires-dist = [
 ]
 
 [package.metadata.requires-dev]
+agents = [
+    { name = "agent-framework", specifier = "==1.21.0" },
+    { name = "azure-ai-projects", specifier = "==2.7.0" },
+]
 dev = [
     { name = "httpx", specifier = "==0.28.1" },
     { name = "pyright", specifier = "==1.1.414" },

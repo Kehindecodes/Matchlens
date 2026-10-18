@@ -345,6 +345,21 @@ Text-side coverage (the card asserts nothing the claims do not support) is where
 
 ---
 
+## D23 · v1 deploys one container: the pipeline runs inside the delivery app — SETTLED 18 Oct
+
+`ARCHITECTURE.md` names two deployable units, the pipeline app and the delivery app, with Service Bus between them, and S5 asks both to scale to zero. Those two conflict: the pipeline gets no HTTP traffic, so at zero it never starts and no match plays.
+
+**Settled for v1: one container.** The delivery app runs the seeded replay and the pipeline in its own process, as it does locally since S4 (`run_local_feed`). A viewer's request wakes the container, which starts the match.
+
+### Consequences
+
+- S5 builds one image with one entrypoint, `apps.delivery`. The image can still carry the pipeline entrypoint for the split later.
+- Service Bus is not on the path in v1, so `azure-servicebus` is not needed yet. The two-container split, and Service Bus with it, is a later decision.
+- A cold start regenerates the match from kickoff. The first-load delay goes in the README, as S5 already asks.
+- The components, the `Card` bus contract (`publish`, `CardRouter.receive`) and the module boundaries do not change. Splitting later swaps the in-process `publish` for a Service Bus sender.
+
+---
+
 # OPEN — Kehinde decides
 
 ## O9 · After a break, blend the thin window against what?

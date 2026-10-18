@@ -8,6 +8,14 @@ Built for the viewer, sold to streaming platforms. Solo entry to the Microsoft P
 
 ---
 
+## Live demo
+
+**https://matchlens.graypond-a2c65ff8.uksouth.azurecontainerapps.io**
+
+One container on Azure Container Apps (UK South), playing the seeded demo match at 25× speed: the full match runs in about four minutes, and the walking-skeleton card appears at 67:19 of match time.
+
+**The first load can take 15–30 seconds.** The app scales to zero when nobody is watching, so the first visit after a quiet spell starts the container and generates the match from kickoff. After that it is instant.
+
 ## This repo is a handover pack, not yet a codebase
 
 No code is written yet. What exists is the design, settled decisions, and a dependency-ordered backlog.
