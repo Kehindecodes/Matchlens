@@ -126,6 +126,7 @@ Pinned. Do not substitute without asking.
 | Agents | Microsoft Agent Framework — **pin to an exact version on day one** |
 | Models | Foundry SDK |
 | Schemas | Pydantic |
+| Tracing | OpenTelemetry API and SDK, exported by `azure-monitor-opentelemetry` |
 | Tests | pytest |
 | Lint and format | ruff |
 | Frontend | Plain HTML and JS. No framework, no build step. |

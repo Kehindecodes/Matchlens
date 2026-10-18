@@ -9,6 +9,10 @@ dependencies = [
     "numpy==2.5.3",
     "pydantic==2.14.0",
     "pydantic-settings==2.15.0",
+    # Tracing (S6). The API and SDK are pinned too: S6 imports them directly.
+    "azure-monitor-opentelemetry==1.8.11",
+    "opentelemetry-api==1.45.1",
+    "opentelemetry-sdk==1.45.1",
 ]
 
 [dependency-groups]
