@@ -52,6 +52,8 @@ jobs:
         run: |
           az config set extension.use_dynamic_install=yes_without_prompt
           az containerapp update --name "$APP" --resource-group "$RESOURCE_GROUP" --image "$IMAGE" -o none
+          # A stack fresh from infra/main.bicep runs the placeholder on 80; the app listens on 8000.
+          az containerapp ingress update --name "$APP" --resource-group "$RESOURCE_GROUP" --target-port 8000 -o none
 
       - name: Check the new revision serves
         run: |
