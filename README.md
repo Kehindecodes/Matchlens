@@ -10,7 +10,7 @@ Built for the viewer, sold to streaming platforms. Solo entry to the Microsoft P
 
 ## Live demo
 
-**https://matchlens.graypond-a2c65ff8.uksouth.azurecontainerapps.io**
+**https://matchlens.gentletree-f24e197c.uksouth.azurecontainerapps.io**
 
 One container on Azure Container Apps (UK South), playing the seeded demo match at 25× speed: the full match runs in about four minutes, and the walking-skeleton card appears at 67:19 of match time.
 

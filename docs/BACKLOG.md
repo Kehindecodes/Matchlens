@@ -35,7 +35,7 @@ Update the **Status** column when a ticket moves. Statuses: `todo`, `wip`, `done
 | 🤝 S2 | Ingest: frame window, event intake, **frame boundary test** | 1 | F3, S1 | T1 | done | ✅ |
 | S3 | SSE endpoint, ViewerSession, page showing clock and score | 1 | S1 | T1 | done | ✅ |
 | 🤝 S4 | One hardcoded moment → rendition → SSE → card on screen | 0.5 | S2, S3 | T1 | done | ✅ |
-| S5 | Bicep, Container Apps, ACR, GitHub Actions with OIDC | 1.5 | S4 | T1 | wip | ✅ |
+| S5 | Bicep, Container Apps, ACR, GitHub Actions with OIDC | 1.5 | S4 | T1 | done | ✅ |
 | 🧑 S6 | App Insights, one trace per moment across the agents | 0.5 | S5 | T2 | todo | ✅ |
 
 ## Phase 2 · Understanding — days 5–8
