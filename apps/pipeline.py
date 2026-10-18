@@ -12,7 +12,7 @@ from collections.abc import Callable
 
 from matchlens import audit, explanation, lenses, selection, understanding, verification
 from matchlens.ingest import Ingest
-from matchlens.models import Claim, Event, Frame, Moment, Verification
+from matchlens.models import Claim, Event, Frame, Moment, Verdict, Verification
 from matchlens.rendering import Card, render
 from matchlens.source import MatchSetup, StreamItem, simulate
 from matchlens.spotting import Spotter
@@ -58,10 +58,10 @@ class Pipeline:
 def _passing(claims: list[Claim], verifications: list[Verification]) -> list[Claim]:
     """The claims whose verification passed.
 
-    `Verification` has no verdict until Kehinde's schema lands, so nothing can be shown to have
-    passed, and verification fails closed (invariant 5): no claim goes on.
+    Fails closed (invariant 5): a claim goes on only if a verification for it says pass.
     """
-    return []
+    passed = {v.claim_id for v in verifications if v.verdict is Verdict.PASS}
+    return [c for c in claims if c.claim_id in passed]
 
 
 def run(seed: int, publish: Publish) -> None:

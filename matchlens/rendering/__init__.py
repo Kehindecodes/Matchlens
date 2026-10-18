@@ -25,7 +25,7 @@ def render(moment: Moment, selected: Sequence[Claim], lens: Lens) -> Rendition:
         language=lens.language,
         headline=SKELETON_HEADLINE,
         body=SKELETON_BODY,
-        surviving_claim_ids=(),  # claims carry no id until the Claim schema exists
+        surviving_claim_ids=tuple(c.claim_id for c in selected),
         suppressed=False,
         suppression_reason=None,
         rendered_at=datetime.now(UTC),

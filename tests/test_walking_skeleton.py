@@ -22,12 +22,6 @@ FOURTEEN = {
 }  # fmt: skip
 EDITORIAL_PATH = ["Spotting", "Explanation", "Verification", "Selection", "Rendering", "Delivery"]
 
-# Verification is only entered for a claim, and Explanation returns none until the Claim schema
-# lands. Strict, so these turn into failures the moment they pass: then remove the marker.
-_WAITS_FOR_A_CLAIM = pytest.mark.xfail(
-    strict=True, reason="Verification is never entered until Explanation returns a claim"
-)
-
 
 @pytest.fixture(scope="module")
 def walked():
@@ -51,6 +45,7 @@ def test_a_seeded_match_delivers_the_card_to_a_session(walked):
     assert card.rendition.lens_id == session.lens_id
     assert (card.rendition.headline, card.rendition.body) == (SKELETON_HEADLINE, SKELETON_BODY)
     assert not card.rendition.suppressed
+    assert len(card.rendition.surviving_claim_ids) == 1  # the stub claim got through Verification
 
 
 def test_the_card_is_at_the_hardcoded_match_clock(walked):
@@ -58,13 +53,11 @@ def test_the_card_is_at_the_hardcoded_match_clock(walked):
     assert SKELETON_CLOCK_MS <= card.display_at_clock < SKELETON_CLOCK_MS + 10_000
 
 
-@_WAITS_FOR_A_CLAIM
 def test_all_fourteen_components_are_entered(walked):
     *_, entered = walked
     assert set(entered) == FOURTEEN, f"never entered: {sorted(FOURTEEN - set(entered))}"
 
 
-@_WAITS_FOR_A_CLAIM
 def test_nothing_is_bypassed_between_spotting_and_delivery(walked):
     *_, entered = walked
     path = _without_repeats(entered)
