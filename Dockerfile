@@ -1,5 +1,5 @@
 # One image for MatchLens. v1 runs one container, the delivery app, with the pipeline in-process
-# (D23). Run: docker run -p 8000:8000 matchlens
+# (D23). The agents group is left out until A2 needs it. Run: docker run -p 8000:8000 matchlens
 FROM python:3.12.14-slim-bookworm
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -13,12 +13,12 @@ RUN pip install --no-cache-dir uv==0.12.17
 
 # Dependencies first, so a code change does not reinstall them.
 COPY pyproject.toml uv.lock ./
-RUN uv sync --locked --no-dev --no-install-project
+RUN uv sync --locked --no-default-groups --no-install-project
 
 COPY apps ./apps
 COPY matchlens ./matchlens
 COPY web ./web
-RUN uv sync --locked --no-dev
+RUN uv sync --locked --no-default-groups
 
 RUN useradd --uid 10001 --no-create-home matchlens
 USER matchlens
