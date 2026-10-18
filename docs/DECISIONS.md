@@ -317,7 +317,7 @@ The second failure matters more than it sounds: `evidence_ids` is what the evide
 
 This constrains the `Claim` schema. It does not finish it. Outstanding in the reserved half-day:
 
-- the operand's own field list, and whether `subject` and `metric` are enums
+- ~~the operand's own field list, and whether `subject` and `metric` are enums~~ — settled 18 Oct: `subject`, `metric`, `window`, `value`, `evidence_ids` per operand; `subject` is a `Ref`, `metric` a string until U1–U3. See `DATA-MODEL.md`
 - ~~**`coverage`** — claim-side completeness or text-side~~ — settled as claim-side by **D22**
 - `value`'s tolerance policy — exact for counts, an epsilon for ratios
 - inclusive or strict for `temporal` — Q6's leftover, assigned to A1
