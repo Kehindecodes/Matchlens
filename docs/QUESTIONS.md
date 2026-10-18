@@ -24,6 +24,21 @@ Newest at the top. Kehinde answers inline and moves the resolved ones to `docs/D
 
 ---
 
+## Q8 · What carries a rendition's clock across the bus?  [ticket: S4]  [blocking: no]
+
+**What I need to know:** Where `display_at_clock` lives for a card on its way to Delivery. The release rule (invariant 8) and the page's card both need the match clock a rendition describes, but `Rendition` has no clock. The only entity with `display_at_clock` is `OverlayPacket`, which the data model describes as a rendition formatted for a graphics system.
+
+**Why I cannot decide it:** it is either a new message on the stream or a change to what an entity means (CLAUDE.md), and D1 builds on whichever it is.
+
+**Options as I see them:**
+- A: A `Card` stream message, `rendition` plus `display_at_clock`, sent and never stored. The same pattern as `MatchState`. No entity changes.
+- B: Add `display_at_clock` to `Rendition`. One fewer type, but it changes an entity, and a suppressed rendition would carry a clock nobody releases.
+- C: Send `OverlayPacket` to the web page as well. Reuses an entity that already has the field, but stretches its meaning from graphics systems to every viewer.
+
+**What I did, so you can reverse it:** A. `matchlens/rendering/card.py`; `CardRouter.receive` takes a `Card`, and `ReleaseQueues` holds `Card`s.
+
+**Answer:**
+
 ## Q7 · Should the page clock read like a football clock?  [ticket: S3]  [blocking: no]
 
 **What I need to know:** How the page shows the match clock. The simulator's `clock_ms` runs continuously across both halves, so the second half kicks off at 46:25 on the raw clock and the match ends at 94:44. A football viewer expects the second half to start at 45:00 and stoppage time to read as 45+2 or 90+3.

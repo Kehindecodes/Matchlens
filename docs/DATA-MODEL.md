@@ -160,12 +160,21 @@ One structured, checkable assertion. **The explainer emits claims, not prose**; 
 | Attribute | Meaning |
 |---|---|
 | `claim_id`, `moment_id` | |
-| `claim_type` | `descriptive` (a fact from events) \| `comparative` (a computed comparison) \| `interpretive` (a judgment). **Only interpretive claims require a backing signal reading** |
-| `subject`, `metric` | What is asserted, e.g. `final_third_entries` |
-| `value`, `comparison` | The asserted number and what it is measured against |
-| `window` | The time range covered. Without it a number is unverifiable |
-| `evidence_ids` | Event, run or reading IDs. **A claim with no citable evidence is dropped** |
+| `claim_type` | `descriptive` (a fact from events) \| `comparative` (a computed comparison) \| `interpretive` (a judgment). Decides how many operands the claim has |
+| `operands` | One per side of the assertion (D21): **one** for descriptive, **two** for comparative (the subject and what it is compared against), **one** for interpretive. Each is an `Operand`, below |
+| `backing_reading` | The `SignalReading` that backs a judgment. **Required iff interpretive**, null otherwise |
+| `threshold` | The z-score the wording implies, so a judgment like "unusually" is a field the verifier can check rather than a word in the text. **Required iff interpretive** |
 | `model`, `model_version` | |
+
+An **`Operand`** is one measured side of a claim, carrying everything needed to check it on its own:
+
+| Attribute | Meaning |
+|---|---|
+| `subject` | A `Ref` to a team or a player |
+| `metric` | What is measured, e.g. `final_third_entries`. A string until U1–U3 define what the verifier can recount; then an enum |
+| `window` | `start_ms` to `end_ms` of match clock. Without it a number is unverifiable |
+| `value` | The asserted number |
+| `evidence_ids` | `Ref`s to events, readings or runs. **At least one: an operand with no citable evidence cannot be constructed** |
 
 ### Verification
 The record of checking one claim. Keeping the verdict *and its reasoning* as data is what lets the producer view show a rejected claim with its reason — the clearest evidence of genuine multi-agent collaboration in the whole build.
@@ -173,11 +182,13 @@ The record of checking one claim. Keeping the verdict *and its reasoning* as dat
 | Attribute | Meaning |
 |---|---|
 | `verification_id`, `claim_id` | |
-| `verdict` | `pass` \| `fail` |
-| `checks` | Per-check results: **citation exists**, **temporal** (nothing cited from after the clock), **entity** (player was on the pitch), **value** (recomputed and compared), **entailment**, **narration coverage** |
-| `recomputed_value` | What the system calculated independently. Catches wrong numbers, the most common failure |
-| `failure_reason` | Readable |
-| `latency_ms` | Live play has a budget |
+| `verdict` | `pass` \| `fail`. Pass iff no check failed |
+| `checks` | Per-check results: **citation exists**, **temporal** (nothing cited from after the clock), **entity** (player was on the pitch), **value** (recomputed independently from the record), **entailment** (each operand's evidence resolves to rows matching that operand's `subject` and `metric` — D21), **coverage** (every trigger reading and event of the moment appears in some claim's evidence — D22) |
+| | Each result is a `CheckResult`: a `status` of `passed`, `failed` or `not_applicable` (ran, nothing to judge, e.g. entity for a team), and a `reason`, required when failed. All six are present on every verification |
+| `recomputed_value` | What the system calculated independently, **one per operand**. Empty when no recount could run, e.g. after a citation failure. Catches wrong numbers, the most common failure |
+| `failure_reason` | Readable. **Required iff the verdict is fail** |
+| `latency_ms` | Wall time spent checking. Live play has a budget |
+| `model`, `model_version` | Whatever produced the verdict: the verifier and its version, or a model if one took part |
 
 ### Rendition
 One moment as one lens presents it. **The most important entity for the whole product thesis.** Storing a single rendered text on the `Moment` would architecturally throw away the personalization.
@@ -301,6 +312,7 @@ Every closed set in the model, named. **Closed sets are enums, not strings** —
 | `ClaimType` | `descriptive` · `comparative` · `interpretive` | `Claim.claim_type`. Only `interpretive` requires a backing `SignalReading` |
 | `Verdict` | `pass` · `fail` | `Verification.verdict` |
 | `CheckName` | `citation` · `temporal` · `entity` · `value` · `entailment` · `coverage` | keys of `Verification.checks`. Exactly six, all must run |
+| `CheckStatus` | `passed` · `failed` · `not_applicable` | `CheckResult.status`. `not_applicable` counts as clear for the verdict |
 | `Scope` | `match` · `team` · `player` | `Lens.scope`. **Dispatches to different code paths — see D2** |
 | `Depth` | `casual` · `engaged` · `analyst` | `Lens.depth` |
 | `DetailLevel` | `minimal` · `standard` · `full` | `Lens.detail_level` |

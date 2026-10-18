@@ -134,6 +134,28 @@ class SuppressionReason(StrEnum):
     RATE_LIMITED = "rate_limited"
 
 
+class Verdict(StrEnum):
+    PASS = "pass"
+    FAIL = "fail"
+
+
+class CheckName(StrEnum):
+    """The six checks. Exactly these, and all of them run for every claim."""
+
+    CITATION = "citation"
+    TEMPORAL = "temporal"
+    ENTITY = "entity"
+    VALUE = "value"
+    ENTAILMENT = "entailment"
+    COVERAGE = "coverage"
+
+
+class CheckStatus(StrEnum):
+    PASSED = "passed"
+    FAILED = "failed"
+    NOT_APPLICABLE = "not_applicable"  # ran, nothing to judge: e.g. entity for a team subject
+
+
 # --- group D: delivery and configuration ---------------------------------------------------------
 
 

@@ -6,6 +6,7 @@ import threading
 import time
 from collections.abc import Iterator
 from contextlib import asynccontextmanager
+from datetime import UTC, datetime
 
 import fastapi.routing
 import httpx
@@ -14,10 +15,13 @@ import uvicorn
 from fastapi.testclient import TestClient
 
 from apps.delivery import run_local_feed
+from apps.pipeline import Pipeline
 from matchlens.delivery.http import create_app
 from matchlens.delivery.hub import MatchStateHub
+from matchlens.delivery.release import ReleaseQueues
 from matchlens.delivery.sessions import SessionStore
-from matchlens.models import Frame, Phase
+from matchlens.models import Frame, Phase, Rendition
+from matchlens.rendering import Card
 from matchlens.source import MatchSetup, simulate
 from matchlens.source.replay import Replay
 from matchlens.understanding.match_state import MatchState, TeamScore
@@ -45,8 +49,9 @@ def client(hub: MatchStateHub) -> Iterator[TestClient]:
 class LiveServer:
     """The app on a real uvicorn server in a thread, so streams disconnect as a browser's do."""
 
-    def __init__(self, hub: MatchStateHub):
+    def __init__(self, hub: MatchStateHub, queues: ReleaseQueues):
         self.hub = hub
+        self.sessions = SessionStore()
         self.loop: asyncio.AbstractEventLoop | None = None
 
         @asynccontextmanager
@@ -55,7 +60,7 @@ class LiveServer:
             yield
 
         config = uvicorn.Config(
-            create_app(hub, SessionStore(), lifespan=lifespan),
+            create_app(hub, self.sessions, queues, lifespan=lifespan),
             host="127.0.0.1", port=0, log_level="warning", timeout_graceful_shutdown=1,
         )  # fmt: skip
         self.server = uvicorn.Server(config)
@@ -103,8 +108,13 @@ class LiveServer:
 
 
 @pytest.fixture
-def live(hub: MatchStateHub) -> Iterator[LiveServer]:
-    with LiveServer(hub) as server:
+def queues() -> ReleaseQueues:
+    return ReleaseQueues()
+
+
+@pytest.fixture
+def live(hub: MatchStateHub, queues: ReleaseQueues) -> Iterator[LiveServer]:
+    with LiveServer(hub, queues) as server:
         yield server
 
 
@@ -183,6 +193,25 @@ def test_an_idle_stream_gets_a_keepalive(live: LiveServer, monkeypatch: pytest.M
     assert all(line.startswith(":") for line in block)
 
 
+def test_a_released_card_is_streamed_after_the_clock(live: LiveServer, queues: ReleaseQueues):
+    session_id = live.session()
+    session = live.sessions.get(session_id)
+    rendition = Rendition(
+        rendition_id="m:l", moment_id="m", lens_id=session.lens_id, language="en",
+        headline="The walking skeleton", body="b", surviving_claim_ids=(), suppressed=False,
+        suppression_reason=None, rendered_at=datetime.now(UTC),
+    )  # fmt: skip
+    queues.enqueue(Card(rendition=rendition, display_at_clock=4_032_000), session)
+    live.publish(_state(seq=7, clock_ms=4_033_000))
+    state, card = live.events(session_id, 2)
+    assert _fields(state)["event"] == "match_state"
+    fields = _fields(card)
+    assert fields["event"] == "card" and "id" not in fields
+    data = json.loads(fields["data"])
+    assert data["display_at_clock"] == 4_032_000
+    assert data["rendition"]["headline"] == "The walking skeleton"
+
+
 # --- the local feed -------------------------------------------------------------------------------
 
 
@@ -200,7 +229,7 @@ def test_the_local_feed_publishes_a_ticking_clock():
     replay = Replay([setup, *frames], speed=50.0)
 
     async def run() -> list[int]:
-        feed = asyncio.create_task(run_local_feed(hub, replay))
+        feed = asyncio.create_task(run_local_feed(hub, replay, Pipeline(), lambda card: None))
         clocks = [state.clock_ms async for state in _take(hub.follow(), 5)]
         feed.cancel()
         return clocks

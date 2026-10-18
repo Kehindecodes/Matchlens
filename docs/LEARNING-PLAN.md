@@ -105,9 +105,11 @@ Guards against the generator and the signals quietly co-adapting. Subtle and tra
 
 ---
 
-## Also yours, though not tickets
+## Also yours
 
-**Wire S4 by hand.** Pushing one hardcoded moment through all fourteen components is how you *feel* why the walking skeleton beats stage-by-stage building. Reading about it does not do that.
+**🤝 S4 · Own the two call-path assertions.** The wiring is half a day of stub glue and gets delegated — the lesson is not in typing it. The lesson is in asserting that all fourteen components were entered and that nothing was bypassed, because that is a test of whether *your* architecture composes, and architecture is yours. Write those two and let Claude Code wire `apps/pipeline.py` underneath them (D20).
+
+Pushing one hardcoded moment through fourteen components is still how you *feel* why the walking skeleton beats stage-by-stage building — but you feel it when it fails and you debug it, which the clause below already reserves.
 
 **🤝 Own F3's determinism test.** Delegate two days of football modelling; spend thirty minutes writing the byte-identical-match test. The lesson is in the property, not the implementation.
 
