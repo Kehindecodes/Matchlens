@@ -33,7 +33,13 @@ NOW = datetime(2026, 10, 11, tzinfo=UTC)
 
 def test_group_b_to_d_enum_values_match_the_data_model():
     assert {z.value for z in Zone} == {"defensive_third", "middle_third", "final_third"}
-    assert {o.value for o in PossessionOutcome} == {"shot", "turnover", "foul", "out_of_play"}
+    assert {o.value for o in PossessionOutcome} == {
+        "shot",
+        "turnover",
+        "foul",
+        "out_of_play",
+        "period_end",
+    }
     assert {s.value for s in Signal} == {
         "territory", "possession_control", "pressing_intensity", "chance_quality", "line_height",
     }  # fmt: skip

@@ -82,6 +82,7 @@ class PossessionOutcome(StrEnum):
     TURNOVER = "turnover"
     FOUL = "foul"
     OUT_OF_PLAY = "out_of_play"
+    PERIOD_END = "period_end"  # the half ended with the ball live (Q12)
 
 
 class Signal(StrEnum):
