@@ -1,6 +1,6 @@
 # Infra
 
-`main.bicep` is the whole MatchLens stack in one resource group: the container registry, the Log Analytics workspace, the Container Apps environment, the `matchlens` app (scale 0–1, public ingress on 8000), and the managed identity the app pulls its image with, which has AcrPull on the registry.
+`main.bicep` is the whole MatchLens stack in one resource group: the container registry, the Log Analytics workspace, the Application Insights resource that stores its traces in that workspace (S6), the Container Apps environment, the `matchlens` app (scale 0–1, public ingress on 8000), and the managed identity the app pulls its image with, which has AcrPull on the registry.
 
 ## Into an empty resource group
 

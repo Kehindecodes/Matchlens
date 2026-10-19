@@ -8,6 +8,7 @@ and the pipeline, whose cards go to Delivery's end of the bus, `router.receive`.
 import asyncio
 from contextlib import asynccontextmanager
 
+from azure.monitor.opentelemetry import configure_azure_monitor
 from fastapi import FastAPI
 
 from apps.pipeline import Pipeline, Publish
@@ -51,6 +52,8 @@ router = CardRouter(
 
 @asynccontextmanager
 async def _lifespan(_: FastAPI):
+    if settings.appinsights_connection_string:
+        configure_azure_monitor(connection_string=settings.appinsights_connection_string)
     replay = Replay.from_seed(settings.match_seed, speed=settings.replay_speed)
     feed = asyncio.create_task(run_local_feed(hub, replay, Pipeline(), router.receive))
     try:

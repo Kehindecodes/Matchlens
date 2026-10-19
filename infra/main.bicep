@@ -50,6 +50,17 @@ resource workspace 'Microsoft.OperationalInsights/workspaces@2022-10-01' = {
   }
 }
 
+// Traces land in the same workspace as the container logs (S6).
+resource insights 'Microsoft.Insights/components@2020-02-02' = {
+  name: '${appName}-insights'
+  location: location
+  kind: 'web'
+  properties: {
+    Application_Type: 'web'
+    WorkspaceResourceId: workspace.id
+  }
+}
+
 resource environment 'Microsoft.App/managedEnvironments@2024-03-01' = {
   name: environmentName
   location: location
@@ -117,6 +128,12 @@ resource app 'Microsoft.App/containerApps@2024-03-01' = {
           identity: pullIdentity.id
         }
       ]
+      secrets: [
+        {
+          name: 'appinsights-connection-string'
+          value: insights.properties.ConnectionString
+        }
+      ]
     }
     template: {
       containers: [
@@ -131,6 +148,10 @@ resource app 'Microsoft.App/containerApps@2024-03-01' = {
             {
               name: 'MATCHLENS_REPLAY_SPEED'
               value: replaySpeed
+            }
+            {
+              name: 'APPLICATIONINSIGHTS_CONNECTION_STRING' // read by configure_azure_monitor()
+              secretRef: 'appinsights-connection-string'
             }
           ]
         }

@@ -24,6 +24,23 @@ Newest at the top. Kehinde answers inline and moves the resolved ones to `docs/D
 
 ---
 
+## Q9 · S6's last criterion tests a Service Bus hop that v1 does not have  [ticket: S6]  [blocking: no]
+
+**What I need to know:** What "the trace survives the Service Bus hop between the two container apps" should test in v1. D23 runs the pipeline inside the delivery app, so there is one container and no broker. `publish(card)` is an in-process call, and `Card` has nowhere to carry a `traceparent`.
+
+**Why I cannot decide it:** dropping or deferring a criterion is a cut, and giving the bus contract a slot for trace context changes the `Card` contract D23 says stays fixed (CLAUDE.md).
+
+**Options as I see them:**
+- A: Defer the criterion to the ticket that splits the containers. S6 ships with four criteria. Costs the propagation lesson until then.
+- B: Make the in-process seam behave like a broker now. `publish` takes the card plus a properties dict, and the test serialises both and calls `CardRouter.receive` from an empty context. Costs a change to the bus contract before there is a bus.
+- C: Test propagation in isolation: inject into a dict, extract in a fresh context, assert the same trace. Proves the mechanism and touches no contract, but proves nothing about this app's path.
+
+**What I would do if forced:** B, because it is the one that fails if the pipeline forgets to inject. Not done: `tests/test_tracing.py` covers criteria 1 to 4 only.
+
+**Answer:**
+
+---
+
 ## Q8 · What carries a rendition's clock across the bus?  [ticket: S4]  [blocking: no]
 
 **What I need to know:** Where `display_at_clock` lives for a card on its way to Delivery. The release rule (invariant 8) and the page's card both need the match clock a rendition describes, but `Rendition` has no clock. The only entity with `display_at_clock` is `OverlayPacket`, which the data model describes as a rendition formatted for a graphics system.

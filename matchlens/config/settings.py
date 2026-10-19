@@ -1,5 +1,6 @@
 """The only place in the codebase that reads the environment."""
 
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -32,6 +33,9 @@ class Settings(BaseSettings):
     # Infrastructure
     service_bus_connection: str = ""
     database_connection: str = ""
+    appinsights_connection_string: str = Field(
+        default="", validation_alias="APPLICATIONINSIGHTS_CONNECTION_STRING"
+    )
 
     log_level: str = "INFO"
 

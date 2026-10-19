@@ -838,6 +838,31 @@ wheels = [
 ]
 
 [[package]]
+name = "azure-monitor-opentelemetry"
+version = "1.8.11"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "azure-core" },
+    { name = "azure-core-tracing-opentelemetry" },
+    { name = "azure-monitor-opentelemetry-exporter" },
+    { name = "opentelemetry-instrumentation-django" },
+    { name = "opentelemetry-instrumentation-fastapi" },
+    { name = "opentelemetry-instrumentation-flask" },
+    { name = "opentelemetry-instrumentation-httpx" },
+    { name = "opentelemetry-instrumentation-logging" },
+    { name = "opentelemetry-instrumentation-psycopg2" },
+    { name = "opentelemetry-instrumentation-requests" },
+    { name = "opentelemetry-instrumentation-urllib" },
+    { name = "opentelemetry-instrumentation-urllib3" },
+    { name = "opentelemetry-resource-detector-azure" },
+    { name = "opentelemetry-sdk" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/79/5c/75730e80067437ca8639cb99268f74ecea24f95189b120dfb8a0f0f7e247/azure_monitor_opentelemetry-1.8.11.tar.gz", hash = "sha256:606e41ded61f330634f997b6378671168c10e0a7fcf4dfd1238235bc17df05f4", size = 82105, upload-time = "2026-10-07T22:54:07.521Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/e9/01/1267cb3f7aa0bcf1c7794487784ce712954010b1f28dd5a28377f5edd106/azure_monitor_opentelemetry-1.8.11-py3-none-any.whl", hash = "sha256:034a9d7ccc0c944986963ad2a5f4da11d669538ae797f7f4edad803ca8e9127d", size = 43125, upload-time = "2026-10-07T22:54:09.134Z" },
+]
+
+[[package]]
 name = "azure-monitor-opentelemetry-exporter"
 version = "1.0.0b58"
 source = { registry = "https://pypi.org/simple" }
@@ -1681,8 +1706,11 @@ name = "matchlens"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
+    { name = "azure-monitor-opentelemetry" },
     { name = "fastapi" },
     { name = "numpy" },
+    { name = "opentelemetry-api" },
+    { name = "opentelemetry-sdk" },
     { name = "pydantic" },
     { name = "pydantic-settings" },
     { name = "uvicorn" },
@@ -1702,8 +1730,11 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "azure-monitor-opentelemetry", specifier = "==1.8.11" },
     { name = "fastapi", specifier = "==0.141.1" },
     { name = "numpy", specifier = "==2.5.3" },
+    { name = "opentelemetry-api", specifier = "==1.45.1" },
+    { name = "opentelemetry-sdk", specifier = "==1.45.1" },
     { name = "pydantic", specifier = "==2.14.0" },
     { name = "pydantic-settings", specifier = "==2.15.0" },
     { name = "uvicorn", specifier = "==0.54.0" },
