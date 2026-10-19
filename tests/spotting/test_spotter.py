@@ -15,7 +15,7 @@ def match_1() -> Played:
 
 def _fired(match: Played):
     spotter = Spotter()
-    return [m for item in match.items[1:] if (m := spotter.consider((), item)) is not None]  # type: ignore[arg-type]
+    return [r.moment for item in match.items[1:] if (r := spotter.consider((), item)) is not None]  # type: ignore[arg-type]
 
 
 def test_the_stub_fires_exactly_once(match_1: Played):
