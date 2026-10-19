@@ -74,23 +74,50 @@ def _stage(span: ReadableSpan) -> str:
     return span.name.split(".")[0]
 
 
+# A finished span always has these; the SDK types them as optional, so narrow them once here.
+
+
+def _attr(span: ReadableSpan, key: str) -> object:
+    return (span.attributes or {}).get(key)
+
+
+def _trace_id(span: ReadableSpan) -> int:
+    assert span.context is not None, span.name
+    return span.context.trace_id
+
+
+def _span_id(span: ReadableSpan) -> int:
+    assert span.context is not None, span.name
+    return span.context.span_id
+
+
+def _start(span: ReadableSpan) -> int:
+    assert span.start_time is not None, f"{span.name} never started"
+    return span.start_time
+
+
+def _end(span: ReadableSpan) -> int:
+    assert span.end_time is not None, f"{span.name} never ended"
+    return span.end_time
+
+
 def _for_moment(spans: list[ReadableSpan], moment_id: str) -> list[ReadableSpan]:
-    return [s for s in spans if s.attributes.get("moment_id") == moment_id]
+    return [s for s in spans if _attr(s, "moment_id") == moment_id]
 
 
 def _the_trace(spans: list[ReadableSpan], moment_id: str) -> list[ReadableSpan]:
     """Every span sharing the trace of the moment's spans."""
     tagged = _for_moment(spans, moment_id)
     assert tagged, f"no span carries moment_id={moment_id!r}"
-    trace_ids = {s.context.trace_id for s in tagged}
+    trace_ids = {_trace_id(s) for s in tagged}
     assert len(trace_ids) == 1, f"moment {moment_id} is spread over {len(trace_ids)} traces"
     [trace_id] = trace_ids
-    return [s for s in spans if s.context.trace_id == trace_id]
+    return [s for s in spans if _trace_id(s) == trace_id]
 
 
 def _outermost(spans: list[ReadableSpan]) -> list[ReadableSpan]:
     """The spans whose parent is not of their own stage: a stage's whole work, counted once."""
-    by_id = {s.context.span_id: s for s in spans}
+    by_id = {_span_id(s): s for s in spans}
     return [
         s
         for s in spans
@@ -101,13 +128,11 @@ def _outermost(spans: list[ReadableSpan]) -> list[ReadableSpan]:
 
 
 def _verification_spans(spans: list[ReadableSpan], claim_id: str) -> list[ReadableSpan]:
-    return [
-        s for s in spans if _stage(s) == "verification" and s.attributes.get("claim_id") == claim_id
-    ]
+    return [s for s in spans if _stage(s) == "verification" and _attr(s, "claim_id") == claim_id]
 
 
 def _ms(span: ReadableSpan) -> float:
-    return (span.end_time - span.start_time) / 1e6
+    return (_end(span) - _start(span)) / 1e6
 
 
 # 1 · One moment produces one trace with at least four spans in the right order
@@ -150,7 +175,7 @@ def test_the_stages_run_in_pipeline_order(traced):
     for moment_id in _moment_ids(published):
         first_start = {}
         for s in _the_trace(spans, moment_id):
-            first_start[_stage(s)] = min(first_start.get(_stage(s), s.start_time), s.start_time)
+            first_start[_stage(s)] = min(first_start.get(_stage(s), _start(s)), _start(s))
         order = sorted((st for st in first_start if st in STAGES), key=first_start.__getitem__)
         assert order == STAGES
 
@@ -164,9 +189,7 @@ def test_every_span_in_the_trace_carries_the_moment_id(traced):
     spans, published, _ = traced
     for moment_id in _moment_ids(published):
         unlabelled = [
-            s.name
-            for s in _the_trace(spans, moment_id)
-            if s.attributes.get("moment_id") != moment_id
+            s.name for s in _the_trace(spans, moment_id) if _attr(s, "moment_id") != moment_id
         ]
         assert not unlabelled, f"spans without moment_id={moment_id!r}: {unlabelled}"
 
@@ -183,7 +206,7 @@ def test_every_span_has_a_duration(traced):
     spans, published, _ = traced
     for moment_id in _moment_ids(published):
         for s in _the_trace(spans, moment_id):
-            assert s.end_time is not None and s.end_time >= s.start_time, s.name
+            assert _end(s) >= _start(s), s.name
 
 
 def test_stage_durations_add_up_to_the_end_to_end_latency(traced):
@@ -192,7 +215,7 @@ def test_stage_durations_add_up_to_the_end_to_end_latency(traced):
         the_trace = _the_trace(spans, moment_id)
         [root] = [s for s in the_trace if s.parent is None]
         last_card = max(t for card, t in published if card.rendition.moment_id == moment_id)
-        end_to_end = (last_card - root.start_time) / 1e6
+        end_to_end = (last_card - _start(root)) / 1e6
         summed = sum(_ms(s) for s in _outermost(the_trace))
 
         assert summed <= end_to_end + 1.0, (
