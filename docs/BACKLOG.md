@@ -43,12 +43,12 @@ Update the **Status** column when a ticket moves. Statuses: `todo`, `wip`, `done
 
 | ID | Ticket | Est | Deps | Tier | Status | Brief |
 |---|---|---|---|---|---|---|
-| U1 | Possession sequencing from events | 0.5 | S2 | T1 | todo | — |
-| U2 | ShotValue hand-calibrated lookup | 0.5 | S2 | T1 | todo | — |
-| U3 | Five signal functions emitting SignalReading | 2 | U1, U2 | T1 | todo | — |
-| 🧑 U4 | Rolling baselines, shrinkage blend, `z_match` and `z_prior` | 1 | U3, R1 | T1 | todo | — |
-| U5 | Epoch detection on goal, red card, half time | 0.5 | S2 | T1 | todo | — |
-| U6 | Debug page plotting signals and z-scores over the match | 0.5 | U4 | T2 | todo | — |
+| U1 | Possession sequencing from events | 0.5 | S2 | T1 | done | ✅ |
+| U2 | ShotValue hand-calibrated lookup | 0.5 | S2 | T1 | todo | ✅ |
+| U3 | Five signal functions emitting SignalReading | 2 | U1, U2 | T1 | todo | ✅ |
+| 🧑 U4 | Rolling baselines, shrinkage blend, `z_match` and `z_prior` | 1 | U3, R1 | T1 | todo | ✅ |
+| U5 | Epoch detection on goal, red card, half time | 0.5 | S2 | T1 | todo | ✅ |
+| U6 | Debug page plotting signals and z-scores over the match | 0.5 | U4 | T2 | todo | ✅ |
 
 **U1** — possession records with pass counts and zone progression; stopped time excluded.
 **U2** — every shot carries a 0–1 value with distance and angle kept. Named `shot_quality`, never xG.
