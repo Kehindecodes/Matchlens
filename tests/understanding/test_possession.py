@@ -5,7 +5,8 @@ from statistics import mean
 import pytest
 from pydantic import ValidationError
 
-from matchlens.ingest import Ingest
+from matchlens.ingest import Ingest, RecordReader
+from matchlens.ingest.events import InMemoryEventRepository
 from matchlens.models import Action, Event, Outcome, Phase, Possession, PossessionOutcome, Zone
 from matchlens.source import simulate
 from matchlens.understanding.possession import sequence
@@ -152,3 +153,16 @@ def test_a_possession_needs_at_least_one_event():
 def test_the_same_seed_gives_the_same_possessions_byte_for_byte(possessions):
     again = _possessions(split(list(simulate(1))))
     assert [p.model_dump_json() for p in again] == [p.model_dump_json() for p in possessions]
+
+
+@pytest.mark.parametrize("outcome", [Outcome.SAVED, Outcome.OFF_TARGET, Outcome.BLOCKED])
+def test_a_free_kick_struck_at_goal_ends_the_possession_as_a_shot(played, outcome):
+    kick = next(e for e in played.events if e.action is Action.FREE_KICK)
+    struck = kick.model_copy(update={"outcome": outcome})
+    reply = next(e for e in played.events if e.team not in (None, kick.team) and e.seq > kick.seq)
+    repository = InMemoryEventRepository()
+    for event in (struck, reply.model_copy(update={"seq": kick.seq + 1})):
+        repository.append(event)
+    [possession] = sequence(RecordReader(played.setup, repository), 0, played.end_clock_ms + 1)
+    assert possession.event_ids == (kick.event_id,)
+    assert possession.outcome is PossessionOutcome.SHOT

@@ -27,6 +27,7 @@ from matchlens.models import (
 )
 from matchlens.models.match_record import MATCH_EVENTS
 
+_AT_GOAL = frozenset({Outcome.SAVED, Outcome.GOAL, Outcome.OFF_TARGET, Outcome.BLOCKED})
 # Each of these restarts follows the ball going out, so it ends any possession still open.
 _OUT_OF_PLAY_RESTARTS = frozenset({Action.THROW_IN, Action.CORNER, Action.GOAL_KICK})
 
@@ -71,8 +72,8 @@ def sequence(reader: RecordReader, from_clock_ms: int, to_clock_ms: int) -> list
 
 
 def _free_kick_shot(event: Event) -> bool:
-    """A free kick that a keeper saved or that scored was a shot at goal."""
-    return event.action is Action.FREE_KICK and event.outcome in (Outcome.SAVED, Outcome.GOAL)
+    """A free kick struck at goal: saved, scored, blocked or off target, rather than passed."""
+    return event.action is Action.FREE_KICK and event.outcome in _AT_GOAL
 
 
 def _possession(
