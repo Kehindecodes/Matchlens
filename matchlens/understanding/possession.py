@@ -83,14 +83,14 @@ def _possession(
         start_clock_ms=first.clock_ms,
         end_clock_ms=events[-1].clock_ms,
         pass_count=sum(e.action is Action.PASS for e in events),
-        start_zone=_zone(match, first),
-        end_zone=_zone(match, last),
+        start_zone=zone(match, first),
+        end_zone=zone(match, last),
         outcome=outcome,
         event_ids=tuple(e.event_id for e in events),
     )
 
 
-def _zone(match: Match, event: Event) -> Zone:
+def zone(match: Match, event: Event) -> Zone:
     """The third `event` started in, from the acting team's view (it attacks towards +x)."""
     assert event.start_x is not None and event.start_y is not None
     team = next(t for t in match.teams if t.team_id == event.team)
