@@ -24,6 +24,10 @@ from matchlens.source.archetypes import COMEBACK, ArchetypeParams, interpolate
 from matchlens.source.squads import PITCH_LENGTH_M, PITCH_WIDTH_M, Slot, build_squads
 from matchlens.source.stream import MatchSetup, StreamItem
 
+# Bump whenever the generator's output changes for any archetype or seed. A signal prior is only
+# valid for the version that made it; tests pin this beside a digest of what it generates.
+GENERATOR_VERSION = "generator-1"
+
 # An opponent this close to the actor at execution means the action was under pressure.
 PRESSING_DISTANCE_M = 3.0
 

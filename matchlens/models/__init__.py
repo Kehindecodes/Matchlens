@@ -45,6 +45,7 @@ from matchlens.models.match_record import (
     normalise_frame,
     normalise_xy,
 )
+from matchlens.models.reference import SignalPrior
 from matchlens.models.refs import Ref
 
 __all__ = [
@@ -83,6 +84,7 @@ __all__ = [
     "Rendition",
     "Scope",
     "ShotValue",
+    "SignalPrior",
     "Signal",
     "SignalReading",
     "SuppressionReason",
