@@ -5,9 +5,12 @@ simulator so the two can disagree. The production version belongs with the log r
 """
 
 from dataclasses import dataclass
-from functools import cached_property
+from functools import cache, cached_property
 
+from matchlens.ingest import Ingest, RecordReader
 from matchlens.models import Action, Event, Frame, Player
+from matchlens.source.archetypes import ARCHETYPES
+from matchlens.source.simulator import simulate
 from matchlens.source.stream import MatchSetup, StreamItem
 
 
@@ -39,6 +42,20 @@ def split(items: list[StreamItem]) -> Played:
     frames = [i for i in items if isinstance(i, Frame)]
     events = [i for i in items if isinstance(i, Event)]
     return Played(setup, frames, events, items)
+
+
+@cache
+def played(archetype_id: str = "comeback", seed: int = 1) -> Played:
+    """One generated match, simulated once per test run however many tests read it."""
+    return split(list(simulate(seed, ARCHETYPES[archetype_id])))
+
+
+def reader(match: Played) -> RecordReader:
+    """The match's event log behind the agent-facing reader, as Ingest builds it."""
+    ingest = Ingest()
+    for item in match.items:
+        ingest.accept(item)
+    return ingest.record()
 
 
 def pitch_windows(

@@ -1,10 +1,10 @@
 import pytest
 
-from matchlens.source import simulate
-from tests.source.helpers import Played, split
+from tests.source.helpers import Played
+from tests.source.helpers import played as simulated
 
 
 @pytest.fixture(scope="session")
 def played() -> Played:
-    """Seed 1, simulated once for every understanding test."""
-    return split(list(simulate(1)))
+    """Seed 1 on the comeback, simulated once for every test that reads it."""
+    return simulated("comeback", 1)
