@@ -47,7 +47,7 @@ Update the **Status** column when a ticket moves. Statuses: `todo`, `wip`, `done
 | U2 | ShotValue hand-calibrated lookup | 0.5 | S2 | T1 | done | ✅ |
 | U3 | Four signal functions: values, `n`, `confidence` | 1.5 | U1, U2 | T1 | todo | ✅ |
 | 🧑 U4 | Rolling baselines, shrinkage blend, `z_match` and `z_prior` | 1 | U3, R1 | T1 | todo | ✅ |
-| U5 | Epoch detection on goal, red card, half time | 0.5 | S2 | T1 | todo | ✅ |
+| U5 | Epoch detection on goal, red card, half time | 0.5 | S2 | T1 | done | ✅ |
 | U6 | Debug page plotting signals and z-scores over the match | 0.5 | U4 | T2 | todo | ✅ |
 
 **U1** — possession records with pass counts and zone progression; stopped time excluded.

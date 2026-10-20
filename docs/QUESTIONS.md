@@ -36,7 +36,7 @@ Newest at the top. Kehinde answers inline and moves the resolved ones to `docs/D
 
 **What I did, so you can reverse it:** A, in `epochs.py` and in `test_the_score_at_each_epoch_counts_the_goals_up_to_its_start`. Red cards are counted the same way, so the red card's epoch already shows ten players. Under B both change.
 
-**Answer:**
+**Answer:** A. Kehinde, 20 Oct: count goals up to and including the epoch's start clock; red cards the same way.
 
 ## Q13 · Possessions cover 90.5% of in-play time, not "within a small tolerance"  [ticket: U1]  [blocking: yes]
 
