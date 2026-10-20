@@ -26,7 +26,7 @@ class Settings(BaseSettings):
     default_language: str = "en"  # ISO 639-1
 
     # Delivery
-    replay_speed: float = 1.0  # the in-process feed, until the pipeline sends over Service Bus
+    replay_speed: float = 25.0  # the in-process feed, until the pipeline sends over Service Bus
 
     # Models
     model_name: str = ""
