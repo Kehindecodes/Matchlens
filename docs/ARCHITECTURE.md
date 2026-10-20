@@ -113,6 +113,7 @@ Anything else that wants a storage read is probably a missing stream message. St
 - **The record / editorial line sits between Understanding and Spotting.** Everything upstream is a faithful record; everything downstream is an opinion.
 - **Verification sits between Explanation and Selection** so that no unverified claim can reach a renderer.
 - **Every model call lives in Rendering. Selection is model-free.** A model outage can change how a card reads; it can never change which claims a lens shows. The degradation ladder therefore runs entirely inside Rendering (D17).
+- **Archetypes stop at Match Source.** Nothing downstream may read `Match.archetype_id` or `Match.seed`. They are provenance, a real feed leaves them null, and a component that branches on them is untransferable while still passing every test (D25).
 - **Lens config is read, never written, by Selection and Rendering.**
 
 ---

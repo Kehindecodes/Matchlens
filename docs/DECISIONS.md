@@ -401,6 +401,37 @@ They stay — all three are built, and the frame boundary test is the structural
 
 ---
 
+## D25 · `archetype_id` and `seed` are provenance, and nothing downstream may read them — SETTLED 20 Oct
+
+Archetypes are a property of the **Match Source alone.** In production that component is a provider feed and archetypes do not exist — they are a generator input, never runtime configuration.
+
+But `Match` carries `archetype_id` and `seed`, which are facts about how the record was *produced* rather than about the football. A real feed can fill neither.
+
+**Settled:**
+
+1. Both fields are **nullable provenance**. A real feed leaves them empty; the synthetic source fills them. They stay on `Match` rather than moving to a separate provenance row — F2 and S2 are built, and the move would cost more than it returns.
+2. **No component downstream of Match Source may read either one.** Enforced by a test that walks the tree, the same shape as the existing `test_nothing_outside_config_reads_os_environ`: nothing outside `matchlens/source/` and `tests/` imports `archetypes` or reads those two fields.
+
+### Why the rule needs teeth rather than good intentions
+
+`archetypes.py` already says it *"never says what is interesting"*, and that instinct is right. What it does not prevent is subtler: if Spotting ever thresholds differently for a scrappy match, or Selection reweights for a one-sided one, the system becomes untransferable to a real feed **and every existing test still passes.** Nothing looks broken until a provider feed arrives with a null archetype and the behaviour quietly changes.
+
+### Replay is where the temptation lives
+
+In replay the whole match is in hand, so its shape *could* be classified and used. That is reasoning from the future — invariant 6, the same failure as the explainer seeing past the current clock, wearing a different hat. Which is why the rule is **never read it**, not "do not read it live".
+
+### The legitimate inversion
+
+Archetype as **input** is cheating. Archetype as **output** is a product feature: *"this has turned into a siege"* is an interpretive claim, computable progressively from the frozen log, and good analyst-lens content. Same word, opposite direction — one is configuration leaking in, the other is the system doing its job.
+
+Not v1. Worth keeping for the pitch's "what's next", because it reframes archetypes from demo scaffolding into something MatchLens could detect.
+
+### So what are archetypes for
+
+They do not run in production. They are the **test fixture that justifies the claim that the signals would work on a real feed** — P4's archetype regression is the evidence the signals generalise rather than fitting one match shape. That is the argument a platform actually wants, and it is why R2 is T1 rather than a nicety.
+
+---
+
 # OPEN — Kehinde decides
 
 ## O9 · After a break, blend the thin window against what?
