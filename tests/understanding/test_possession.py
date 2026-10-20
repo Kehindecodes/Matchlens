@@ -166,3 +166,8 @@ def test_a_free_kick_struck_at_goal_ends_the_possession_as_a_shot(played, outcom
     [possession] = sequence(RecordReader(played.setup, repository), 0, played.end_clock_ms + 1)
     assert possession.event_ids == (kick.event_id,)
     assert possession.outcome is PossessionOutcome.SHOT
+
+
+def test_no_possession_spans_two_periods(possessions, by_id):
+    for p in possessions:
+        assert len({by_id[i].period for i in p.event_ids}) == 1, p.possession_id
