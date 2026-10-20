@@ -21,11 +21,6 @@ def _possessions(played: Played) -> list[Possession]:
 
 
 @pytest.fixture(scope="module")
-def played() -> Played:
-    return split(list(simulate(1)))
-
-
-@pytest.fixture(scope="module")
 def possessions(played: Played) -> list[Possession]:
     return _possessions(played)
 

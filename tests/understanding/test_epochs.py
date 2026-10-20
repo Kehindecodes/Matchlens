@@ -5,15 +5,9 @@ import pytest
 from matchlens.ingest import Ingest, RecordReader
 from matchlens.ingest.events import InMemoryEventRepository
 from matchlens.models import Action, EpochTrigger, Event, Outcome
-from matchlens.source import simulate
 from matchlens.understanding import epochs
 from matchlens.understanding.epochs import detect
-from tests.source.helpers import Played, split
-
-
-@pytest.fixture(scope="module")
-def played() -> Played:
-    return split(list(simulate(1)))
+from tests.source.helpers import Played
 
 
 def _reader(played: Played, events: list[Event] | None = None) -> RecordReader:

@@ -16,6 +16,8 @@ class Settings(BaseSettings):
     # Match source and understanding
     frame_rate_hz: int = 2  # D13
     signal_window_ms: int = 300_000  # nominal; D15 clamps the effective window to the epoch
+    signal_cadence_ms: int = 60_000  # one reading per team per signal, every match minute
+    signal_confidence_k: int = 8  # samples at which a signal's confidence reaches one half
     baseline_k_minutes: int = 15
     match_seed: int = 1  # the demo match: the video and the tests run on this seed (F3)
 
