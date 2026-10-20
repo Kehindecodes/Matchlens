@@ -108,7 +108,9 @@ Attributes when it lands: `run_id`, `player`, `team`, `run_type` (`in_behind` | 
 ### Possession
 A sequence of consecutive events by one team. Possession control is measured in **sequences, not raw time** — "they can no longer string passes together" is a better story than a percentage.
 
-`possession_id`, `team`, `start_clock_ms`, `end_clock_ms`, `pass_count`, `start_zone`, `end_zone`, `outcome` (`shot` | `turnover` | `foul` | `out_of_play`), `event_ids`.
+`possession_id`, `team`, `start_clock_ms`, `end_clock_ms`, `pass_count`, `start_zone`, `end_zone`, `outcome` (`shot` | `turnover` | `foul` | `out_of_play` | `period_end`), `event_ids`.
+
+A possession starts on the event that gains control, a restart included, and holds that team's on-ball events. When a foul ends it, the foul is its last event even though the other team committed it, and when the half ends during it, the `period_end` event is (Q10–Q12). Cards, substitutions and the other match events are in none.
 
 ### SignalReading
 A **signal** is a definition (a function). A **reading** is an observation (data). Only readings are stored.
@@ -304,7 +306,7 @@ Every closed set in the model, named. **Closed sets are enums, not strings** —
 | `Outcome` | `complete` · `incomplete` · `blocked` · `goal` · `saved` · `off_target` · `won` · `lost` · `out_of_play` | `Event.outcome` |
 | `BodyPart` | `left_foot` · `right_foot` · `head` · `other` | `Event.body_part` |
 | `Zone` | `defensive_third` · `middle_third` · `final_third` | `Possession.start_zone`, `end_zone` |
-| `PossessionOutcome` | `shot` · `turnover` · `foul` · `out_of_play` | `Possession.outcome` |
+| `PossessionOutcome` | `shot` · `turnover` · `foul` · `out_of_play` · `period_end` | `Possession.outcome` |
 | `Signal` | `territory` · `possession_control` · `pressing_intensity` · `chance_quality` · `line_height` | `SignalReading.signal`, `SignalPrior.signal` |
 | `Trend` | `rising` · `falling` · `steady` | `SignalReading.trend` |
 | `EpochTrigger` | `goal` · `red_card` · `half_time` | `Epoch.trigger` |

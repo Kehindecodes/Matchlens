@@ -24,6 +24,69 @@ Newest at the top. Kehinde answers inline and moves the resolved ones to `docs/D
 
 ---
 
+## Q13 · Possessions cover 90.5% of in-play time, not "within a small tolerance"  [ticket: U1]  [blocking: yes]
+
+**What I need to know:** Which to change, the criterion or what `end_clock_ms` means. In seed 1, possessions cover 3,174 s of the 3,508.5 s of `in_play` frames. The missing 334.5 s is ball-in-flight time that belongs to no team:
+- 225 s between a possession's last touch and the other team's first. There are 205 such gaps, with a median of 1 s and a maximum of 3 s: the ball is travelling and nobody has it yet.
+- 110 s after the last touch of a possession that ends with the ball going out or a shot, while the ball runs out or into the net and the frames are still `in_play`.
+
+No in-play stretch is lost to a missing possession. The coverage test found a real bug (a save turned behind for a corner was counted as a turnover), which is now fixed.
+
+**Why I cannot decide it:** one option changes an acceptance criterion; the other changes what an existing attribute means (CLAUDE.md).
+
+**Options as I see them:**
+- A: `end_clock_ms` stays the clock of the last cited event, so a possession's span is a pure function of its `event_ids`, like `pass_count`. The criterion becomes: possessions cover at least 85% of in-play time, and every gap between a turnover and the next possession is at most 3 s. `DATA-MODEL.md` already says possession control is measured in sequences, not time, so nothing downstream reads possession time as the denominator.
+- B: A possession runs until the other team's first touch, so `end_clock_ms` is the next possession's start. Coverage rises to about 97%, but the clock is no longer recomputable from the possession's own citations, and the 110 s of ball running out remains.
+
+**What I would do if forced:** A.
+
+**Answer:** A. Kehinde, 20 Oct: `end_clock_ms` stays the last cited event's clock; possessions cover at least 85% of in-play time, and no turnover gap exceeds 3 s.
+
+## Q12 · Which outcome does a possession get when the half ends during it?  [ticket: U1]  [blocking: yes]
+
+**What I need to know:** In seed 1, both halves end with a team on the ball (46:25 `away pass` then `period_end`; 94:44 `home aerial_duel` then `period_end`). `PossessionOutcome` has `shot`, `turnover`, `foul` and `out_of_play`, and none of them describes it.
+
+**Why I cannot decide it:** every option changes what a `Possession` means or adds an enum value (CLAUDE.md: a change to what an existing entity means).
+
+**Options as I see them:**
+- A: Add `PossessionOutcome.PERIOD_END`. Honest, and the `period_end` event is the citation. Costs one enum value and a line in `DATA-MODEL.md`.
+- B: Drop the unfinished possession. Nothing new, but in-play time before the whistle belongs to nobody, and the coverage criterion needs a tolerance for it.
+- C: Call it `out_of_play`. Nothing new, but it is false.
+
+**What I would do if forced:** A.
+
+**Answer:** A. Kehinde, 20 Oct: add `PossessionOutcome.PERIOD_END`; the `period_end` event is the possession's last cited event.
+
+## Q11 · Which possession does the defender's foul belong to?  [ticket: U1]  [blocking: yes]
+
+**What I need to know:** In the generator, every foul is committed by the side without the ball: `home carry` → `away foul` → stoppage → `home free_kick`. So the possession that ends with `outcome = foul` belongs to one team, and the event that ended it belongs to the other.
+
+**Why I cannot decide it:** it decides what `event_ids` on a `Possession` contains, which is what the verifier cites (CLAUDE.md: what an existing entity means).
+
+**Options as I see them:**
+- A: The foul goes in the fouled team's possession, as its last event. The outcome is cited by an event in `event_ids` (invariant 4), at the cost of one opponent event inside a "sequence of consecutive events by one team". Possession-share signals would count events by `event.team`, not by possession.
+- B: The foul belongs to no possession, like the stoppage after it. Every possession holds only its own team's events, but `outcome = foul` is then read from an event the possession does not cite.
+
+**What I would do if forced:** A, because the outcome would otherwise be uncited. Turnovers are not affected: the interception or tackle that wins the ball starts the other team's possession, and in both options the outcome is read from it.
+
+**Answer:** A. Kehinde, 20 Oct: the foul is the last event of the fouled team's possession.
+
+## Q10 · Does the restart belong to the possession it starts?  [ticket: U1]  [blocking: yes]
+
+**What I need to know:** `Event` has no `phase`; only `Frame` does. In seed 1, every on-ball event's frame is `in_play` except the 100 restarts: throw-ins, free kicks, corners, goal kicks and kick-offs. Their frames are `set_piece`, because the event is emitted at the moment the restart is taken. The `stopped` time sits between the event that stopped play and the restart, so no event is ever in it.
+
+The brief asks that every event in a possession be `Phase.IN_PLAY`, and that U1 not read frames. Taken literally, both mean every throw-in and free kick is in no possession, and a possession could only start on the pass after the restart.
+
+**Why I cannot decide it:** it changes an acceptance criterion and what a possession contains (CLAUDE.md).
+
+**Options as I see them:**
+- A: The restart starts the possession. The criterion becomes "no possession spans `stopped` time": the test checks, from the frames, that no `stopped` frame falls between a possession's first and last event. U1 itself stays event-only and never reads a frame.
+- B: Restarts belong to no possession. This matches the criterion as written, but the pass count and start zone of every set-piece possession drop the restart, and a goal straight from a free kick is a shot with no possession.
+
+**What I would do if forced:** A. In football, a throw-in or a free kick is the start of a possession.
+
+**Answer:** A. Kehinde, 20 Oct: the restart starts the possession; the test checks that no `stopped` frame falls inside a possession.
+
 ## Q9 · S6's last criterion tests a Service Bus hop that v1 does not have  [ticket: S6]  [blocking: no]
 
 **What I need to know:** What "the trace survives the Service Bus hop between the two container apps" should test in v1. D23 runs the pipeline inside the delivery app, so there is one container and no broker. `publish(card)` is an in-process call, and `Card` has nowhere to carry a `traceparent`.
