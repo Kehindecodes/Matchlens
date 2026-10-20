@@ -6,7 +6,6 @@ import inspect
 import pytest
 
 from matchlens.models import Action, BodyPart, Event, Match, Outcome
-from matchlens.source import simulate
 from matchlens.understanding import shot_value
 from matchlens.understanding.shot_value import (
     MODEL_VERSION,
@@ -17,15 +16,9 @@ from matchlens.understanding.shot_value import (
     value,
     values,
 )
-from tests.source.helpers import Played, split
 
 DISTANCES = [d / 2 for d in range(0, 121)]  # 0 to 60 m
 ANGLES = [float(a) for a in range(0, 91)]  # degrees off the goal's centre line
-
-
-@pytest.fixture(scope="module")
-def played() -> Played:
-    return split(list(simulate(1)))
 
 
 def _shot(match: Match, x: float, y: float, period: int = 1, action=Action.SHOT) -> Event:

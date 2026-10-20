@@ -143,7 +143,7 @@ matchlens/
   models/            pydantic models, grouped as the data model is grouped
   source/            Match Source: seeded simulator, replay harness
   ingest/            ring buffer, frame access boundary
-  understanding/     possession, shot_quality, the five signals, baselines, epochs
+  understanding/     possession, shot_quality, the four v1 signals (D24), baselines, epochs
   spotting/          spotter, suppression
   explanation/       explainer agent (claims, never prose)
   verification/      the six checks

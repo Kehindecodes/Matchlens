@@ -81,6 +81,8 @@ But 10 Hz existed for run detection, which needs sub-second resolution to measur
 
 Confirmed by Kehinde at the start of F3. `settings.frame_rate_hz` stays the single source of truth.
 
+**D24 deferred line height**, so the rationale above no longer holds — frames have no consumer in v1. They are kept for the reasons D24 gives, not for this one.
+
 ## D14 · `Rendition.suppression_reason`, and every closed set is a named enum — SETTLED 9 Oct
 
 **`suppression_reason` added** to `Rendition`, required iff `suppressed` is true. One value, not a list, resolved by a declared evaluation order so the reason is deterministic across runs.
@@ -360,6 +362,45 @@ Text-side coverage (the card asserts nothing the claims do not support) is where
 
 ---
 
+## D24 · Four signals for v1 — line height is deferred — SETTLED 20 Oct
+
+O5 asked three signals or five. **Four:** `territory`, `possession_control`, `pressing_intensity`, `chance_quality`. `line_height` is **deferred, not cancelled.**
+
+### Why not the three O5 proposed
+
+O5's three were territory, possession control and chance quality — the *cheapest* three, not the best three. Those three move together almost by definition: the team with the ball is in the opponent's half taking shots. **Pressing intensity is the signal that dissociates** — a side can press hard without possession — so it is the one carrying D10's orthogonal-basis claim. Cutting it saves ~0.3 day and costs the claim the basis rests on.
+
+It also matters competitively. Sofascore's AI Insights already publishes possession, final-third entries, big chances and duels. Pressing intensity and line height were the two signals that read as *analysis* rather than counting, so keeping pressing is what stops the analyst lens becoming a stats recap of something already free.
+
+### What dropping line height costs
+
+**One class of read: a team deciding to defend.** No other signal sees a back line drop off. Territory and possession show the consequence — the other side has the ball in your half — not the decision. A 1–0 where the leading side sits in for thirty minutes, a common shape and one of the four archetypes, gets described as *"B are dominating territory"* rather than *"A have decided to protect this."*
+
+By lens: `match × casual` loses nothing, since line height would rarely clear the importance threshold at that depth; `team × engaged` loses some framing; **`match × analyst` takes nearly all of it.**
+
+**The thesis is untouched.** Lens divergence comes from selection, thresholds and framing, not from signal count. Four signals means fewer candidate moments, not less difference between lenses.
+
+### Why this signal rather than another
+
+Line height is the one most exposed to the circularity this design exists to avoid. It reads the simulator's positions, and F3's plausibility bar required building *"a defensive line with a coherent height that can move"* into the generator — so it partly reads back a parameter, where territory and possession emerge from event sequences. In the real world a dropping line is emergent; in the demo it is configured. That makes it the weakest of the five **as evidence**, whatever its value as a read.
+
+### Consequence: nothing reads a `Frame` in v1
+
+All four remaining signals are event-derived, so `FrameWindow`, `FrameAccess` and F3's 2 Hz generation have **no consumer in v1**.
+
+They stay — all three are built, and the frame boundary test is the structural demonstration of invariant 1. But be precise about it in the pitch: **the invariant is enforced on a path nothing currently walks.** "Frames never reach an LLM" is true and tested; it is not load-bearing until line height or player scope lands.
+
+**This undercuts D13's stated rationale.** D13 kept frames *because* line height is positional, and that reason is now deferred along with the signal. Keeping them stands on different ground: they are already built, the boundary test has pitch value, and reinstating line height later is then a function rather than a re-architecture.
+
+### Mechanics
+
+- `Signal.LINE_HEIGHT` **stays in the enum**, not built in v1 — the same treatment as `RefKind.RUN`, so the closed set still matches the data model. Add the comment when U3 is built.
+- **U3 drops from 2 days to 1.5**, saving ~0.5 day. Most of its cost was line height: the frame window, the interval conversion and the retention check.
+- `SignalPrior` (R1) covers four signals, not five.
+- The further cut to three stays on the ladder, but it costs the analyst lens its only tactical content. Take it last.
+
+---
+
 # OPEN — Kehinde decides
 
 ## O9 · After a break, blend the thin window against what?
@@ -382,10 +423,6 @@ Blocking `L6`. The prototype uses supporter-**voiced** ("we are level", "that sa
 ## O4 · Audit as an Azure Function or in-process
 
 Not blocking. Default in-process; split only if `S5` lands early.
-
-## O5 · Three signals or five
-
-Decide by 16 Oct. Shipping three (territory, possession control, chance quality) saves ~0.8 days and weakens the orthogonal-basis claim.
 
 ## O6 · Drop to T0 — no agents at all
 
