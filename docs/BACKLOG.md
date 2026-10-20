@@ -61,8 +61,8 @@ Update the **Status** column when a ticket moves. Statuses: `todo`, `wip`, `done
 
 | ID | Ticket | Est | Deps | Tier | Status | Brief |
 |---|---|---|---|---|---|---|
-| R1 | SignalPrior from a generated sample | 1 (0.25 lite) | U3 | T1 | todo | — |
-| R2 | Four MatchArchetype parameter sets | 0.5 | F3 | T1 | todo | — |
+| R1 | SignalPrior from a generated sample | 1 (0.25 lite) | U3, R2 | T1 | todo | ✅ |
+| R2 | Four MatchArchetype parameter sets | 0.5 | F3 | T1 | done | ✅ |
 
 **R1** — mean and stddev per signal with `generator_version`. **Take the lite version:** 20 matches, not 200. Enough to stop the cold-start flood.
 **R2** — comeback, one-sided, tight, scrappy, each producing recognisably different matches. P4 needs four to test against.

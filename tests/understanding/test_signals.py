@@ -1,4 +1,4 @@
-"""U3: the four v1 signals over seed 1, the only archetype until R2 adds three more."""
+"""U3: the four v1 signals over seed 1, on the comeback and on the one-sided match (R2)."""
 
 import ast
 import inspect
@@ -25,6 +25,8 @@ from matchlens.understanding.signals import (
     window_at,
 )
 from tests.source.helpers import Played, split
+from tests.source.helpers import played as simulated
+from tests.source.helpers import reader as match_reader
 
 
 @pytest.fixture(scope="module")
@@ -160,9 +162,22 @@ def test_the_signals_read_sensibly_on_the_comeback(readings, played):
     )
 
 
-@pytest.mark.skip(reason="R2: COMEBACK is the only archetype, so there is no second to read")
-def test_the_signals_read_sensibly_on_a_second_archetype():
-    """U3 asks for two archetypes. Write this against R2's one-sided or tight match."""
+def test_the_signals_read_sensibly_on_the_one_sided_match():
+    """The second archetype: home on top from first to last, and all four signals agree."""
+    match = simulated("one_sided", 1)
+    r = match_reader(match)
+    rows = [m for c, e in cadence(detect(r), match.end_clock_ms) for m in measure(r, e, c)]
+    home, away = (t.team_id for t in match.setup.match.teams)
+
+    def mean(signal: Signal, team: str) -> float:
+        return statistics.mean(m.value for m in _series(rows, signal, team))
+
+    assert mean(Signal.TERRITORY, home) > 0.6
+    assert mean(Signal.POSSESSION_CONTROL, home) > 0.55
+    assert mean(Signal.CHANCE_QUALITY, home) > 2 * mean(Signal.CHANCE_QUALITY, away)
+    for signal in (Signal.TERRITORY, Signal.POSSESSION_CONTROL):
+        for h, a in zip(_series(rows, signal, home), _series(rows, signal, away), strict=True):
+            assert h.value + a.value == pytest.approx(1.0)
 
 
 def test_pressing_moves_apart_from_possession_on_the_comeback(readings, played):

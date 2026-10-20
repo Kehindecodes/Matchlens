@@ -49,6 +49,10 @@ class ArchetypeParams:
     goals: tuple[GoalPlan, ...]
     subs: tuple[SubPlan, ...] = ()
     red_cards: tuple[RedCardPlan, ...] = ()
+    # How well each side keeps the ball, -1 to 1: it offsets the other side's press on that
+    # side's passes and carries. 0, the default, leaves the match exactly as without it.
+    home_retention: Schedule = ((0, 0.0),)
+    away_retention: Schedule = ((0, 0.0),)
 
 
 # The demo narrative. Away score first on a counter while home are on top; home level while
@@ -79,7 +83,73 @@ COMEBACK = ArchetypeParams(
     red_cards=(RedCardPlan("away", 63.0),),
 )
 
-ARCHETYPES = {COMEBACK.archetype_id: COMEBACK}
+# Home on top from first to last. Away sit deep with little of the ball but counter-press hard
+# the moment they lose it, so their press stays high while their possession stays low.
+ONE_SIDED = ArchetypeParams(
+    archetype_id="one_sided",
+    momentum=((0, 0.6), (20, 0.75), (45, 0.7), (50, 0.6), (70, 0.8), (100, 0.75)),
+    home_press=((0, 0.5), (100, 0.45)),
+    away_press=((0, 0.8), (60, 0.85), (100, 0.75)),
+    goals=(GoalPlan(24, "home"), GoalPlan(58, "home"), GoalPlan(81, "home")),
+    home_retention=((0, 0.8), (100, 0.8)),  # home keep the ball under the press (Q16)
+    subs=(
+        SubPlan("away", 55.0, ("MF",)),
+        SubPlan("home", 66.0, ("FW", "MF")),
+        SubPlan("away", 72.0, ("FW",)),
+    ),
+)
+
+# Neither side gets on top for long: momentum drifts gently either side of level, both press
+# moderately, and the one goal comes late.
+TIGHT = ArchetypeParams(
+    archetype_id="tight",
+    momentum=(
+        (0, 0.05),
+        (15, -0.12),
+        (30, 0.1),
+        (45, -0.08),
+        (60, 0.12),
+        (75, -0.1),
+        (88, 0.08),
+        (100, 0.0),
+    ),  # fmt: skip
+    home_press=((0, 0.45), (100, 0.5)),
+    away_press=((0, 0.5), (100, 0.45)),
+    goals=(GoalPlan(84, "away"),),
+    subs=(SubPlan("home", 65.0, ("MF",)), SubPlan("away", 70.0, ("FW",))),
+)
+
+# Both sides press high and the upper hand changes every few minutes, so the ball keeps changing
+# hands: short possessions, many challenges, many fouls and restarts.
+SCRAPPY = ArchetypeParams(
+    archetype_id="scrappy",
+    momentum=(
+        (0, 0.3),
+        (5, -0.35),
+        (11, 0.4),
+        (16, -0.3),
+        (22, 0.35),
+        (28, -0.4),
+        (34, 0.3),
+        (40, -0.35),
+        (46, 0.3),
+        (52, -0.4),
+        (58, 0.35),
+        (64, -0.3),
+        (70, 0.4),
+        (76, -0.35),
+        (82, 0.3),
+        (88, -0.3),
+        (100, 0.2),
+    ),  # fmt: skip
+    home_press=((0, 0.85), (100, 0.8)),
+    away_press=((0, 0.85), (100, 0.85)),
+    goals=(GoalPlan(31, "home"), GoalPlan(69, "away")),
+    subs=(SubPlan("home", 60.0, ("MF", "DF")), SubPlan("away", 62.0, ("MF",))),
+    red_cards=(RedCardPlan("home", 74.0),),
+)
+
+ARCHETYPES = {a.archetype_id: a for a in (COMEBACK, ONE_SIDED, TIGHT, SCRAPPY)}
 
 
 def interpolate(schedule: Schedule, minute: float) -> float:

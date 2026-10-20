@@ -23,8 +23,8 @@ The root record everything hangs off, and the thing a demo replays.
 | `pitch_length_m`, `pitch_width_m` | Metres, so coordinates can be interpreted |
 | `kickoff_at` | Notional start time |
 | `period_boundaries` | **Derived** from `period_start` / `period_end` events, not stored pre-match (D16) — added time cannot be known at kickoff, so storing it here meant another mutated field |
-| `archetype_id` | Which archetype generated this fixture |
-| `seed` | Regenerates a byte-identical match. Tests and the demo video depend on this |
+| `archetype_id` | **Provenance, nullable (D25).** Which archetype generated this fixture; empty for a real feed. **Nothing downstream of Match Source may read it** |
+| `seed` | **Provenance, nullable (D25).** Regenerates a byte-identical match; empty for a real feed. Tests and the demo video depend on it, and nothing downstream of Match Source may read it |
 
 ### Team
 Almost every signal is per-team, so they need stable identity and a known attacking direction.
