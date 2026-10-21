@@ -1,0 +1,128 @@
+{
+  "generator_version": "generator-1",
+  "priors": [
+    {
+      "generator_version": "generator-1",
+      "mean": 0.5,
+      "sample_size": 3570,
+      "signal": "territory",
+      "stddev": 0.38367955179228075
+    },
+    {
+      "generator_version": "generator-1",
+      "mean": 0.5,
+      "sample_size": 3670,
+      "signal": "possession_control",
+      "stddev": 0.1629519972051357
+    },
+    {
+      "generator_version": "generator-1",
+      "mean": 5.813580565201632,
+      "sample_size": 3655,
+      "signal": "pressing_intensity",
+      "stddev": 4.05587884722969
+    },
+    {
+      "generator_version": "generator-1",
+      "mean": 0.41124006242964917,
+      "sample_size": 1269,
+      "signal": "chance_quality",
+      "stddev": 0.37572276068251687
+    }
+  ],
+  "sample": {
+    "comeback": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "one_sided": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "scrappy": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "tight": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ]
+  },
+  "stability": {
+    "means": {
+      "chance_quality": 0.3740694024219215,
+      "possession_control": 0.5,
+      "pressing_intensity": 5.97079560984638,
+      "territory": 0.5
+    },
+    "sample": {
+      "comeback": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "one_sided": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "scrappy": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "tight": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ]
+    },
+    "shift_in_stddevs": {
+      "chance_quality": 0.09893108402643891,
+      "possession_control": 0.0,
+      "pressing_intensity": 0.03876226351093592,
+      "territory": 0.0
+    },
+    "tolerance_stddevs": 0.1
+  }
+}

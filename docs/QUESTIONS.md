@@ -24,6 +24,25 @@ Newest at the top. Kehinde answers inline and moves the resolved ones to `docs/D
 
 ---
 
+## Q18 · What R1's priors assumed  [ticket: R1]  [blocking: no]
+
+**What I need to know:** Whether these choices in `matchlens/understanding/priors.py` and `scripts/build_priors.py` suit U4.
+
+- **The sample:** an equal split, 5 seeds × 4 archetypes = 20 matches, recorded in `signal_priors.json`. Every measurement for both teams, every match minute, goes in: about 3,600 values per signal, and 1,269 for `chance_quality`.
+- **A measurement with `n == 0` is left out.** It saw nothing, so its value is a placeholder: an even share, or no shots. That makes `chance_quality`'s prior the mean of windows that had at least one shot (0.411), not of all windows. U4 should know that a 0.0 reading has no direct comparison in the prior.
+- **`territory` and `possession_control` have means of exactly 0.500,** because each is a share and both teams are pooled. Their spread (0.384 and 0.163) is the informative part. A per-team prior would need a home/away split, which says nothing about football.
+- **`pressing_intensity` is skewed:** mean 5.81, sd 4.06, so a z-score of −1 means about 1.8 passes per action, close to the floor. U4 may want to z-score its logarithm instead. That is your call.
+- **Stability:** doubling the sample to 40 moved every mean by less than 0.1 sd. `chance_quality` moved by **0.099**, only just inside the tolerance I set before running it. 20 matches is enough for three signals and borderline for the fourth.
+- **`GENERATOR_VERSION = "generator-1"`** in `simulator.py`, pinned by a test beside a digest of what each archetype generates on seed 1. Change the generator and that test fails until the version is bumped and the priors rebuilt. Loading priors from another version raises `StalePrior`.
+
+**Why I cannot decide it:** the brief asks for calibration assumptions to be noted, and U4 is yours.
+
+**Options as I see them:** keep them, or name what U4 needs different.
+
+**What I did, so you can reverse it:** all of the above.
+
+**Answer:**
+
 ## Q17 · Retention fixed possession, but no archetype can produce low possession with a high press  [ticket: R2]  [blocking: yes]
 
 **What I need to know:** Which evidence to accept for D10's dissociation claim. Q16's retention parameter is in, and it works for what it does: with `home_retention = 0.8`, home has 59–65% of the passes on seeds 1–3, and `COMEBACK` is byte-identical (digest `2381af553adb82aa` before and after). But the criterion behind Q16 still fails on every seed:
