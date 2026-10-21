@@ -24,6 +24,113 @@ Newest at the top. Kehinde answers inline and moves the resolved ones to `docs/D
 
 ---
 
+## Q18 · What R1's priors assumed  [ticket: R1]  [blocking: no]
+
+**What I need to know:** Whether these choices in `matchlens/understanding/priors.py` and `scripts/build_priors.py` suit U4.
+
+- **The sample:** an equal split, 5 seeds × 4 archetypes = 20 matches, recorded in `signal_priors.json`. Every measurement for both teams, every match minute, goes in: about 3,600 values per signal, and 1,269 for `chance_quality`.
+- **A measurement with `n == 0` is left out.** It saw nothing, so its value is a placeholder: an even share, or no shots. That makes `chance_quality`'s prior the mean of windows that had at least one shot (0.411), not of all windows. U4 should know that a 0.0 reading has no direct comparison in the prior.
+- **`territory` and `possession_control` have means of exactly 0.500,** because each is a share and both teams are pooled. Their spread (0.384 and 0.163) is the informative part. A per-team prior would need a home/away split, which says nothing about football.
+- **`pressing_intensity` is skewed:** mean 5.81, sd 4.06, so a z-score of −1 means about 1.8 passes per action, close to the floor. U4 may want to z-score its logarithm instead. That is your call.
+- **Stability:** doubling the sample to 40 moved every mean by less than 0.1 sd. `chance_quality` moved by **0.099**, only just inside the tolerance I set before running it. 20 matches is enough for three signals and borderline for the fourth.
+- **`GENERATOR_VERSION = "generator-1"`** in `simulator.py`, pinned by a test beside a digest of what each archetype generates on seed 1. Change the generator and that test fails until the version is bumped and the priors rebuilt. Loading priors from another version raises `StalePrior`.
+
+**Why I cannot decide it:** the brief asks for calibration assumptions to be noted, and U4 is yours.
+
+**Options as I see them:** keep them, or name what U4 needs different.
+
+**What I did, so you can reverse it:** all of the above.
+
+**Answer:**
+
+## Q17 · Retention fixed possession, but no archetype can produce low possession with a high press  [ticket: R2]  [blocking: yes]
+
+**What I need to know:** Which evidence to accept for D10's dissociation claim. Q16's retention parameter is in, and it works for what it does: with `home_retention = 0.8`, home has 59–65% of the passes on seeds 1–3, and `COMEBACK` is byte-identical (digest `2381af553adb82aa` before and after). But the criterion behind Q16 still fails on every seed:
+
+| What I tried, seeds 1–3 | longest spell: away < 40% of passes and pressing harder |
+|---|---|
+| Brief's shape: away press 0.8, home retention 0.5 / 0.8 / 1.0 | 1–5 min, never 5 on more than one seed |
+| Away presses high and cannot keep the ball (away retention −0.5 to −0.8) | 1–5 min |
+| Swapped: home on top, pressing high, poor retention; away keeps it | 1 min |
+| Brief's shape, counting defensive actions anywhere, not just high up | 0–1 min |
+
+Two reasons, both in how F3 models a match rather than in U3:
+- **PPDA counts only actions in the opponent's two-thirds.** In the generator, momentum decides where play happens, so a dominated side's tackles are in its own third and do not count. A side that sits deep reads as passive by definition, which is what PPDA is for.
+- **A defensive action is a turnover.** Every tackle and interception by a team starts that team's possession. So a team with less of the ball has, almost by construction, won it back less often, wherever you count.
+
+**Why I cannot decide it:** the options either change an acceptance criterion or change how the simulator models turnovers (CLAUDE.md), and the claim at stake is D10's.
+
+**Options as I see them:**
+- A: Keep retention (it gives `ONE_SIDED` real possession dominance). Replace the "sustained spell" criterion with what the generator can honestly show: within each archetype, `possession_control` and `pressing_intensity` correlate weakly (|r| < 0.6) for both teams. U3 already shows r = −0.39 and −0.27 on the comeback. The pitch then says "pressing is measured separately and does not simply track possession", not "a side can press hard without the ball".
+- B: Change the turnover model so winning the ball and keeping it are separate. For example, a hard press wins the ball but makes the presser's next pass more hurried, with a parameter defaulting to 0 so `COMEBACK` stays byte-identical. About 0.5 day, and it is a modelling choice made so that the pattern can appear, which should be said plainly.
+- C: Keep the criterion and leave it failing, marked as unproven. The claim goes in the pitch as untested.
+
+**What I would do if forced:** A. It claims only what the data shows, and it costs nothing.
+
+**Answer:** A. Kehinde, 20 Oct: keep retention; the criterion becomes a weak correlation (|r| < 0.6) between `possession_control` and `pressing_intensity` for both teams in every archetype, and the pitch claims only that.
+
+## Q16 · The generator cannot make a dominant side keep the ball, so R2 cannot honestly pair low possession with a high press  [ticket: R2]  [blocking: yes]
+
+**What I need to know:** Whether to give archetypes a ball-retention parameter. R2 asks one archetype to sustain low possession with a high press for the same team, which is the evidence for D10's orthogonal basis.
+
+In F3's simulator, momentum and press do different jobs. Momentum steers direction: forward passing, territory, shots. **Who keeps the ball is set mostly by the other side's press**: pass completion is `0.90 − 0.12 × opponent press + 0.06 × momentum`, and a carry is lost at `0.12 + 0.20 × opponent press − 0.06 × momentum`. So pressing hard *wins* possession, and momentum barely holds it. On seed 1:
+
+| `ONE_SIDED` variant | home pass share | shots | away < 40% of passes and pressing harder |
+|---|---|---|---|
+| momentum 0.75, home press 0.5, away 0.8 (as written) | 0.48 | 19–0 | longest spell 1 min |
+| momentum 0.9, home 0.3, away 0.7 | 0.50 | 24–0 | 0 min |
+| momentum 0.9, home 0.4, away 0.6 | 0.52 | 32–0 | 5 min |
+| momentum 1.0, home 0.25, away 0.6 | 0.49 | 47–0 | 3 min |
+| momentum 1.0, home 0.2, away 0.45 | 0.58 | 38–0 | 5 min |
+
+Even fully one-sided, home has about half the passes, and dominance shows only in shots, where away gets none at all. The criterion can just be met on one seed by searching settings, but that is tuning an archetype until the test passes, which R2's brief rules out.
+
+**Why I cannot decide it:** every way out changes the generator or a criterion (CLAUDE.md), and one would change the demo match.
+
+**Options as I see them:**
+- A: Add `home_retention` / `away_retention` schedules to `ArchetypeParams`, defaulting to 0, that shift that side's pass completion and carry security. With 0, the code path is unchanged, so `COMEBACK` and the demo seed stay byte-identical (a test asserts it). `ONE_SIDED` then gives home a retention edge, so home holds the ball while away presses high. Costs a generator parameter and ~0.25 day.
+- B: Keep the generator, and take variant "momentum 0.9, home 0.4, away 0.6". The criterion passes on seed 1 with a 5-minute spell, and the multi-seed slow tests decide whether it holds. Costs nothing now, but the D10 evidence rests on a borderline spell.
+- C: Make momentum count more towards keeping the ball, for every archetype. The most football-like fix, but it changes `COMEBACK`'s bytes, and with them the demo seed and video.
+
+**What I would do if forced:** A. It makes the dissociation a property of how the match is driven, which is the archetype's job, rather than something found by searching settings.
+
+**Answer:** A. Kehinde, 20 Oct: add per-side retention schedules defaulting to 0, with `COMEBACK` byte-identical.
+
+## Q15 · What U3's calibration assumed  [ticket: U3]  [blocking: no]
+
+**What I need to know:** Whether these readings of the brief's one-line definitions are the ones you want. Each is one function in `matchlens/understanding/signals.py`, so any of them is a small change.
+
+- **Window:** `(start, end]`. The event at the reading's clock counts. The event that opens an epoch (a goal, a red card) belongs to the epoch before, because the window starts at the epoch's start and leaves it out. This is the convention `frame_window` already uses, so line height can return without a second one.
+- **`territory`:** of the possessions in the window that ended in a final third, the share that were this team's. 0–1, 0.5 even. Five-minute windows hold about 6 of these, so it often reads 0 or 1.
+- **`possession_control`:** this team's share of the passes made inside possessions. That is "stringing passes together", not time on the ball (DATA-MODEL). Possession counts would sit near 50/50 because they alternate.
+- **`pressing_intensity`:** PPDA. The opponent's passes from its own defensive and middle thirds, divided by this team's tackles, interceptions and fouls in those thirds. **Lower means a harder press.** With no defensive action, the value is the pass count, as though there had been one. Whatever words a renderer uses later will need to know that lower means harder.
+- **`chance_quality`:** the sum of this team's shot values. 0 upwards.
+- **`n`:** possessions (`territory`: those reaching a final third; `possession_control`: all), passes plus actions (`pressing_intensity`), and shots (`chance_quality`).
+- **`confidence`:** `n / (n + 8)`, with `signal_confidence_k = 8` in settings. One k for all four, though their `n` count different things: `chance_quality` sits near 0.1 most of the time because shots are rare. That is accurate, but U4's shrinkage will treat it as always thin.
+- **Cadence:** one reading per team per signal every match minute (`signal_cadence_ms = 60_000`). That is 752 measurements for seed 1.
+
+**Why I cannot decide it:** the brief asks that calibration assumptions be noted here. None of them changes an entity or what a viewer sees yet.
+
+**Options as I see them:** keep them, or name the ones to change.
+
+**What I did, so you can reverse it:** all of the above, in `signals.py` and `settings.py`.
+
+**Answer:**
+
+## Q14 · Does a goal's epoch show the score with that goal, or before it?  [ticket: U5]  [blocking: yes, one criterion]
+
+**What I need to know:** U5's criterion says `score_state` at each epoch start matches "an independent count of goals **strictly before** that clock". A goal epoch starts at the goal's own clock, so a strictly-before count leaves out the goal that started it: the epoch after home's opener would say 0–0.
+
+**Why I cannot decide it:** it is an acceptance criterion, and it decides what `Epoch.score_state` means (CLAUDE.md).
+
+**Options as I see them:**
+- A: Count goals **up to and including** the epoch's start clock. The epoch after a goal shows the new score, which is the game state that epoch exists to hold. The criterion's wording changes from "strictly before" to "at or before".
+- B: Keep "strictly before" and start a goal's epoch 1 ms after the goal. The criterion stands as written, but `start_clock_ms` no longer matches the event that triggered it, which every reading's clamped window reads.
+
+**What I did, so you can reverse it:** A, in `epochs.py` and in `test_the_score_at_each_epoch_counts_the_goals_up_to_its_start`. Red cards are counted the same way, so the red card's epoch already shows ten players. Under B both change.
+
+**Answer:** A. Kehinde, 20 Oct: count goals up to and including the epoch's start clock; red cards the same way.
+
 ## Q13 · Possessions cover 90.5% of in-play time, not "within a small tolerance"  [ticket: U1]  [blocking: yes]
 
 **What I need to know:** Which to change, the criterion or what `end_clock_ms` means. In seed 1, possessions cover 3,174 s of the 3,508.5 s of `in_play` frames. The missing 334.5 s is ball-in-flight time that belongs to no team:

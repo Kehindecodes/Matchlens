@@ -26,8 +26,8 @@ from matchlens.models import (
     normalise_xy,
 )
 from matchlens.models.match_record import MATCH_EVENTS
+from matchlens.understanding.shot_value import is_shot
 
-_AT_GOAL = frozenset({Outcome.SAVED, Outcome.GOAL, Outcome.OFF_TARGET, Outcome.BLOCKED})
 # Each of these restarts follows the ball going out, so it ends any possession still open.
 _OUT_OF_PLAY_RESTARTS = frozenset({Action.THROW_IN, Action.CORNER, Action.GOAL_KICK})
 
@@ -64,16 +64,11 @@ def sequence(reader: RecordReader, from_clock_ms: int, to_clock_ms: int) -> list
         elif current and event.team != current[0].team:
             close(PossessionOutcome.TURNOVER)
         current.append(event)
-        if event.action in (Action.SHOT, Action.PENALTY) or _free_kick_shot(event):
+        if is_shot(event):
             close(PossessionOutcome.SHOT)
         elif event.outcome is Outcome.OUT_OF_PLAY:
             close(PossessionOutcome.OUT_OF_PLAY)
     return possessions
-
-
-def _free_kick_shot(event: Event) -> bool:
-    """A free kick struck at goal: saved, scored, blocked or off target, rather than passed."""
-    return event.action is Action.FREE_KICK and event.outcome in _AT_GOAL
 
 
 def _possession(
@@ -88,14 +83,14 @@ def _possession(
         start_clock_ms=first.clock_ms,
         end_clock_ms=events[-1].clock_ms,
         pass_count=sum(e.action is Action.PASS for e in events),
-        start_zone=_zone(match, first),
-        end_zone=_zone(match, last),
+        start_zone=zone(match, first),
+        end_zone=zone(match, last),
         outcome=outcome,
         event_ids=tuple(e.event_id for e in events),
     )
 
 
-def _zone(match: Match, event: Event) -> Zone:
+def zone(match: Match, event: Event) -> Zone:
     """The third `event` started in, from the acting team's view (it attacks towards +x)."""
     assert event.start_x is not None and event.start_y is not None
     team = next(t for t in match.teams if t.team_id == event.team)

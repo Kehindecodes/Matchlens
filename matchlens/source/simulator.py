@@ -24,6 +24,10 @@ from matchlens.source.archetypes import COMEBACK, ArchetypeParams, interpolate
 from matchlens.source.squads import PITCH_LENGTH_M, PITCH_WIDTH_M, Slot, build_squads
 from matchlens.source.stream import MatchSetup, StreamItem
 
+# Bump whenever the generator's output changes for any archetype or seed. A signal prior is only
+# valid for the version that made it; tests pin this beside a digest of what it generates.
+GENERATOR_VERSION = "generator-1"
+
 # An opponent this close to the actor at execution means the action was under pressure.
 PRESSING_DISTANCE_M = 3.0
 
@@ -151,6 +155,7 @@ class _Engine:
         self.m = 0.0
         self.m_ou = 0.0
         self.press = [0.5, 0.5]
+        self.retention = [0.0, 0.0]  # no noise, so a zero schedule changes nothing (R2)
         self.press_ou = [0.0, 0.0]
 
         # play state
@@ -331,11 +336,13 @@ class _Engine:
         self.m_ou = ou(self.m_ou, 90.0, 0.12)
         self.m = float(numpy.clip(interpolate(self.archetype.momentum, minute) + self.m_ou, -1, 1))
         schedules = (self.archetype.home_press, self.archetype.away_press)
+        holds = (self.archetype.home_retention, self.archetype.away_retention)
         for i, s in enumerate(self.sides):
             self.press_ou[i] = ou(self.press_ou[i], 60.0, 0.06)
             self.press[i] = float(
                 numpy.clip(interpolate(schedules[i], minute) + self.press_ou[i], 0.05, 0.95)
             )
+            self.retention[i] = interpolate(holds[i], minute)
             s.line_ou = ou(s.line_ou, 120.0, 1.5)
 
     # --- ball and players -------------------------------------------------------------------
@@ -625,6 +632,7 @@ class _Engine:
                 - 0.0045 * max(length - 15.0, 0.0)
                 - 0.05 * (gain > 12.0)
                 - 0.12 * press_opp
+                + 0.12 * self.retention[s.idx]
                 + 0.06 * m
                 + (0.03 if action is not Action.PASS else 0.0)
             )
@@ -780,7 +788,15 @@ class _Engine:
         ticks = self._ticks(float(numpy.hypot(*(end - src))) / 5.5)
         up = self._pressured(s, src)
         lose = not finishing and rng.random() < float(
-            numpy.clip(0.12 + 0.20 * self.press[opp.idx] + 0.04 * up - 0.06 * m, 0.02, 0.4)
+            numpy.clip(
+                0.12
+                + 0.20 * self.press[opp.idx]
+                + 0.04 * up
+                - 0.06 * m
+                - 0.20 * self.retention[s.idx],
+                0.02,
+                0.4,
+            )
         )
         src_g, end_g = self._to_g(s, src), self._to_g(s, end)
         self._emit(

@@ -113,23 +113,39 @@ Anything else that wants a storage read is probably a missing stream message. St
 - **The record / editorial line sits between Understanding and Spotting.** Everything upstream is a faithful record; everything downstream is an opinion.
 - **Verification sits between Explanation and Selection** so that no unverified claim can reach a renderer.
 - **Every model call lives in Rendering. Selection is model-free.** A model outage can change how a card reads; it can never change which claims a lens shows. The degradation ladder therefore runs entirely inside Rendering (D17).
+- **Archetypes stop at Match Source.** Nothing downstream may read `Match.archetype_id` or `Match.seed`. They are provenance, a real feed leaves them null, and a component that branches on them is untransferable while still passing every test (D25).
 - **Lens config is read, never written, by Selection and Rendering.**
 
 ---
 
 ## Deployment
 
-Fourteen components, **two deployable units** plus an optional function. The split falls on a real boundary: the slow agentic path and the fast session-oriented path have genuinely different scaling characteristics.
+**v1 deploys one container (D23), and S5 shipped it.** All fourteen components run in a single process entered through `apps.delivery`, which runs the seeded replay and the pipeline in-process as it has locally since S4.
 
-| Unit | Components | Shape |
+What is actually deployed, from one Bicep file into one resource group:
+
+| Resource | Shape |
+|---|---|
+| Container app `matchlens` | One image, one entrypoint, public ingress on 8000, **scale 0–1**. X4 raises min replicas to 1 for the judging window |
+| Container registry (Basic) | Pulled by a user-assigned identity holding AcrPull |
+| Log Analytics + Application Insights | Where traces land (S6) |
+| GitHub Actions via OIDC | A federated Entra app with Contributor on the group and AcrPush on the registry. No stored secrets |
+
+**Service Bus is not on the path in v1**, and why the two-unit split was abandoned is worth keeping: the pipeline app receives no HTTP traffic, so scaled to zero it never starts and no match plays. A viewer's request now wakes the single container, which starts the match — so a cold start regenerates from kickoff, and that delay is documented rather than hidden.
+
+`apps/pipeline.py` stays in the image. The `Card` contract (`publish`, `CardRouter.receive`) is unchanged, so splitting later swaps an in-process `publish` for a Service Bus sender and nothing else moves.
+
+### The split v1 does not do, and why it will matter
+
+The boundary is still real: the slow agentic path and the fast session-oriented path have genuinely different scaling characteristics.
+
+| Later unit | Components | Shape |
 |---|---|---|
 | **Pipeline app** | Match Source, Ingest, Understanding, Spotting, Explanation, Verification, Selection, Rendering, Catch-up, Lens Registry | CPU and model bound, bursty |
 | **Delivery app** | Delivery, Session Clock, Control | Connection bound, stateful per session |
 | **Audit function** | Audit | Event-triggered, post-match, nobody waits for it |
 
-One repo, one image, two entrypoints (`apps/pipeline.py`, `apps/delivery.py`). Everything else is an in-process module.
-
-Python's GIL is a real consideration when CPU work shares a process with I/O. The two-container split already solves it: the pipeline container does the CPU-heavy work, the delivery container does nothing but I/O and timing, so they never share a process.
+**The GIL argument now cuts the other way.** This section used to claim the two-container split solved it. In v1 it does not: CPU work and connection I/O share one process, so a long signal computation can delay a release. That is acceptable here — one match at 25× replay does not saturate a core — but it is a live constraint of the v1 shape rather than a solved problem, and the split is the fix when a second match arrives.
 
 ---
 

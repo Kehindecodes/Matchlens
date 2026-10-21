@@ -23,8 +23,8 @@ The root record everything hangs off, and the thing a demo replays.
 | `pitch_length_m`, `pitch_width_m` | Metres, so coordinates can be interpreted |
 | `kickoff_at` | Notional start time |
 | `period_boundaries` | **Derived** from `period_start` / `period_end` events, not stored pre-match (D16) — added time cannot be known at kickoff, so storing it here meant another mutated field |
-| `archetype_id` | Which archetype generated this fixture |
-| `seed` | Regenerates a byte-identical match. Tests and the demo video depend on this |
+| `archetype_id` | **Provenance, nullable (D25).** Which archetype generated this fixture; empty for a real feed. **Nothing downstream of Match Source may read it** |
+| `seed` | **Provenance, nullable (D25).** Regenerates a byte-identical match; empty for a real feed. Tests and the demo video depend on it, and nothing downstream of Match Source may read it |
 
 ### Team
 Almost every signal is per-team, so they need stable identity and a known attacking direction.
@@ -57,9 +57,11 @@ leaves = clock of the substitution taking them off, or of their red card, or mat
 ### Frame
 A positional snapshot of everyone on the pitch. Memory only — never a row per frame in a database.
 
-**Why frames survived the loss of player scope:** positional data is the only source for **defensive line height**, and for block width, compactness and average positions. Events say where the ball-actor was, never where the back four are standing — and those measures carry one of the five signals plus two of the three casual phase explainers.
+**Why frames survived the loss of player scope:** positional data is the only source for **defensive line height**, and for block width, compactness and average positions. Events say where the ball-actor was, never where the back four are standing.
 
-⚠️ **The rate is an open decision — see D13.** 10 Hz existed for run detection, which needs sub-second resolution. Line height needs 1–2 Hz. It is a generator parameter, not a schema change, so raising it back later costs nothing. **Ask before F3 fixes a value.** Figures on this page assume 2 Hz.
+⚠️ **But line height is deferred in v1 (D24), so nothing reads a `Frame` at all.** The window, the access boundary and F3's generation are all built and all stay — the boundary test is the structural proof of invariant 1 — but the invariant is currently enforced on a path nothing walks. Reinstating line height is then a function, not a re-architecture.
+
+**The rate is 2 Hz (D13, settled).** 10 Hz existed for run detection, which needs sub-second resolution; line height needs 1–2 Hz. It is a generator parameter, not a schema change, so raising it back for player scope later costs nothing. `settings.frame_rate_hz` is the single source of truth, and figures on this page assume 2 Hz.
 
 | Attribute | Meaning |
 |---|---|
@@ -120,7 +122,7 @@ Interpretive claims are accepted by the verifier only if they cite a reading. No
 | Attribute | Meaning |
 |---|---|
 | `reading_id` | Citable as evidence |
-| `signal` | `territory` \| `possession_control` \| `pressing_intensity` \| `chance_quality` \| `line_height` |
+| `signal` | `territory` \| `possession_control` \| `pressing_intensity` \| `chance_quality` \| `line_height`. **`line_height` is not built in v1 — D24** |
 | `team`, `clock_ms` | |
 | `window_ms` | The **effective** window actually covered, not the nominal configured length. **D15** clamps the window start to the epoch start, so shortly after a goal this is much smaller than nominal. Keep the nominal value alongside it if you want it for debugging |
 | `value` | The measured number, in the signal's own units |
@@ -307,7 +309,7 @@ Every closed set in the model, named. **Closed sets are enums, not strings** —
 | `BodyPart` | `left_foot` · `right_foot` · `head` · `other` | `Event.body_part` |
 | `Zone` | `defensive_third` · `middle_third` · `final_third` | `Possession.start_zone`, `end_zone` |
 | `PossessionOutcome` | `shot` · `turnover` · `foul` · `out_of_play` · `period_end` | `Possession.outcome` |
-| `Signal` | `territory` · `possession_control` · `pressing_intensity` · `chance_quality` · `line_height` | `SignalReading.signal`, `SignalPrior.signal` |
+| `Signal` | `territory` · `possession_control` · `pressing_intensity` · `chance_quality` · `line_height` | `SignalReading.signal`, `SignalPrior.signal`. **`line_height` stays in the set but is not built in v1 (D24)**, as `RefKind.RUN` does |
 | `Trend` | `rising` · `falling` · `steady` | `SignalReading.trend` |
 | `EpochTrigger` | `goal` · `red_card` · `half_time` | `Epoch.trigger` |
 | `MomentType` | `goal` · `chance` · `tactical_shift` · `milestone` · `pattern` | `Moment.type` · `Lens.breakthrough_types`. `off_ball_run` is deferred with player scope — do not add it until `Run` exists |

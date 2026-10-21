@@ -16,6 +16,8 @@ class Settings(BaseSettings):
     # Match source and understanding
     frame_rate_hz: int = 2  # D13
     signal_window_ms: int = 300_000  # nominal; D15 clamps the effective window to the epoch
+    signal_cadence_ms: int = 60_000  # one reading per team per signal, every match minute
+    signal_confidence_k: int = 8  # samples at which a signal's confidence reaches one half
     baseline_k_minutes: int = 15
     match_seed: int = 1  # the demo match: the video and the tests run on this seed (F3)
 
@@ -24,7 +26,7 @@ class Settings(BaseSettings):
     default_language: str = "en"  # ISO 639-1
 
     # Delivery
-    replay_speed: float = 1.0  # the in-process feed, until the pipeline sends over Service Bus
+    replay_speed: float = 25.0  # the in-process feed, until the pipeline sends over Service Bus
 
     # Models
     model_name: str = ""

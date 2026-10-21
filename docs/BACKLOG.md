@@ -39,20 +39,20 @@ Update the **Status** column when a ticket moves. Statuses: `todo`, `wip`, `done
 | 🧑 S6 | App Insights, one trace per moment across the agents | 0.5 | S5 | T2 | todo | ✅ |
 
 ## Phase 2 · Understanding — days 5–8
-*Ships: five signals producing readings with baselines and z-scores.*
+*Ships: four signals producing readings with baselines and z-scores (D24).*
 
 | ID | Ticket | Est | Deps | Tier | Status | Brief |
 |---|---|---|---|---|---|---|
 | U1 | Possession sequencing from events | 0.5 | S2 | T1 | done | ✅ |
-| U2 | ShotValue hand-calibrated lookup | 0.5 | S2 | T1 | todo | ✅ |
-| U3 | Five signal functions emitting SignalReading | 2 | U1, U2 | T1 | todo | ✅ |
+| U2 | ShotValue hand-calibrated lookup | 0.5 | S2 | T1 | done | ✅ |
+| U3 | Four signal functions: values, `n`, `confidence` | 1.5 | U1, U2 | T1 | done | ✅ |
 | 🧑 U4 | Rolling baselines, shrinkage blend, `z_match` and `z_prior` | 1 | U3, R1 | T1 | todo | ✅ |
-| U5 | Epoch detection on goal, red card, half time | 0.5 | S2 | T1 | todo | ✅ |
+| U5 | Epoch detection on goal, red card, half time | 0.5 | S2 | T1 | done | ✅ |
 | U6 | Debug page plotting signals and z-scores over the match | 0.5 | U4 | T2 | todo | ✅ |
 
 **U1** — possession records with pass counts and zone progression; stopped time excluded.
 **U2** — every shot carries a 0–1 value with distance and angle kept. Named `shot_quality`, never xG.
-**U3** — territory, possession control, pressing intensity, chance quality, line height. `confidence` low on thin samples. Line height and compactness come from the frame window; the other four from events.
+**U3** — territory, possession control, pressing intensity, chance quality. All four event-derived. `confidence` low on thin samples. **Line height is deferred (D24)**, so no signal reads the frame window in v1. The one-liner used to say "emitting SignalReading"; it cannot — `baseline` and the z-scores are U4, which is reserved, so U3 stops at values, `n` and `confidence`.
 **U4** — `w = n/(n+k)`, k ≈ 15 min. At minute 4 the prior dominates; by minute 30 the match baseline does. No z-score flood in the opening minutes. Under **D15**, `n` also resets at every epoch boundary, so this same shrinkage handles the mini cold start after a goal. **Blocked on O9** — what the thin post-break window blends against.
 **U5** — readings carry `epoch_id`; a baseline never averages across a structural break. **Unblocked:** D15 clamps the window to the epoch start, so `epoch_id` is unambiguous and no straddling case exists. Implement `window_start = max(clock - nominal_window, epoch.start_clock_ms)`. **D16 also made this possible at all** — `red_card` and `half_time` were epoch triggers that nothing emitted until the match events were added to `Action`. `score_state` and `player_counts` derive from the same log.
 **U6** — worth it for your own calibration work, not for judges.
@@ -61,8 +61,8 @@ Update the **Status** column when a ticket moves. Statuses: `todo`, `wip`, `done
 
 | ID | Ticket | Est | Deps | Tier | Status | Brief |
 |---|---|---|---|---|---|---|
-| R1 | SignalPrior from a generated sample | 1 (0.25 lite) | U3 | T1 | todo | — |
-| R2 | Four MatchArchetype parameter sets | 0.5 | F3 | T1 | todo | — |
+| R1 | SignalPrior from a generated sample | 1 (0.25 lite) | U3, R2 | T1 | done | ✅ |
+| R2 | Four MatchArchetype parameter sets | 0.5 | F3 | T1 | done | ✅ |
 
 **R1** — mean and stddev per signal with `generator_version`. **Take the lite version:** 20 matches, not 200. Enough to stop the cold-start flood.
 **R2** — comeback, one-sided, tight, scrappy, each producing recognisably different matches. P4 needs four to test against.
@@ -187,6 +187,6 @@ Update the **Status** column when a ticket moves. Statuses: `todo`, `wip`, `done
 3. **P5 folded into P4.** −0.5. Free, take it now.
 4. **D2 folded into D1, F4 folded into D3** — both tests rather than features. −1. Free, take it now.
 5. **S5: `az containerapp up` first, Bicep later in the week.** −1 off the critical path, costs nothing in the end state.
-6. **U3 ships three signals, not five.** −0.8, weakens the orthogonal-basis claim. **Decide by 16 Oct (O5).**
+6. ~~**U3 ships three signals, not five.**~~ — **resolved by D24: four signals, −0.5.** Line height deferred; pressing intensity kept because it is the one that carries the orthogonal-basis claim. Dropping to three is still available but costs the analyst lens its only tactical content — take it last.
 7. **X1 and X2 → lite or gone.** −1.5. Decide by 22 Oct.
 8. **Drop to T0: no agents.** −5. Costs the Multi-Agent prize, keeps the thesis. **Decide by 20 Oct (O6).**

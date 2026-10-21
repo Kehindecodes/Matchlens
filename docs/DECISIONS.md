@@ -81,6 +81,8 @@ But 10 Hz existed for run detection, which needs sub-second resolution to measur
 
 Confirmed by Kehinde at the start of F3. `settings.frame_rate_hz` stays the single source of truth.
 
+**D24 deferred line height**, so the rationale above no longer holds — frames have no consumer in v1. They are kept for the reasons D24 gives, not for this one.
+
 ## D14 · `Rendition.suppression_reason`, and every closed set is a named enum — SETTLED 9 Oct
 
 **`suppression_reason` added** to `Rendition`, required iff `suppressed` is true. One value, not a list, resolved by a declared evaluation order so the reason is deterministic across runs.
@@ -360,6 +362,76 @@ Text-side coverage (the card asserts nothing the claims do not support) is where
 
 ---
 
+## D24 · Four signals for v1 — line height is deferred — SETTLED 20 Oct
+
+O5 asked three signals or five. **Four:** `territory`, `possession_control`, `pressing_intensity`, `chance_quality`. `line_height` is **deferred, not cancelled.**
+
+### Why not the three O5 proposed
+
+O5's three were territory, possession control and chance quality — the *cheapest* three, not the best three. Those three move together almost by definition: the team with the ball is in the opponent's half taking shots. **Pressing intensity is the signal that dissociates** — a side can press hard without possession — so it is the one carrying D10's orthogonal-basis claim. Cutting it saves ~0.3 day and costs the claim the basis rests on.
+
+It also matters competitively. Sofascore's AI Insights already publishes possession, final-third entries, big chances and duels. Pressing intensity and line height were the two signals that read as *analysis* rather than counting, so keeping pressing is what stops the analyst lens becoming a stats recap of something already free.
+
+### What dropping line height costs
+
+**One class of read: a team deciding to defend.** No other signal sees a back line drop off. Territory and possession show the consequence — the other side has the ball in your half — not the decision. A 1–0 where the leading side sits in for thirty minutes, a common shape and one of the four archetypes, gets described as *"B are dominating territory"* rather than *"A have decided to protect this."*
+
+By lens: `match × casual` loses nothing, since line height would rarely clear the importance threshold at that depth; `team × engaged` loses some framing; **`match × analyst` takes nearly all of it.**
+
+**The thesis is untouched.** Lens divergence comes from selection, thresholds and framing, not from signal count. Four signals means fewer candidate moments, not less difference between lenses.
+
+### Why this signal rather than another
+
+Line height is the one most exposed to the circularity this design exists to avoid. It reads the simulator's positions, and F3's plausibility bar required building *"a defensive line with a coherent height that can move"* into the generator — so it partly reads back a parameter, where territory and possession emerge from event sequences. In the real world a dropping line is emergent; in the demo it is configured. That makes it the weakest of the five **as evidence**, whatever its value as a read.
+
+### Consequence: nothing reads a `Frame` in v1
+
+All four remaining signals are event-derived, so `FrameWindow`, `FrameAccess` and F3's 2 Hz generation have **no consumer in v1**.
+
+They stay — all three are built, and the frame boundary test is the structural demonstration of invariant 1. But be precise about it in the pitch: **the invariant is enforced on a path nothing currently walks.** "Frames never reach an LLM" is true and tested; it is not load-bearing until line height or player scope lands.
+
+**This undercuts D13's stated rationale.** D13 kept frames *because* line height is positional, and that reason is now deferred along with the signal. Keeping them stands on different ground: they are already built, the boundary test has pitch value, and reinstating line height later is then a function rather than a re-architecture.
+
+### Mechanics
+
+- `Signal.LINE_HEIGHT` **stays in the enum**, not built in v1 — the same treatment as `RefKind.RUN`, so the closed set still matches the data model. Add the comment when U3 is built.
+- **U3 drops from 2 days to 1.5**, saving ~0.5 day. Most of its cost was line height: the frame window, the interval conversion and the retention check.
+- `SignalPrior` (R1) covers four signals, not five.
+- The further cut to three stays on the ladder, but it costs the analyst lens its only tactical content. Take it last.
+
+---
+
+## D25 · `archetype_id` and `seed` are provenance, and nothing downstream may read them — SETTLED 20 Oct
+
+Archetypes are a property of the **Match Source alone.** In production that component is a provider feed and archetypes do not exist — they are a generator input, never runtime configuration.
+
+But `Match` carries `archetype_id` and `seed`, which are facts about how the record was *produced* rather than about the football. A real feed can fill neither.
+
+**Settled:**
+
+1. Both fields are **nullable provenance**. A real feed leaves them empty; the synthetic source fills them. They stay on `Match` rather than moving to a separate provenance row — F2 and S2 are built, and the move would cost more than it returns.
+2. **No component downstream of Match Source may read either one.** Enforced by a test that walks the tree, the same shape as the existing `test_nothing_outside_config_reads_os_environ`: nothing outside `matchlens/source/` and `tests/` imports `archetypes` or reads those two fields.
+
+### Why the rule needs teeth rather than good intentions
+
+`archetypes.py` already says it *"never says what is interesting"*, and that instinct is right. What it does not prevent is subtler: if Spotting ever thresholds differently for a scrappy match, or Selection reweights for a one-sided one, the system becomes untransferable to a real feed **and every existing test still passes.** Nothing looks broken until a provider feed arrives with a null archetype and the behaviour quietly changes.
+
+### Replay is where the temptation lives
+
+In replay the whole match is in hand, so its shape *could* be classified and used. That is reasoning from the future — invariant 6, the same failure as the explainer seeing past the current clock, wearing a different hat. Which is why the rule is **never read it**, not "do not read it live".
+
+### The legitimate inversion
+
+Archetype as **input** is cheating. Archetype as **output** is a product feature: *"this has turned into a siege"* is an interpretive claim, computable progressively from the frozen log, and good analyst-lens content. Same word, opposite direction — one is configuration leaking in, the other is the system doing its job.
+
+Not v1. Worth keeping for the pitch's "what's next", because it reframes archetypes from demo scaffolding into something MatchLens could detect.
+
+### So what are archetypes for
+
+They do not run in production. They are the **test fixture that justifies the claim that the signals would work on a real feed** — P4's archetype regression is the evidence the signals generalise rather than fitting one match shape. That is the argument a platform actually wants, and it is why R2 is T1 rather than a nicety.
+
+---
+
 # OPEN — Kehinde decides
 
 ## O9 · After a break, blend the thin window against what?
@@ -382,10 +454,6 @@ Blocking `L6`. The prototype uses supporter-**voiced** ("we are level", "that sa
 ## O4 · Audit as an Azure Function or in-process
 
 Not blocking. Default in-process; split only if `S5` lands early.
-
-## O5 · Three signals or five
-
-Decide by 16 Oct. Shipping three (territory, possession control, chance quality) saves ~0.8 days and weakens the orthogonal-basis claim.
 
 ## O6 · Drop to T0 — no agents at all
 
