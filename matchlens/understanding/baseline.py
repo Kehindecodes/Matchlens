@@ -21,9 +21,9 @@ from matchlens.config import settings
 from matchlens.models import Epoch, Signal, SignalPrior, SignalReading, Trend
 from matchlens.understanding.signals import Measurement
 
-SPREAD_FLOOR = 0.1  # of the prior's stddev, so a flat stretch can never divide by zero
-TREND_READINGS = 3  # the trend compares the newest reading with the one this many back
-TREND_DEAD_BAND = 0.25  # of the spread: a smaller change than this is steady
+SPREAD_FLOOR = 0.1
+TREND_READINGS = 3
+TREND_DEAD_BAND = 0.25
 
 
 @dataclass(frozen=True)
@@ -34,23 +34,26 @@ class Reference:
     spread: float
 
 
-def weight(n: int, k: float) -> float:
-    """The trust in this match's own history: 0 with none, one half at `k` readings, towards 1."""
-    return n / (n + k)
+def weight(readings_so_far: int, half_trust_readings: float) -> float:
+    """The trust in this match's own history: 0 with none, one half at `half_trust_readings`."""
+    return readings_so_far / (readings_so_far + half_trust_readings)
 
 
-def reference(history: Sequence[float], prior: SignalPrior, k: float) -> Reference:
+def reference(
+    history: Sequence[float], prior: SignalPrior, half_trust_readings: float
+) -> Reference:
     """The history's mean and stddev, each blended with the prior by `weight`."""
     if not history:
         return Reference(prior.mean, prior.stddev)
-    w = weight(len(history), k)
+    match_weight = weight(len(history), half_trust_readings)
+    prior_weight = 1 - match_weight
     values = np.asarray(history, dtype=float)
-    mean = w * float(values.mean()) + (1 - w) * prior.mean
-    spread = w * float(values.std()) + (1 - w) * prior.stddev
+    mean = match_weight * float(values.mean()) + prior_weight * prior.mean
+    spread = match_weight * float(values.std()) + prior_weight * prior.stddev
     return Reference(mean, max(spread, SPREAD_FLOOR * prior.stddev))
 
 
-def z(value: float, mean: float, spread: float) -> float:
+def z_score(value: float, mean: float, spread: float) -> float:
     """How many spreads `value` sits from `mean`."""
     return (value - mean) / spread
 
@@ -60,33 +63,38 @@ def trend(recent: Sequence[float], spread: float) -> Trend:
     if len(recent) < TREND_READINGS:
         return Trend.STEADY
     change = recent[-1] - recent[-TREND_READINGS]
-    band = TREND_DEAD_BAND * spread
-    if change > band:
+    dead_band = TREND_DEAD_BAND * spread
+    if change > dead_band:
         return Trend.RISING
-    if change < -band:
+    if change < -dead_band:
         return Trend.FALLING
     return Trend.STEADY
 
 
 def judge(
-    measurement: Measurement, history: Sequence[float], prior: SignalPrior, k: float
+    measurement: Measurement,
+    history: Sequence[float],
+    prior: SignalPrior,
+    half_trust_readings: float,
 ) -> SignalReading:
     """One measurement as a reading, against the earlier values in its epoch."""
-    ref = reference(history, prior, k)
-    m = measurement
+    normal = reference(history, prior, half_trust_readings)
+    recent = [*history[-(TREND_READINGS - 1) :], measurement.value]
     return SignalReading(
-        reading_id=f"{m.epoch_id}-{m.signal}-{m.team}-{m.clock_ms}",
-        signal=m.signal,
-        team=m.team,
-        clock_ms=m.clock_ms,
-        window_ms=m.window_ms,
-        value=m.value,
-        baseline=ref.mean,
-        z_match=z(m.value, ref.mean, ref.spread),
-        z_prior=z(m.value, prior.mean, prior.stddev),
-        trend=trend([*history[-(TREND_READINGS - 1) :], m.value], ref.spread),
-        confidence=m.confidence,
-        epoch_id=m.epoch_id,
+        reading_id=(
+            f"{measurement.epoch_id}-{measurement.signal}-{measurement.team}-{measurement.clock_ms}"
+        ),
+        signal=measurement.signal,
+        team=measurement.team,
+        clock_ms=measurement.clock_ms,
+        window_ms=measurement.window_ms,
+        value=measurement.value,
+        baseline=normal.mean,
+        z_match=z_score(measurement.value, normal.mean, normal.spread),
+        z_prior=z_score(measurement.value, prior.mean, prior.stddev),
+        trend=trend(recent, normal.spread),
+        confidence=measurement.confidence,
+        epoch_id=measurement.epoch_id,
     )
 
 
@@ -97,16 +105,18 @@ def read(
 ) -> list[SignalReading]:
     """Every measurement as a reading, in clock order, each judged only on what came before it."""
     calltrace.entered("Understanding")
-    k = {
-        e.epoch_id: settings.baseline_k_minutes
-        if e.trigger is None
+    half_trust_by_epoch = {
+        epoch.epoch_id: settings.baseline_k_minutes
+        if epoch.trigger is None
         else settings.baseline_k_minutes_after_break
-        for e in epochs
+        for epoch in epochs
     }
     histories: dict[tuple[str, Signal, str], list[float]] = defaultdict(list)
     readings = []
-    for m in sorted(measurements, key=lambda m: m.clock_ms):
-        history = histories[(m.epoch_id, m.signal, m.team)]
-        readings.append(judge(m, history, priors[m.signal], k[m.epoch_id]))
-        history.append(m.value)
+    for measurement in sorted(measurements, key=lambda measurement: measurement.clock_ms):
+        history = histories[(measurement.epoch_id, measurement.signal, measurement.team)]
+        prior = priors[measurement.signal]
+        half_trust_readings = half_trust_by_epoch[measurement.epoch_id]
+        readings.append(judge(measurement, history, prior, half_trust_readings))
+        history.append(measurement.value)
     return readings

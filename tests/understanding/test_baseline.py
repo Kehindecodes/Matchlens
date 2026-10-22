@@ -19,7 +19,7 @@ from matchlens.understanding.baseline import (
     reference,
     trend,
     weight,
-    z,
+    z_score,
 )
 from matchlens.understanding.epochs import detect
 from matchlens.understanding.signals import Measurement, cadence, measure
@@ -116,8 +116,8 @@ def test_the_worked_example():
     ref = reference([9.0, 10.0, 11.0, 10.0], _prior(), K)
     assert ref.mean == pytest.approx(8.421, abs=1e-3)
     assert ref.spread == pytest.approx(1.728, abs=1e-3)
-    assert z(14.0, ref.mean, ref.spread) == pytest.approx(3.228, abs=1e-3)
-    assert z(14.0, 8.0, 2.0) == 3.0
+    assert z_score(14.0, ref.mean, ref.spread) == pytest.approx(3.228, abs=1e-3)
+    assert z_score(14.0, 8.0, 2.0) == 3.0
 
 
 def test_no_history_is_the_prior_exactly():
