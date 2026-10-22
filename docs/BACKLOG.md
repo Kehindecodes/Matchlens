@@ -77,7 +77,7 @@ Update the **Status** column when a ticket moves. Statuses: `todo`, `wip`, `done
 | M3 | ~~Run detector from frames~~ | 2 | S2 | T3 | cut | — |
 | M4 | ~~Off-ball-run moments and running counts~~ | 1 | M3, M1 | T3 | cut | — |
 
-**M1** — 30–60 moments per match, each citing the readings and events that fired it.
+**M1** — 30–60 moments per match, each citing the readings and events that fired it. **Also wires U4 into the live path:** `understanding.observe()` is still a stub returning `[]`, so the spotter receives no readings. M1 makes it emit real `SignalReading`s. That needs a streaming form of `baseline.read()`, which today takes a whole list: keep the per-`(epoch_id, signal, team)` histories between calls, detect epochs as their events arrive, and on each minute boundary measure (U3) and judge (U4) that minute's readings. It also needs R1's priors loaded at startup, since only the tests have a stand-in.
 **M2** — the same tactical shift does not fire three times in four minutes.
 **M3/M4** — **not built in v1.** Player scope deferred, see D1.
 
