@@ -10,11 +10,10 @@ A reading is never part of its own baseline, and nothing reads past it: each rea
 then appended to the history the next one is judged against.
 """
 
+import statistics
 from collections import defaultdict
 from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass
-
-import numpy as np
 
 from matchlens import calltrace
 from matchlens.config import settings
@@ -42,14 +41,18 @@ def weight(readings_so_far: int, half_trust_readings: float) -> float:
 def reference(
     history: Sequence[float], prior: SignalPrior, half_trust_readings: float
 ) -> Reference:
-    """The history's mean and stddev, each blended with the prior by `weight`."""
+    """The history's mean and stddev, each blended with the prior by `weight`.
+
+    The stddev is the sample one, as R1's priors use, so the two spreads are comparable. A single
+    reading has none, so it contributes nothing and the floor stands in.
+    """
     if not history:
         return Reference(prior.mean, prior.stddev)
     match_weight = weight(len(history), half_trust_readings)
     prior_weight = 1 - match_weight
-    values = np.asarray(history, dtype=float)
-    mean = match_weight * float(values.mean()) + prior_weight * prior.mean
-    spread = match_weight * float(values.std()) + prior_weight * prior.stddev
+    match_stddev = statistics.stdev(history) if len(history) > 1 else 0.0
+    mean = match_weight * statistics.fmean(history) + prior_weight * prior.mean
+    spread = match_weight * match_stddev + prior_weight * prior.stddev
     return Reference(mean, max(spread, SPREAD_FLOOR * prior.stddev))
 
 

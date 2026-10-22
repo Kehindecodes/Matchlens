@@ -1,17 +1,14 @@
 """U4: baselines, the shrinkage blend, z_match, z_prior and trend, over seed 1 on the comeback.
 
-R1 has not built the real prior yet, so these tests use a stand-in measured from a different
-match (seed 1 on the one-sided archetype). What they check is the mechanism, which does not
-depend on where the prior came from.
+The match tests judge against R1's committed priors; the hand-worked ones use a small prior of
+their own so the numbers can be checked with a calculator.
 """
-
-import statistics
-from collections import defaultdict
 
 import pytest
 
 from matchlens.config import settings
 from matchlens.models import Epoch, EpochTrigger, Signal, SignalPrior, SignalReading, Trend
+from matchlens.understanding import priors as signal_priors
 from matchlens.understanding.baseline import (
     Reference,
     judge,
@@ -24,7 +21,6 @@ from matchlens.understanding.baseline import (
 from matchlens.understanding.epochs import detect
 from matchlens.understanding.signals import Measurement, cadence, measure
 from tests.source.helpers import Played
-from tests.source.helpers import played as simulated
 from tests.source.helpers import reader as match_reader
 
 K = settings.baseline_k_minutes
@@ -40,21 +36,7 @@ def _measurements(match: Played) -> tuple[list[Epoch], list[Measurement]]:
 
 @pytest.fixture(scope="module")
 def priors() -> dict[Signal, SignalPrior]:
-    """A stand-in for R1: each signal's mean and stddev over another match."""
-    _, measurements = _measurements(simulated("one_sided", 1))
-    values: dict[Signal, list[float]] = defaultdict(list)
-    for m in measurements:
-        values[m.signal].append(m.value)
-    return {
-        signal: SignalPrior(
-            signal=signal,
-            mean=statistics.fmean(v),
-            stddev=statistics.pstdev(v),
-            sample_size=len(v),
-            generator_version="test",
-        )
-        for signal, v in values.items()
-    }
+    return signal_priors.load()
 
 
 @pytest.fixture(scope="module")
@@ -115,8 +97,8 @@ def test_w_is_near_zero_at_minute_1_half_by_15_and_three_quarters_by_45():
 def test_the_worked_example():
     ref = reference([9.0, 10.0, 11.0, 10.0], _prior(), K)
     assert ref.mean == pytest.approx(8.421, abs=1e-3)
-    assert ref.spread == pytest.approx(1.728, abs=1e-3)
-    assert z_score(14.0, ref.mean, ref.spread) == pytest.approx(3.228, abs=1e-3)
+    assert ref.spread == pytest.approx(1.751, abs=1e-3)
+    assert z_score(14.0, ref.mean, ref.spread) == pytest.approx(3.186, abs=1e-3)
     assert z_score(14.0, 8.0, 2.0) == 3.0
 
 
@@ -127,6 +109,7 @@ def test_no_history_is_the_prior_exactly():
 def test_one_reading_of_history_is_fine():
     ref = reference([10.0], _prior(), K)
     assert ref.mean == pytest.approx(weight(1, K) * 10 + (1 - weight(1, K)) * 8)
+    assert ref.spread == pytest.approx((1 - weight(1, K)) * 2)  # one reading has no stddev
 
 
 def test_a_flat_history_never_divides_by_zero():
