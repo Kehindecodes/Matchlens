@@ -7,7 +7,8 @@ no history, so after a goal, a red card or half time `w` is back to zero and the
 prior again, exactly as at kickoff (D26). The spread blends the same way.
 
 A reading is never part of its own baseline, and nothing reads past it: each reading is judged,
-then appended to the history the next one is judged against.
+then appended to the history the next one is judged against. A placeholder is judged but never
+appended, the same rule R1's priors follow (D28).
 """
 
 import statistics
@@ -18,7 +19,7 @@ from dataclasses import dataclass
 from matchlens import calltrace
 from matchlens.config import settings
 from matchlens.models import Epoch, Signal, SignalPrior, SignalReading, Trend
-from matchlens.understanding.signals import Measurement
+from matchlens.understanding.signals import Measurement, is_placeholder
 
 SPREAD_FLOOR = 0.1
 TREND_READINGS = 3
@@ -121,5 +122,6 @@ def read(
         prior = priors[measurement.signal]
         half_trust_readings = half_trust_by_epoch[measurement.epoch_id]
         readings.append(judge(measurement, history, prior, half_trust_readings))
-        history.append(measurement.value)
+        if not is_placeholder(measurement):
+            history.append(measurement.value)
     return readings

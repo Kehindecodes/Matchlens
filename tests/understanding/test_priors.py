@@ -10,7 +10,7 @@ from matchlens.source import GENERATOR_VERSION
 from matchlens.source.archetypes import ARCHETYPES
 from matchlens.understanding.epochs import detect
 from matchlens.understanding.priors import PRIORS_PATH, StalePrior, load, summarise
-from matchlens.understanding.signals import SIGNALS, cadence, measure
+from matchlens.understanding.signals import SIGNALS, cadence, is_placeholder, measure
 from scripts.build_priors import SEEDS_PER_ARCHETYPE, priors_for, sample
 from tests.source.helpers import played, reader
 
@@ -88,13 +88,16 @@ def test_summarising_the_same_measurements_twice_gives_identical_priors():
     assert first == [p.model_dump_json() for p in summarise(rows, GENERATOR_VERSION)]
 
 
-def test_a_measurement_that_saw_nothing_is_left_out():
+def test_placeholders_are_left_out_and_empty_chance_quality_is_kept():
     match = played("comeback", 1)
     r = reader(match)
     rows = [m for c, e in cadence(detect(r), match.end_clock_ms) for m in measure(r, e, c)]
     counted = {p.signal: p.sample_size for p in summarise(rows, GENERATOR_VERSION)}
     for signal in SIGNALS:
-        assert counted[signal] == sum(m.signal is signal and m.n > 0 for m in rows)
+        assert counted[signal] == sum(m.signal is signal and not is_placeholder(m) for m in rows)
+    chance = [m for m in rows if m.signal is Signal.CHANCE_QUALITY]
+    assert counted[Signal.CHANCE_QUALITY] == len(chance)
+    assert any(m.n == 0 for m in chance)
 
 
 def test_the_generator_version_pins_what_the_comeback_generates():

@@ -164,6 +164,30 @@ def test_a_break_uses_the_after_break_k(monkeypatch):
     assert readings[3].baseline == pytest.approx(weight(1, 5) * 20 + (1 - weight(1, 5)) * 10)
 
 
+def test_a_placeholder_is_judged_but_kept_out_of_the_history():
+    epoch = _epoch(0, 0)
+    empty = Measurement(**{**vars(_measurement(epoch, 2, 0.0)), "n": 0})
+    measurements = [_measurement(epoch, 1, 10.0), empty, _measurement(epoch, 3, 10.0)]
+    readings = read(measurements, [epoch], {Signal.PRESSING_INTENSITY: _prior()})
+    assert len(readings) == 3
+    w = weight(1, K)  # minute 3 sees only minute 1: the placeholder never joined the history
+    assert readings[2].baseline == pytest.approx(w * 10 + (1 - w) * 8)
+
+
+def test_an_empty_chance_quality_window_is_a_real_zero():
+    epoch = _epoch(0, 0)
+    prior = _prior()
+    chance = [
+        Measurement(
+            **{**vars(_measurement(epoch, minute, 0.0)), "signal": Signal.CHANCE_QUALITY, "n": 0}
+        )
+        for minute in (1, 2, 3)
+    ]
+    readings = read(chance, [epoch], {Signal.CHANCE_QUALITY: prior})
+    w = weight(2, K)  # minute 3 sees both earlier zeros
+    assert readings[2].baseline == pytest.approx(w * 0 + (1 - w) * 8)
+
+
 def test_readings_are_judged_in_clock_order_whatever_order_they_arrive_in():
     epoch = _epoch(0, 0)
     measurements = [_measurement(epoch, m, float(m)) for m in range(1, 11)]
