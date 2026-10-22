@@ -46,14 +46,14 @@ Update the **Status** column when a ticket moves. Statuses: `todo`, `wip`, `done
 | U1 | Possession sequencing from events | 0.5 | S2 | T1 | done | ✅ |
 | U2 | ShotValue hand-calibrated lookup | 0.5 | S2 | T1 | done | ✅ |
 | U3 | Four signal functions: values, `n`, `confidence` | 1.5 | U1, U2 | T1 | done | ✅ |
-| 🧑 U4 | Rolling baselines, shrinkage blend, `z_match` and `z_prior` | 1 | U3, R1 | T1 | todo | ✅ |
+| U4 | Rolling baselines, shrinkage blend, `z_match` and `z_prior` | 1 | U3, R1 | T1 | done | ✅ |
 | U5 | Epoch detection on goal, red card, half time | 0.5 | S2 | T1 | done | ✅ |
 | U6 | Debug page plotting signals and z-scores over the match | 0.5 | U4 | T2 | todo | ✅ |
 
 **U1** — possession records with pass counts and zone progression; stopped time excluded.
 **U2** — every shot carries a 0–1 value with distance and angle kept. Named `shot_quality`, never xG.
 **U3** — territory, possession control, pressing intensity, chance quality. All four event-derived. `confidence` low on thin samples. **Line height is deferred (D24)**, so no signal reads the frame window in v1. The one-liner used to say "emitting SignalReading"; it cannot — `baseline` and the z-scores are U4, which is reserved, so U3 stops at values, `n` and `confidence`.
-**U4** — `w = n/(n+k)`, k ≈ 15 min. At minute 4 the prior dominates; by minute 30 the match baseline does. No z-score flood in the opening minutes. Under **D15**, `n` also resets at every epoch boundary, so this same shrinkage handles the mini cold start after a goal. **Blocked on O9** — what the thin post-break window blends against.
+**U4** — `w = n/(n+k)`, k ≈ 15 min. At minute 4 the prior dominates; by minute 30 the match baseline does. No z-score flood in the opening minutes. Under **D15**, `n` also resets at every epoch boundary, so this same shrinkage handles the mini cold start after a goal. **Unblocked by D26** — a thin post-break window blends against the offline prior, as at kickoff.
 **U5** — readings carry `epoch_id`; a baseline never averages across a structural break. **Unblocked:** D15 clamps the window to the epoch start, so `epoch_id` is unambiguous and no straddling case exists. Implement `window_start = max(clock - nominal_window, epoch.start_clock_ms)`. **D16 also made this possible at all** — `red_card` and `half_time` were epoch triggers that nothing emitted until the match events were added to `Action`. `score_state` and `player_counts` derive from the same log.
 **U6** — worth it for your own calibration work, not for judges.
 
@@ -77,7 +77,7 @@ Update the **Status** column when a ticket moves. Statuses: `todo`, `wip`, `done
 | M3 | ~~Run detector from frames~~ | 2 | S2 | T3 | cut | — |
 | M4 | ~~Off-ball-run moments and running counts~~ | 1 | M3, M1 | T3 | cut | — |
 
-**M1** — 30–60 moments per match, each citing the readings and events that fired it.
+**M1** — 30–60 moments per match, each citing the readings and events that fired it. **Also wires U4 into the live path:** `understanding.observe()` is still a stub returning `[]`, so the spotter receives no readings. M1 makes it emit real `SignalReading`s. That needs a streaming form of `baseline.read()`, which today takes a whole list: keep the per-`(epoch_id, signal, team)` histories between calls, detect epochs as their events arrive, and on each minute boundary measure (U3) and judge (U4) that minute's readings. It also needs R1's priors loaded at startup with `priors.load()`, which refuses a stale prior.
 **M2** — the same tactical shift does not fire three times in four minutes.
 **M3/M4** — **not built in v1.** Player scope deferred, see D1.
 

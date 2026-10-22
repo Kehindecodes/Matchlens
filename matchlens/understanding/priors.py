@@ -5,8 +5,8 @@ the committed file back, refusing it loudly if a different generator made it. Ch
 (which archetypes, which seeds) is `scripts/build_priors.py`'s job, because nothing here may know
 about archetypes (D25).
 
-A measurement with `n == 0` saw nothing, so its value is a placeholder (an even share, no shots)
-and is left out of the sample.
+A measurement that saw nothing and holds a placeholder is left out of the sample. Chance quality's
+empty windows are kept: "no shots" is a real 0 (D28).
 """
 
 import json
@@ -16,7 +16,7 @@ from pathlib import Path
 
 from matchlens.models import Signal, SignalPrior
 from matchlens.source import GENERATOR_VERSION
-from matchlens.understanding.signals import SIGNALS, Measurement
+from matchlens.understanding.signals import SIGNALS, Measurement, is_placeholder
 
 PRIORS_PATH = Path(__file__).with_name("signal_priors.json")
 
@@ -29,7 +29,7 @@ def summarise(measurements: Iterable[Measurement], generator_version: str) -> li
     """Mean and sample standard deviation of every v1 signal's values, one row per signal."""
     values: dict[Signal, list[float]] = {signal: [] for signal in SIGNALS}
     for m in measurements:
-        if m.n > 0:
+        if not is_placeholder(m):
             values[m.signal].append(m.value)
     return [
         SignalPrior(

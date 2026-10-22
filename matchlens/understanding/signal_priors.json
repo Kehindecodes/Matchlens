@@ -24,10 +24,10 @@
     },
     {
       "generator_version": "generator-1",
-      "mean": 0.41124006242964917,
-      "sample_size": 1269,
+      "mean": 0.13762226772763583,
+      "sample_size": 3792,
       "signal": "chance_quality",
-      "stddev": 0.37572276068251687
+      "stddev": 0.29134697772993984
     }
   ],
   "sample": {
@@ -62,7 +62,7 @@
   },
   "stability": {
     "means": {
-      "chance_quality": 0.3740694024219215,
+      "chance_quality": 0.12570700707704657,
       "possession_control": 0.5,
       "pressing_intensity": 5.97079560984638,
       "territory": 0.5
@@ -118,7 +118,7 @@
       ]
     },
     "shift_in_stddevs": {
-      "chance_quality": 0.09893108402643891,
+      "chance_quality": 0.040897148628169226,
       "possession_control": 0.0,
       "pressing_intensity": 0.03876226351093592,
       "territory": 0.0

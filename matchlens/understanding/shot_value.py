@@ -9,6 +9,10 @@ every value can be explained from what is stored next to it.
 centre line: 0 straight in front, 90 level with the goal line. Both factors only fall as their
 input grows, so the value is monotonic in each, and it is clamped to [0, 1]. A penalty is a
 fixed constant, not the lookup.
+
+`exp` and `cos` come from the platform's C maths library, which can differ in the last bit
+between macOS and Linux. The value is rounded to `DECIMALS` places so it, and everything derived
+from it, is the same on every platform.
 """
 
 import hashlib
@@ -19,11 +23,12 @@ from collections.abc import Iterable
 from matchlens.models import Action, Event, Match, Outcome, ShotValue, normalise_xy
 
 # Bump by hand whenever a constant below changes; old rows keep the version they were made with.
-MODEL_VERSION = "shot-quality-1"
+MODEL_VERSION = "shot-quality-2"
 
 DISTANCE_SCALE_M = 8.0  # value falls by a factor of e every 8 m
 FLOOR = 0.05  # what is left of the angle factor level with the goal line
 PENALTY_VALUE = 0.76
+DECIMALS = 12
 
 # A free kick taken straight at goal ends in one of these; one passed short does not.
 _AT_GOAL = frozenset({Outcome.SAVED, Outcome.GOAL, Outcome.OFF_TARGET, Outcome.BLOCKED})
@@ -42,7 +47,7 @@ def quality(distance_m: float, angle_deg: float) -> float:
     raw = math.exp(-max(distance_m, 0.0) / DISTANCE_SCALE_M) * (
         FLOOR + (1 - FLOOR) * math.cos(angle)
     )
-    return min(max(raw, 0.0), 1.0)
+    return round(min(max(raw, 0.0), 1.0), DECIMALS)
 
 
 def value(event: Event, match: Match) -> ShotValue:
@@ -73,5 +78,7 @@ def values(events: Iterable[Event], match: Match) -> list[ShotValue]:
 
 def calibration_fingerprint() -> str:
     """A short hash of the lookup and its constants, so a test notices an unversioned change."""
-    calibration = repr((inspect.getsource(quality), DISTANCE_SCALE_M, FLOOR, PENALTY_VALUE))
+    calibration = repr(
+        (inspect.getsource(quality), DISTANCE_SCALE_M, FLOOR, PENALTY_VALUE, DECIMALS)
+    )
     return hashlib.sha256(calibration.encode()).hexdigest()[:12]

@@ -146,6 +146,16 @@ class Measurement:
     confidence: float
 
 
+# A window with nothing in it gives most signals a stand-in value (an even share, no presses)
+# that says nothing about the match. Chance quality's 0 is different: "no chances" is a reading.
+EMPTY_IS_A_READING = frozenset({Signal.CHANCE_QUALITY})
+
+
+def is_placeholder(measurement: Measurement) -> bool:
+    """Whether this measurement saw nothing and its value is a stand-in, not a reading (D28)."""
+    return measurement.n == 0 and measurement.signal not in EMPTY_IS_A_READING
+
+
 def confidence(n: int, k: int = settings.signal_confidence_k) -> float:
     """0 with no samples, one half at `k`, approaching 1. Falls as the sample thins."""
     return n / (n + k)
