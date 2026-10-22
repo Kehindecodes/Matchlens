@@ -197,3 +197,11 @@ def test_readings_per_minute_cover_both_teams_and_all_four_signals(readings):
     for m in readings:
         per_clock[m.clock_ms].add((m.signal, m.team))
     assert {len(v) for v in per_clock.values()} == {8}
+
+
+def test_cadence_after_a_clock_is_the_tail_of_the_whole_cadence(epochs, played):
+    whole = list(cadence(epochs, played.end_clock_ms))
+    after = 10 * 60_000 + 1  # a clock mid-way between two cadence clocks
+    assert list(cadence(epochs, played.end_clock_ms, after_ms=after)) == [
+        (c, e) for c, e in whole if c > after
+    ]

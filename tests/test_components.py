@@ -16,7 +16,7 @@ ARCHITECTURE = Path(__file__).parent.parent / "docs" / "ARCHITECTURE.md"
 COMPONENTS = {
     "Match Source": ("matchlens.source", ["simulate"]),
     "Ingest": ("matchlens.ingest", ["Ingest.accept", "FrameAccess.frame_window"]),
-    "Understanding": ("matchlens.understanding", ["observe"]),
+    "Understanding": ("matchlens.understanding", ["Understanding.observe"]),
     "Spotting": ("matchlens.spotting", ["Spotter.consider"]),
     "Explanation": ("matchlens.explanation", ["explain"]),
     "Verification": ("matchlens.verification", ["verify"]),
