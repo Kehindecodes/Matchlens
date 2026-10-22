@@ -128,3 +128,14 @@ def test_a_partial_log_gives_a_prefix_of_the_full_epochs(played, detected):
     cut = detected[3].start_clock_ms
     early = detect(_reader(played, [e for e in played.events if e.clock_ms < cut]))
     assert early == detected[:3]
+
+
+def test_only_a_goal_a_red_card_or_a_period_start_starts_an_epoch(played):
+    starts = {e.event_id for e in played.events if epochs.starts_epoch(e)}
+    expected = {
+        e.event_id
+        for e in played.events
+        if e.outcome is Outcome.GOAL or e.action in (Action.RED_CARD, Action.PERIOD_START)
+    }
+    assert starts == expected
+    assert len(starts) >= 5

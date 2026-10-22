@@ -102,6 +102,39 @@ def judge(
     )
 
 
+def half_trust_readings(epoch: Epoch) -> float:
+    """The `k` an epoch's baseline is blended with: the opening epoch's, or the post-break one."""
+    if epoch.trigger is None:
+        return settings.baseline_k_minutes
+    return settings.baseline_k_minutes_after_break
+
+
+class Baselines:
+    """The histories readings are judged against: one per `(epoch_id, signal, team)`.
+
+    Keying on the epoch is what resets a baseline at a break (D15, D26): a new epoch is a new key,
+    so it starts empty and the prior stands in until it fills. `read` and the live path both judge
+    through here, so there is one definition of "judged against what came before".
+    """
+
+    def __init__(self, priors: Mapping[Signal, SignalPrior]):
+        self._priors = priors
+        self._histories: dict[tuple[str, Signal, str], list[float]] = defaultdict(list)
+
+    def judge(self, measurement: Measurement, epoch: Epoch) -> SignalReading:
+        """The reading for `measurement`, then its value joins the history, a placeholder aside."""
+        history = self._histories[(measurement.epoch_id, measurement.signal, measurement.team)]
+        reading = judge(
+            measurement,
+            history,
+            self._priors[measurement.signal],
+            half_trust_readings(epoch),
+        )
+        if not is_placeholder(measurement):
+            history.append(measurement.value)
+        return reading
+
+
 def read(
     measurements: Iterable[Measurement],
     epochs: Sequence[Epoch],
@@ -109,19 +142,9 @@ def read(
 ) -> list[SignalReading]:
     """Every measurement as a reading, in clock order, each judged only on what came before it."""
     calltrace.entered("Understanding")
-    half_trust_by_epoch = {
-        epoch.epoch_id: settings.baseline_k_minutes
-        if epoch.trigger is None
-        else settings.baseline_k_minutes_after_break
-        for epoch in epochs
-    }
-    histories: dict[tuple[str, Signal, str], list[float]] = defaultdict(list)
-    readings = []
-    for measurement in sorted(measurements, key=lambda measurement: measurement.clock_ms):
-        history = histories[(measurement.epoch_id, measurement.signal, measurement.team)]
-        prior = priors[measurement.signal]
-        half_trust_readings = half_trust_by_epoch[measurement.epoch_id]
-        readings.append(judge(measurement, history, prior, half_trust_readings))
-        if not is_placeholder(measurement):
-            history.append(measurement.value)
-    return readings
+    epoch_by_id = {epoch.epoch_id: epoch for epoch in epochs}
+    baselines = Baselines(priors)
+    return [
+        baselines.judge(measurement, epoch_by_id[measurement.epoch_id])
+        for measurement in sorted(measurements, key=lambda measurement: measurement.clock_ms)
+    ]

@@ -34,6 +34,11 @@ def detect(reader: RecordReader) -> list[Epoch]:
     ]
 
 
+def starts_epoch(event: Event) -> bool:
+    """Whether `event` is a structural break: a goal, a red card, or any period's start."""
+    return _trigger(event) is not None or event.action is Action.PERIOD_START
+
+
 def _trigger(event: Event) -> EpochTrigger | None:
     if event.outcome is Outcome.GOAL:
         return EpochTrigger.GOAL

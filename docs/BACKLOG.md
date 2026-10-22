@@ -72,12 +72,14 @@ Update the **Status** column when a ticket moves. Statuses: `todo`, `wip`, `done
 
 | ID | Ticket | Est | Deps | Tier | Status | Brief |
 |---|---|---|---|---|---|---|
-| M1 | Spotter: thresholds, importance scoring, trigger citation | 1.5 | U4, U5 | T1 | todo | — |
-| 🤝 M2 | Suppression: cooldown and duplicate detection | 0.5 | M1 | T1 | todo | — |
+| M1a | Readings on the live path: streaming epochs, baselines, readings | 1 | U4, U5 | T1 | done | ✅ |
+| M1b | Spotter: thresholds, importance scoring, trigger citation | 0.5 | M1a | T1 | todo | ✅ |
+| 🤝 M2 | Suppression: cooldown and duplicate detection | 0.5 | M1b | T1 | todo | ✅ |
 | M3 | ~~Run detector from frames~~ | 2 | S2 | T3 | cut | — |
 | M4 | ~~Off-ball-run moments and running counts~~ | 1 | M3, M1 | T3 | cut | — |
 
-**M1** — 30–60 moments per match, each citing the readings and events that fired it. **Also wires U4 into the live path:** `understanding.observe()` is still a stub returning `[]`, so the spotter receives no readings. M1 makes it emit real `SignalReading`s. That needs a streaming form of `baseline.read()`, which today takes a whole list: keep the per-`(epoch_id, signal, team)` histories between calls, detect epochs as their events arrive, and on each minute boundary measure (U3) and judge (U4) that minute's readings. It also needs R1's priors loaded at startup with `priors.load()`, which refuses a stale prior.
+**M1a** — wires U4 into the live path. `understanding.observe()` is a stub returning `[]`, so the spotter receives no readings; M1a makes it emit real `SignalReading`s. Everything U3/U4 built is batch, so this needs a streaming form: keep the per-`(epoch_id, signal, team)` histories between calls, detect epochs as their events arrive, and on each cadence boundary measure (U3) and judge (U4). Priors load at startup with `priors.load()`, which refuses a stale prior. **The history reset at an epoch boundary is the bug that hides** (D15, D26). Split from M1 by D27.
+**M1b** — 30–60 moments per match, each citing the readings and events that fired it. Thresholds on z-scores, never raw values, with `confidence` gating the firing. Two decisions inside it are Kehinde's: which z fires, and what triggers each `MomentType` — `milestone` and `pattern` are undefined anywhere.
 **M2** — the same tactical shift does not fire three times in four minutes.
 **M3/M4** — **not built in v1.** Player scope deferred, see D1.
 

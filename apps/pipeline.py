@@ -12,12 +12,13 @@ from collections.abc import Callable
 
 from opentelemetry import context, trace
 
-from matchlens import audit, explanation, lenses, selection, understanding, verification
+from matchlens import audit, explanation, lenses, selection, verification
 from matchlens.ingest import Ingest
 from matchlens.models import Claim, Event, Frame, Verdict, Verification
 from matchlens.rendering import Card, render
 from matchlens.source import MatchSetup, StreamItem, simulate
 from matchlens.spotting import Spotter, SpotterResult
+from matchlens.understanding import Understanding
 
 Publish = Callable[[Card], None]
 
@@ -27,6 +28,7 @@ tracer = trace.get_tracer(__name__)
 class Pipeline:
     def __init__(self) -> None:
         self._ingest = Ingest()
+        self._understanding = Understanding(self._ingest.record)
         self._spotter = Spotter()
 
     def process(self, item: StreamItem) -> list[Card]:
@@ -34,7 +36,7 @@ class Pipeline:
         self._ingest.accept(item)
         if isinstance(item, MatchSetup):
             return []
-        spotter = self._spotter.consider(understanding.observe(item), item)
+        spotter = self._spotter.consider(self._understanding.observe(item), item)
         if spotter is None:
             return []
         return self._editorial(
