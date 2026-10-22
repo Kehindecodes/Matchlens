@@ -123,7 +123,7 @@ def test_the_module_is_pure_and_uses_no_randomness(played):
 
 def test_changing_the_calibration_needs_a_new_model_version():
     """If this fails, you changed the lookup: bump MODEL_VERSION and update both values here."""
-    assert (MODEL_VERSION, calibration_fingerprint()) == ("shot-quality-1", "2a6bb9130d90")
+    assert (MODEL_VERSION, calibration_fingerprint()) == ("shot-quality-2", "2d8873cc4cf3")
 
 
 def test_a_non_shot_is_refused(played):
