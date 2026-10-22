@@ -45,7 +45,9 @@ It forces apart three clocks that beginners collapse into one:
 
 That separation is the central mental shift from request/response to streaming, and here it is not abstract — collapsing them ships spoilers. Per-consumer edge state, delay-never-anticipate and backpressure absorption all fall out of the same queue.
 
-### 🧑 U4 · Baselines, shrinkage, z-scores, epoch-clamped windows — 1 day
+### U4 · Baselines, shrinkage, z-scores, epoch-clamped windows — 1 day
+**Handed to Claude Code on 22 Oct** to protect the deadline.
+
 Stateful stream processing proper. You cannot query the whole dataset; you maintain state as events arrive and decide what to do before you have enough. That is the cold-start problem.
 
 D15's clamping adds the harder half: **invalidating state on a structural event.** State reset at a boundary is what bites people in real stream jobs.

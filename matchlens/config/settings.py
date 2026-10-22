@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     signal_cadence_ms: int = 60_000  # one reading per team per signal, every match minute
     signal_confidence_k: int = 8  # samples at which a signal's confidence reaches one half
     baseline_k_minutes: int = 15
+    baseline_k_minutes_after_break: int = 15  # D26: the same cold start, tuned separately
     match_seed: int = 1  # the demo match: the video and the tests run on this seed (F3)
 
     # Lenses

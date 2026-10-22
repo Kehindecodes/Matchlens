@@ -47,7 +47,7 @@ MatchLens is a learning project. Two things are firsts for Kehinde — **buildin
 - **🤝 means implement it, but Kehinde owns the test or the schema.** The ticket note says which. Do not also write that test; leave it failing or absent and say so.
 - If you believe a 🧑 ticket is mis-assigned, write it in `docs/QUESTIONS.md`. Do not decide it yourself.
 
-The currently reserved tickets are **D1, U4, A1, A3, A5, S6**, plus the roster projection inside A1/U5 and the `Claim` schema design before A2. `docs/LEARNING-PLAN.md` has the reasoning.
+The currently reserved tickets are **D1, A1, A3, A5, S6**, plus the roster projection inside A1/U5 and the `Claim` schema design before A2. `docs/LEARNING-PLAN.md` has the reasoning.
 
 **S4 is 🤝, not unmarked (D20).** Claude Code wires `apps/pipeline.py`. The two call-path criteria were Kehinde's, then handed back to Claude Code on 18 Oct (D20, amended).
 
