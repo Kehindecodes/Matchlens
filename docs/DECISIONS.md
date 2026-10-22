@@ -432,20 +432,19 @@ They do not run in production. They are the **test fixture that justifies the cl
 
 ---
 
+## D26 · After a break, a thin window blends against the offline prior — SETTLED 21 Oct
+
+**Resolves O9.** Under D15, `n` resets at every epoch boundary, so the first minutes after a goal, red card or half time are a cold start. That thin post-break reading blends against the **offline `SignalPrior`**, exactly as at kickoff.
+
+- An epoch boundary is treated as a fresh kickoff. The post-break path is the kickoff path, with no second reference and no carried-over match baseline.
+- The pre-break match baseline is **not** used as the fallback.
+- `z_match` in the minutes after a break therefore means the same thing it means in the opening minutes: deviation from a baseline that is still mostly the prior.
+
+`k` stays a tuning parameter. `k ≈ 15 min` was fitted for kickoff, and a post-break `k` may want to be smaller; keep it configurable as `baseline_k_minutes_after_break`.
+
+---
+
 # OPEN — Kehinde decides
-
-## O9 · After a break, blend the thin window against what?
-
-Falls out of D15 and I under-specified it when proposing option D. The reset makes a post-break reading thin, so it gets blended — but with which reference?
-
-- **(a) The offline `SignalPrior`**, treating a break as a fresh cold start. Simple, reuses the kickoff path exactly.
-- **(b) The pre-break match baseline**, discounted. Arguably better: the teams, the pitch and the general tempo have not changed just because the score did. Falling back to a league-wide prior would say this match is a blank slate, which it is not.
-
-My read is **(b)**, keeping the offline prior for genuine kickoff only — but it is a behaviour choice, not a tuning knob, so it is yours.
-
-Either way `k` is a tuning parameter and `k ≈ 15 min` was fitted for kickoff. A post-break `k` may want to be smaller. Keep it configurable as `baseline_k_minutes_after_break`.
-
-Blocking `U4`, not `U5`.
 
 ## O3 · Team lens register — supporter-voiced or supporter-oriented
 
