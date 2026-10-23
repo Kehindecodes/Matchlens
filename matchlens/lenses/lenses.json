@@ -1,0 +1,50 @@
+{
+  "calibrated_against": "seed 1 comeback demo match: 52 moments (3 goals, 17 chances, 32 tactical shifts), importance 0.10 to 1.00, median 0.26. Thresholds admit 6 (casual), 19 (engaged, raw: team scope reweights before L2 applies it, D2) and 52 (analyst). Recalibrate when M1b's weights or thresholds move.",
+  "lenses": [
+    {
+      "lens_id": "match_casual",
+      "name": "Whole match",
+      "audience": "casual viewers",
+      "scope": "match",
+      "breakthrough_types": ["goal"],
+      "depth": "casual",
+      "importance_threshold": 0.45,
+      "max_cards_per_10min": 3,
+      "allowed_claim_types": ["descriptive", "interpretive"],
+      "detail_level": "minimal",
+      "language": "en",
+      "focus_team": null,
+      "focus_player": null
+    },
+    {
+      "lens_id": "match_analyst",
+      "name": "Match analysis",
+      "audience": "analysts",
+      "scope": "match",
+      "breakthrough_types": ["goal"],
+      "depth": "analyst",
+      "importance_threshold": 0.1,
+      "max_cards_per_10min": 8,
+      "allowed_claim_types": ["descriptive", "comparative", "interpretive"],
+      "detail_level": "full",
+      "language": "en",
+      "focus_team": null,
+      "focus_player": null
+    },
+    {
+      "lens_id": "team_engaged",
+      "name": "My team",
+      "audience": "supporters following one side",
+      "scope": "team",
+      "breakthrough_types": ["goal"],
+      "depth": "engaged",
+      "importance_threshold": 0.3,
+      "max_cards_per_10min": 5,
+      "allowed_claim_types": ["descriptive", "comparative", "interpretive"],
+      "detail_level": "standard",
+      "language": "en",
+      "focus_team": "m-1-home",
+      "focus_player": null
+    }
+  ]
+}

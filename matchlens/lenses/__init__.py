@@ -1,26 +1,20 @@
 """Serves lens configuration as data"""
 
-from matchlens import calltrace
-from matchlens.models import ClaimType, Depth, DetailLevel, Lens, MomentType, Scope
+import json
+from pathlib import Path
 
-# Stub until L1: one row, the default lens. L1 replaces this with the three presets as config rows.
-_LENSES: tuple[Lens, ...] = (
-    Lens(
-        lens_id="match_casual",
-        name="Whole match",
-        audience="casual viewers",
-        scope=Scope.MATCH,
-        breakthrough_types=(MomentType.GOAL,),
-        depth=Depth.CASUAL,
-        importance_threshold=0.0,
-        max_cards_per_10min=3,
-        allowed_claim_types=tuple(ClaimType),
-        detail_level=DetailLevel.MINIMAL,
-        language="en",
-        focus_team=None,
-        focus_player=None,
-    ),
-)
+from matchlens import calltrace
+from matchlens.models import Lens
+
+LENSES_PATH = Path(__file__).with_name("lenses.json")
+
+
+def load(path: Path = LENSES_PATH) -> list[Lens]:
+    """The lens rows in this file, each validated as a `Lens`."""
+    return [Lens.model_validate(row) for row in json.loads(path.read_text())["lenses"]]
+
+
+_LENSES: tuple[Lens, ...] = tuple(load())
 
 
 def get(lens_id: str) -> Lens:

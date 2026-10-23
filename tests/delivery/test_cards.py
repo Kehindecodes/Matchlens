@@ -1,6 +1,7 @@
 from datetime import UTC, datetime
 
 from matchlens import calltrace, lenses
+from matchlens.config import settings
 from matchlens.delivery.release import ReleaseQueues
 from matchlens.delivery.router import CardRouter
 from matchlens.delivery.sessions import SessionStore
@@ -48,5 +49,4 @@ def test_a_sessions_first_release_asks_catch_up_and_the_session_clock():
 
 
 def test_the_registry_serves_the_default_lens_as_data():
-    assert [lens.lens_id for lens in lenses.all_lenses()] == ["match_casual"]
-    assert lenses.get("match_casual").lens_id == "match_casual"
+    assert lenses.get(settings.default_lens_id) in lenses.all_lenses()
