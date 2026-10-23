@@ -24,6 +24,69 @@ Newest at the top. Kehinde answers inline and moves the resolved ones to `docs/D
 
 ---
 
+## Q21 · The 30–60 moments band only holds on seed 1, at a low threshold  [ticket: M1b]  [blocking: no]
+
+**What I need to know:** Whether to accept how M1b hit the band, or change the band, the generator or the rule. It holds for all four archetypes on the demo match (seed 1), and not generally:
+
+| Moments, seeds 1 / 2 / 3 | comeback | one_sided | tight | scrappy |
+|---|---|---|---|---|
+| goal + chance + tactical_shift | 57 / 53 / 61 | 52 / 56 / 66 | 52 / 46 / 54 | 32 / 24 / 32 |
+
+- **Tactical shifts are most of them** (25–45 of each match), and they fire at `|z_match| >= 1.25`. At 1.5 scrappy drops to 15–19 and at 2.0 to 10–13. A 1.25σ "shift" is a modest bar.
+- **Low-event archetypes have few goals and chances** (scrappy: 2 goals, 2–5 chances), so the count rests on shifts, and no single setting puts all four archetypes inside 30–60 on every seed.
+- **M2 only removes moments.** Cooldown and duplicate detection will take every archetype that is near 30 below it, and scrappy is already at 32.
+- **Territory `z_match` never exceeds about 1.5**, because its prior spread (0.384) is wide for a 0–1 share, so at a higher threshold it would stop firing altogether.
+- **Confidence does not make a post-goal window thin.** `possession_control` has about 0.6 confidence on a one-minute window, so D26's "thin window, low confidence" does not hold for it. I added a minimum window (`spotter_min_window_ms`, 120 s) so the opening minutes and the two minutes after a goal are silent by construction.
+
+**Why I cannot decide it:** the band is yours, and a lower bar for a "shift" changes what a viewer sees.
+
+**Options as I see them:**
+- A: keep it as is; the band holds on the demo match, which is what the video and the judges see.
+- B: assert the band for seeds 1–3 as well and widen it for the quiet archetypes — I would not do this unasked.
+- C: raise the generator's event rate for `scrappy` and `tight` (F3/R2), so the band holds without a 1.25σ bar.
+
+**What I would do if forced:** A, and revisit if M2 pushes scrappy under 30.
+
+**Answer:**
+
+## Q20 · What fires each `MomentType`?  [ticket: M1b]  [blocking: yes]
+
+**What I need to know:** Which of the five `MomentType`s the spotter emits, and what triggers each. The ticket brief's table has three with a clear trigger and two with none:
+
+| Type | Trigger |
+|---|---|
+| `goal` | an event with `Outcome.GOAL` |
+| `chance` | a high `ShotValue` on a shot that was not a goal |
+| `tactical_shift` | a signal's `z_match` crossing a threshold |
+| `milestone` | **undefined anywhere** |
+| `pattern` | **undefined anywhere** |
+
+**Why I cannot decide it:** it changes what a viewer sees (CLAUDE.md, "stop and ask"), and a trigger invented to fill an enum member is a product decision.
+
+**Options as I see them:**
+- A: emit `goal`, `chance` and `tactical_shift` only; `milestone` and `pattern` stay in the enum and are never emitted — costs nothing; `Lens.breakthrough_types` can still list them.
+- B: define `milestone` (for example a running shot or goal count crossing a round number) as well — costs a trigger definition from you, and it reads event counts, not readings.
+- C: define `pattern` as well (for example the same `tactical_shift` repeating) — overlaps M2's duplicate detection, so I would not start here.
+
+**What I would do if forced:** A. The brief calls it "more honest than inventing a trigger".
+
+**Answer:** A (22 Oct). Emit `goal`, `chance` and `tactical_shift` only.
+
+## Q19 · Which z-score fires a moment?  [ticket: M1b]  [blocking: yes]
+
+**What I need to know:** Whether a `tactical_shift` fires on `z_match`, on `z_prior`, or on both. `z_match` is "something changed in this match"; `z_prior` is "this match is unusual", and under D24 and R1 that means unusual *for this generator*, not for football.
+
+**Why I cannot decide it:** it decides which moments a viewer ever sees (CLAUDE.md, "stop and ask").
+
+**Options as I see them:**
+- A: fire on `z_match`, let `z_prior` raise importance — the brief's obvious shape. Right after a break `z_match` equals `z_prior` (D26), so the two agree there.
+- B: fire on `z_prior` — moments are the match being unusual, so a team that is steadily dominant keeps firing; nothing "changed".
+- C: fire on `z_match` and require `z_prior` to point the same way — fewer moments; it may fight the 30–60 band.
+
+**What I would do if forced:** A.
+
+**Answer:** A (22 Oct). Fire on `z_match`; `z_prior` raises importance.
+
 ## Q18 · What R1's priors assumed  [ticket: R1]  [blocking: no]
 
 **What I need to know:** Whether these choices in `matchlens/understanding/priors.py` and `scripts/build_priors.py` suit U4.
@@ -207,7 +270,7 @@ The brief asks that every event in a possession be `Phase.IN_PLAY`, and that U1 
 
 **What I would do if forced:** B, because it is the one that fails if the pipeline forgets to inject. Not done: `tests/test_tracing.py` covers criteria 1 to 4 only.
 
-**Answer:**
+**Answer:** A (22 Oct). No Service Bus for now; everything runs in one container. The criterion is deferred to the ticket that splits the containers.
 
 ---
 

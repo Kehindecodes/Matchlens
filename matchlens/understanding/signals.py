@@ -183,10 +183,15 @@ def measure(reader: RecordReader, epoch: Epoch, clock_ms: int) -> list[Measureme
     ]
 
 
-def cadence(epochs: Sequence[Epoch], end_ms: int) -> Iterator[tuple[int, Epoch]]:
-    """Each reading clock up to `end_ms`, every `signal_cadence_ms`, with the epoch it falls in."""
+def cadence(epochs: Sequence[Epoch], end_ms: int, after_ms: int = 0) -> Iterator[tuple[int, Epoch]]:
+    """Each reading clock in `(after_ms, end_ms]`, every `signal_cadence_ms`, with its epoch.
+
+    The live path asks for the clocks that have just become readable, so it passes the last clock
+    it already covered as `after_ms`. The clocks are the same ones the whole-match call gives.
+    """
     step = settings.signal_cadence_ms
-    for clock in range(step, end_ms + 1, step):
+    first = (after_ms // step + 1) * step
+    for clock in range(first, end_ms + 1, step):
         epoch = next((e for e in reversed(epochs) if e.start_clock_ms < clock), None)
         if epoch is not None:
             yield clock, epoch

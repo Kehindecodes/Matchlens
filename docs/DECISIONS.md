@@ -444,6 +444,35 @@ They do not run in production. They are the **test fixture that justifies the cl
 
 ---
 
+## D27 · M1 splits into M1a and M1b — SETTLED 22 Oct
+
+M1 spanned two components, which the component rule treats as a smell. Making `understanding.observe()` emit real readings is a **streaming** problem inside Understanding; making `Spotter.consider()` judge them is **thresholds and scoring** inside Spotting. Different inputs, different failure modes, different tests.
+
+- **M1a · Readings on the live path** — 1 day, deps U4 and U5. Incremental epoch detection, per-`(epoch_id, signal, team)` history held between calls, `priors.load()` at startup, `judge()` per reading on each cadence boundary.
+- **M1b · Spotter** — 0.5 day, deps M1a. Thresholds on z-scores, confidence gating, importance scoring, moment-type mapping, trigger citation.
+
+**M2's dependency moves from M1 to M1b.**
+
+The total stays **1.5 ticket-days** — splitting adds no work. What it buys is a finished and tested first half before the second starts, and a clean place to stop if the remaining days run out: **M1a alone leaves the pipeline emitting real readings with S4's hardcoded moment still firing** — a worse demo than the plan, but a working one. M1 as a single ticket had no such halfway point, which at four days left was the deciding argument.
+
+**M1b's 0.5 assumes calibration behaves.** The 30–60 moments band is the criterion most likely to fight back, and if it does, M1b grows rather than M1a.
+
+---
+
+## D28 · An empty window is a placeholder, except for chance quality — SETTLED 22 Oct
+
+A measurement with `n == 0` saw nothing. For territory, possession control and pressing, its value is a stand-in (an even share, no presses) that says nothing about the match. For chance quality it is 0, and **"no chances in five minutes" is a real reading**: on seed 1 it is 57% of minutes.
+
+R1 left every empty measurement out of the prior, and U4 kept every one in the match history. For chance quality the two references then measured different things, "quality when shooting" against "quality over all minutes", so its baseline drifted as `w` grew without anything changing in the game.
+
+**Settled:** one rule, used by both. `signals.is_placeholder` is true for an empty measurement of any signal except chance quality.
+
+- R1 leaves placeholders out of the prior and keeps empty chance-quality windows. Rebuilt: chance quality's mean moved from 0.411 to 0.138, the other three are unchanged, and doubling the sample still moves every mean by under 0.1 sd.
+- U4 judges a placeholder (every measurement still becomes a reading) but never adds it to the history.
+- A spell with no chances can now register against the baseline as a real deviation.
+
+---
+
 # OPEN — Kehinde decides
 
 ## O3 · Team lens register — supporter-voiced or supporter-oriented

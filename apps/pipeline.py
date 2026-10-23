@@ -12,12 +12,13 @@ from collections.abc import Callable
 
 from opentelemetry import context, trace
 
-from matchlens import audit, explanation, lenses, selection, understanding, verification
+from matchlens import audit, explanation, lenses, selection, verification
 from matchlens.ingest import Ingest
 from matchlens.models import Claim, Event, Frame, Verdict, Verification
 from matchlens.rendering import Card, render
 from matchlens.source import MatchSetup, StreamItem, simulate
 from matchlens.spotting import Spotter, SpotterResult
+from matchlens.understanding import Understanding
 
 Publish = Callable[[Card], None]
 
@@ -27,20 +28,16 @@ tracer = trace.get_tracer(__name__)
 class Pipeline:
     def __init__(self) -> None:
         self._ingest = Ingest()
-        self._spotter = Spotter()
+        self._understanding = Understanding(self._ingest.record)
+        self._spotter = Spotter(self._ingest.record, self._understanding.epoch_at)
 
     def process(self, item: StreamItem) -> list[Card]:
         """Run one stream item through the stages; the cards it produces, if any."""
         self._ingest.accept(item)
         if isinstance(item, MatchSetup):
             return []
-        spotter = self._spotter.consider(understanding.observe(item), item)
-        if spotter is None:
-            return []
-        return self._editorial(
-            spotter,
-            item,
-        )
+        results = self._spotter.consider(self._understanding.observe(item), item)
+        return [card for result in results for card in self._editorial(result, item)]
 
     def _editorial(self, result: SpotterResult, at: Frame | Event) -> list[Card]:
         record = self._ingest.record()
