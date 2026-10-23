@@ -1,5 +1,6 @@
 """Decides which measured changes are worth saying something about"""
 
+import time
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 
@@ -33,6 +34,7 @@ tracer = trace.get_tracer(__name__)
 class SpotterResult:
     moment: Moment
     span_context: trace.SpanContext
+    fired_ns: int  # when the spotting span ended: a moment waits from here until its turn (Q27)
 
 
 class Spotter:
@@ -118,4 +120,4 @@ class Spotter:
     def _result(moment: Moment) -> SpotterResult:
         with tracer.start_as_current_span("spotting") as span:
             span.set_attribute("moment_id", moment.moment_id)
-            return SpotterResult(moment, span.get_span_context())
+        return SpotterResult(moment, span.get_span_context(), time.time_ns())

@@ -41,7 +41,7 @@ L7 already makes `Pipeline.process` hand each moment's cards on as soon as that 
 
 **What I would do if forced:** A. I have not done it, and I have not touched the test.
 
-**Answer:**
+**Answer:** A (23 Oct). Done in L7 as a `queued` span from the moment's spotting span ending to its turn. Named `queued`, not `spotting.queued`: the test counts a stage once through its outermost span, so a `spotting.*` child of the root would fold into Spotting and leave the wait uncounted. The test passes 6 of 6 on its own and failed 1 of 2 full-suite runs, against an absolute 5 ms slack.
 
 ## Q26 · Three of D29's rules need facts no claim can carry  [ticket: L7]  [blocking: yes]
 

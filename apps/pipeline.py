@@ -64,6 +64,14 @@ class Pipeline:
         parent = trace.set_span_in_context(trace.NonRecordingSpan(result.span_context))
         token = context.attach(parent)
         try:
+            # The wait behind the moments this item fired first, as its own span, so the trace
+            # accounts for it rather than leaving a gap (Q27: A).
+            queued = tracer.start_span(
+                "queued",
+                attributes={"moment_id": result.moment.moment_id},
+                start_time=result.fired_ns,
+            )
+            queued.end()
             with tracer.start_as_current_span(
                 "explanation", attributes={"moment_id": result.moment.moment_id}
             ):
