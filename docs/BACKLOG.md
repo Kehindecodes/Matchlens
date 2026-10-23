@@ -36,7 +36,7 @@ Update the **Status** column when a ticket moves. Statuses: `todo`, `wip`, `done
 | S3 | SSE endpoint, ViewerSession, page showing clock and score | 1 | S1 | T1 | done | ✅ |
 | 🤝 S4 | One hardcoded moment → rendition → SSE → card on screen | 0.5 | S2, S3 | T1 | done | ✅ |
 | S5 | Bicep, Container Apps, ACR, GitHub Actions with OIDC | 1.5 | S4 | T1 | done | ✅ |
-| 🧑 S6 | App Insights, one trace per moment across the agents | 0.5 | S5 | T2 | todo | ✅ |
+| 🧑 S6 | App Insights, one trace per moment across the agents | 0.5 | S5 | T2 | wip | ✅ |
 
 ## Phase 2 · Understanding — days 5–8
 *Ships: four signals producing readings with baselines and z-scores (D24).*
@@ -73,7 +73,7 @@ Update the **Status** column when a ticket moves. Statuses: `todo`, `wip`, `done
 | ID | Ticket | Est | Deps | Tier | Status | Brief |
 |---|---|---|---|---|---|---|
 | M1a | Readings on the live path: streaming epochs, baselines, readings | 1 | U4, U5 | T1 | done | ✅ |
-| M1b | Spotter: thresholds, importance scoring, trigger citation | 0.5 | M1a | T1 | todo | ✅ |
+| M1b | Spotter: thresholds, importance scoring, trigger citation | 0.5 | M1a | T1 | done | ✅ |
 | 🤝 M2 | Suppression: cooldown and duplicate detection | 0.5 | M1b | T1 | todo | ✅ |
 | M3 | ~~Run detector from frames~~ | 2 | S2 | T3 | cut | — |
 | M4 | ~~Off-ball-run moments and running counts~~ | 1 | M3, M1 | T3 | cut | — |
