@@ -27,6 +27,8 @@ class Settings(BaseSettings):
     spotter_z_threshold: float = 1.25  # |z_match| a tactical shift must reach
     spotter_confidence_floor: float = 0.3  # below this a large z is noise
     spotter_min_window_ms: int = 120_000  # a window this thin has not seen enough to judge
+    spotter_cooldown_ms: int = 240_000  # M2: a series cannot fire a second shift inside this
+    spotter_z_release: float = 1.0  # M2: |z_match| under this ends a shift; between is the same one
     spotter_chance_quality: float = 0.25  # shot quality a non-goal shot must reach
     importance_z_saturation: float = 3.0  # the |z| at which a shift's magnitude is full
     importance_prior_weight: float = 0.25  # how much of a shift's magnitude is z_prior's
