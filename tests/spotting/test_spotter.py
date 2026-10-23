@@ -24,6 +24,7 @@ from matchlens.models import (
     SignalReading,
     Trend,
 )
+from matchlens.source import MatchSetup
 from matchlens.source.archetypes import ARCHETYPES
 from matchlens.spotting import Spotter
 from matchlens.understanding import Understanding
@@ -50,6 +51,8 @@ def _spot(match: Played) -> Spotted:
     moments, readings = [], []
     for item in match.items:
         ingest.accept(item)
+        if isinstance(item, MatchSetup):
+            continue  # the roster is not something to spot, and the pipeline skips it too
         new = understanding.observe(item)
         readings += new
         moments += [r.moment for r in spotter.consider(new, item)]
@@ -318,6 +321,8 @@ def test_a_frame_never_fires_a_moment():
     spotter = Spotter(ingest.record, understanding.epoch_at)
     for item in match.items[:300]:
         ingest.accept(item)
+        if isinstance(item, MatchSetup):
+            continue
         results = spotter.consider(understanding.observe(item), item)
         if isinstance(item, Frame):
             assert results == []
