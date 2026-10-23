@@ -1,6 +1,5 @@
 """Decides which measured changes are worth saying something about"""
 
-from collections import defaultdict
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 
@@ -18,10 +17,10 @@ from matchlens.models import (
     Outcome,
     Ref,
     RefKind,
-    Signal,
     SignalReading,
 )
 from matchlens.spotting.importance import importance, shift_magnitude
+from matchlens.spotting.suppression import Suppression
 from matchlens.understanding.shot_value import is_shot, value
 
 MODEL = "spotter-rules"
@@ -42,15 +41,16 @@ class Spotter:
     No model is involved: the judgement is a threshold on z-scores, gated by confidence and by
     how much of the match the window has seen, so it says nothing in the minutes after a break,
     when the baseline is still mostly the prior (D26). A shift fires when its series crosses the
-    threshold, not on every reading that stays above it. Only goals, chances and tactical shifts
-    are emitted: `milestone` and `pattern` have no trigger (Q20). Cooldown and duplicate
-    suppression are M2's.
+    threshold, not on every reading that stays above it, and `Suppression` keeps a flickering or
+    repeating series from firing again (M2). Only goals, chances and tactical shifts are
+    emitted: `milestone` and `pattern` have no trigger (Q20). Goals and chances are never
+    suppressed.
     """
 
     def __init__(self, record: Callable[[], RecordReader], epoch_at: Callable[[int], Epoch]):
         self._record = record
         self._epoch_at = epoch_at
-        self._above: dict[tuple[Signal, str], bool] = defaultdict(bool)
+        self._suppression = Suppression()
 
     def consider(
         self, readings: Sequence[SignalReading], item: Frame | Event
@@ -63,9 +63,8 @@ class Spotter:
         return [self._result(m) for m in moments]
 
     def _shift(self, reading: SignalReading) -> Moment | None:
-        if not self._crosses(reading):
+        if not self._suppression.admits_shift(reading, self._trusted(reading)):
             return None
-
         return Moment(
             moment_id=f"moment-{reading.reading_id}",
             clock_ms=reading.clock_ms,
@@ -81,17 +80,13 @@ class Spotter:
             model_version=MODEL_VERSION,
         )
 
-    def _crosses(self, reading: SignalReading) -> bool:
-        """Whether the reading is over the threshold when the one before it was not."""
-        over = (
-            abs(reading.z_match) >= settings.spotter_z_threshold
-            and reading.confidence >= settings.spotter_confidence_floor
+    @staticmethod
+    def _trusted(reading: SignalReading) -> bool:
+        """Whether the reading has the confidence and the window to be judged at all."""
+        return (
+            reading.confidence >= settings.spotter_confidence_floor
             and reading.window_ms >= settings.spotter_min_window_ms
         )
-        series = (reading.signal, reading.team)
-        crossed = over and not self._above[series]
-        self._above[series] = over
-        return crossed
 
     def _event(self, event: Event) -> Moment | None:
         if event.team is None:

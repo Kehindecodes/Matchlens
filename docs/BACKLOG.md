@@ -74,7 +74,7 @@ Update the **Status** column when a ticket moves. Statuses: `todo`, `wip`, `done
 |---|---|---|---|---|---|---|
 | M1a | Readings on the live path: streaming epochs, baselines, readings | 1 | U4, U5 | T1 | done | ✅ |
 | M1b | Spotter: thresholds, importance scoring, trigger citation | 0.5 | M1a | T1 | done | ✅ |
-| 🤝 M2 | Suppression: cooldown and duplicate detection | 0.5 | M1b | T1 | todo | ✅ |
+| 🤝 M2 | Suppression: cooldown and duplicate detection | 0.5 | M1b | T1 | done | ✅ |
 | M3 | ~~Run detector from frames~~ | 2 | S2 | T3 | cut | — |
 | M4 | ~~Off-ball-run moments and running counts~~ | 1 | M3, M1 | T3 | cut | — |
 

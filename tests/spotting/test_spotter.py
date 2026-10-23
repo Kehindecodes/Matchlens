@@ -328,3 +328,17 @@ def test_spotting_is_entered(started):
     with calltrace.recording() as entered:
         fresh().consider([], quiet)
     assert "Spotting" in entered
+
+
+def test_prevent_identical_reading_to_fire_multiple_times() -> None:
+    match = played("comeback", 1)
+    ingest = Ingest()
+    understanding = Understanding(ingest.record)
+    spotter = Spotter(ingest.record, understanding.epoch_at)
+    moments = []
+    for item in match.items:
+        ingest.accept(item)
+        moments += [r.moment for r in spotter.consider(understanding.observe(item), item)]
+    cited = [i for m in moments for i in (*m.trigger_reading_ids, *m.trigger_event_ids)]
+    assert cited
+    assert len(cited) == len(set(cited))
