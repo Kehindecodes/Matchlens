@@ -512,13 +512,19 @@ Four event metrics plus D24's four signals. Every value is recountable from cite
 |---|---|
 | "a big chance" | `shot_quality` ≥ 0.25, the spotter's chance bar (`spotter_chance_quality`), so a big chance is what fires a chance moment |
 | "their third big chance in ten minutes" | `chances` over the last 10 min, including this one, said only at 3 or more |
-| "on the break" | the possession started in the defensive or middle third and reached the shot in ≤ 20 s |
+| "on the break" | the possession started by winning the ball in open play (a tackle, interception or aerial duel, not a restart) and reached the shot in ≤ 20 s, in any third (Q26: 1a) |
 | "a patient move" | `build_up_passes` ≥ 10 |
 | (neither) | otherwise nothing is said about the build-up |
 | plain interpretive ("pressing harder") | `\|z_match\|` ≥ 1.25, the spotter's shift bar (`spotter_z_threshold`) |
 | strong interpretive ("much harder", "by far") | `\|z_match\|` ≥ 2.0 |
 
-"On the break" needs the possession's start zone and duration as well as its passes, so a `build_up_passes` claim cites the possession's events, which carry both.
+A `build_up_passes` claim cites the possession's events; its window is the possession's start to the shot, which is the duration the rule reads.
+
+**Amended by Q26 (23 Oct):**
+
+- **No zone in "on the break" (1a).** No claim carries where a move started, so the rule reads only the duration and how the ball was won.
+- **Only what can be cited (2a).** A team on 0 goals has nothing to cite, so no claim asserts it. Goal text says "their first goal" or "his second"; a score line such as "2–1" only when both sides have scored.
+- **A signed `threshold` (3a).** On an interpretive claim, `threshold` is the `z_match` the wording implies, with its sign: 2.0 means `z_match` ≥ 2 ("much harder"), −2.0 means `z_match` ≤ −2 ("much less"). This changes `threshold` from "how strong" to "how strong and which way".
 
 **Why these are standard:** shot quality is an absolute function of distance and angle, the z thresholds are relative to each match's own baseline and to priors over 20 matches across the four archetypes, and the build-up rules are football definitions. Seed 1 was a sanity check, not a calibration. Across 12 generated matches (four archetypes × seeds 1–3) casual < team < analyst in card count every time, and volume follows how eventful the match is (casual 1–11, team 4–20, analyst 22–57).
 

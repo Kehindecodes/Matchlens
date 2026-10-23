@@ -44,7 +44,7 @@ Newest at the top. Kehinde answers inline and moves the resolved ones to `docs/D
 
 **What I would do if forced:** 1a, 2a, 3a. No new field, nothing cited that is not there, and the one change of meaning is the smallest. I have not started building.
 
-**Answer:**
+**Answer:** 1a, 2a, 3a (23 Oct). Recorded in D29.
 
 ## Q25 · What should a casual viewer know, and where does the "why" come from before A2?  [ticket: L1, L3, A2]  [blocking: no, but the demo video is thin until it is answered]
 
