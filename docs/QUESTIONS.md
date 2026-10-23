@@ -24,6 +24,26 @@ Newest at the top. Kehinde answers inline and moves the resolved ones to `docs/D
 
 ---
 
+## Q22 · What does the team lens's reweight boost and damp, and can a goal be rate-limited?  [ticket: L2]  [blocking: yes]
+
+**What I need to know:** Two things L2's brief leaves open.
+
+1. **The reweight rule.** The brief says team scope "boosts moments affecting the result and drops neutral tactical curiosities", and keeps opponent moments. It does not say which `MomentType`s count as result-affecting, whether the subject (focus team or opponent) matters, or by how much. `Moment.importance` is a bare float, and the three types sit at different places on the demo match (goals 1.0, chances 0.21–0.55, shifts 0.10–0.37), against `team_engaged`'s threshold of 0.3.
+2. **Rate limit and goals.** The brief says a lens at `max_cards_per_10min` suppresses with `rate_limited` even when the moment clears the threshold. Taken literally a goal can be rate-limited, because `breakthrough_types` only bypasses the *scope* filter. Whether a viewer can miss a goal because of a burst of cards before it is a viewer-facing call.
+
+**Why I cannot decide it:** both change what a viewer sees (CLAUDE.md, "stop and ask"). The numbers I would pick are a guess.
+
+**Options as I see them:**
+- 1A: reweight by type only, subject-blind. `goal` and `chance` are result-affecting, so importance is multiplied by a boost and clamped to 1.0. `tactical_shift` is multiplied by a damp below 1, so most fall under the threshold and come back as `below_threshold`, not `out_of_scope`. Opponent moments are kept by construction. Both factors go in `settings`. Costs: a shift that hurts the focus team is treated like a neutral one.
+- 1B: as 1A, but a shift whose subject is the opponent is not damped. Costs: "this shift is against us" needs the reading's direction, which the moment does not carry, so Selection would have to read the cited reading.
+- 1C: drop shifts outright for the team lens with `out_of_scope`. Costs: that is a subject/type filter, which is the mechanism D2 says team scope is not.
+- 2A: a goal is never rate-limited, because it is the one moment no one should miss. Costs: the rule gets a special case for a moment type, and the type has to come from data, not a name in code, so it would reuse `breakthrough_types`.
+- 2B: rate-limit everything, as the brief reads. Costs: with `max_cards_per_10min` at 3, a goal after three shifts is `rate_limited` for casual.
+
+**What I would do if forced:** 1A with a boost of 1.25 and a damp of 0.5, and 2A through `breakthrough_types`. I would also say so in the L2 status. I have not done any of it.
+
+**Answer:** 1B for the reweight (23 Oct): a shift whose subject is the opponent is not damped, and a shift whose subject is the focus team is, by 0.5; goals and chances get a 1.25 boost, clamped to 1.0. 2A for the rate limit (23 Oct): a type listed in the lens's `breakthrough_types` is never rate-limited, though it still counts towards the limit.
+
 ## Q21 · The 30–60 moments band only holds on seed 1, at a low threshold  [ticket: M1b]  [blocking: no]
 
 **What I need to know:** Whether to accept how M1b hit the band, or change the band, the generator or the rule. It holds for all four archetypes on the demo match (seed 1), and not generally:

@@ -74,7 +74,7 @@ Update the **Status** column when a ticket moves. Statuses: `todo`, `wip`, `done
 |---|---|---|---|---|---|---|
 | M1a | Readings on the live path: streaming epochs, baselines, readings | 1 | U4, U5 | T1 | done | ✅ |
 | M1b | Spotter: thresholds, importance scoring, trigger citation | 0.5 | M1a | T1 | done | ✅ |
-| 🤝 M2 | Suppression: cooldown and duplicate detection | 0.5 | M1b | T1 | todo | ✅ |
+| 🤝 M2 | Suppression: cooldown and duplicate detection | 0.5 | M1b | T1 | done | ✅ |
 | M3 | ~~Run detector from frames~~ | 2 | S2 | T3 | cut | — |
 | M4 | ~~Off-ball-run moments and running counts~~ | 1 | M3, M1 | T3 | cut | — |
 
@@ -88,8 +88,8 @@ Update the **Status** column when a ticket moves. Statuses: `todo`, `wip`, `done
 
 | ID | Ticket | Est | Deps | Tier | Status | Brief |
 |---|---|---|---|---|---|---|
-| L1 | Lens entity and three presets as config rows | 0.5 | F1 | T1 | todo | — |
-| L2 | **Selection**: scope dispatch, threshold, rate limit — no model calls | 1.5 | M1, L1 | T1 | todo | — |
+| L1 | Lens entity and three presets as config rows | 0.5 | F1 | T1 | done | ✅ |
+| L2 | **Selection**: scope dispatch, threshold, rate limit — no model calls | 1.5 | M1, L1 | T1 | done | ✅ |
 | L3 | **Rendering**: template renditions per depth — no LLM | 1 | L2 | T1 | todo | — |
 | L4 | Three-panel UI on one clock, silent lens visibly idle | 1 | L3, S3 | T1 | todo | — |
 | L5 | Lens switching mid-match | 0.5 | L4 | T1 | todo | — |
