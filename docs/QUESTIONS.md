@@ -24,6 +24,22 @@ Newest at the top. Kehinde answers inline and moves the resolved ones to `docs/D
 
 ---
 
+## Q24 · Are the three L4 panels fed by three sessions or by one session carrying three lenses?  [ticket: L4]  [blocking: yes]
+
+**What I need to know:** Which shape the ticket's "⚠️ Decide how the three panels are fed" lands on. P1 (producer view, "build once") inherits it.
+
+**Why I cannot decide it:** the ticket marks it as a decision, and it sets the shape P1 is built on (CLAUDE.md: architecture decisions are Kehinde's). Option B would also change what `ViewerSession` means (CLAUDE.md: a change to what an existing entity means).
+
+**What exists today:** `POST /session` already takes `lens_id`, `CardRouter` already fans each card out to every session on its lens, and `/stream` is one SSE connection per session. Suppressed renditions never reach a card: `apps/pipeline.py` drops them before the bus.
+
+**Options as I see them:**
+- A: **Three sessions, three `EventSource`s.** The page creates one session per lens preset and opens three streams. No server change at all. It exercises the release queue three times over, so when D1 lands each panel is held by its own queue, as production would be. Costs: three copies of `match_state` per tick (small), three session ids kept in `sessionStorage`, and the shared clock spine has to be driven by one of the three streams (I'd use the first; they come from the same hub). Three SSE connections fit under the browser's six-per-origin HTTP/1.1 limit, though P1 adding more panels would get close.
+- B: **One session, three lenses.** `ViewerSession.lens_id` becomes a list, or a new demo-only stream endpoint fans out across lenses. One connection and one clock by construction. Costs: either an entity change or a second stream path production never uses, and D1's release rule then runs once for three lenses, so the demo would not show per-session release.
+
+**What I would do if forced:** A. It needs nothing new on the server, it matches production, and P1 becomes "the same page with internal fields shown". I have not started.
+
+**Answer:** A. Kehinde: three sessions, three `EventSource`s.
+
 ## Q23 · What do the L3 templates key on, when no claim says which signal or what was measured?  [ticket: L3]  [blocking: yes]
 
 **What I need to know:** L3 asks for templates "keyed on moment type, signal and depth", with every number traced to a claim's value. Today Rendering cannot see two of those three:

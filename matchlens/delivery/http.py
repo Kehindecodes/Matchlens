@@ -10,10 +10,11 @@ from fastapi.sse import EventSourceResponse, ServerSentEvent
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ConfigDict
 
+from matchlens import lenses
 from matchlens.delivery.hub import MatchStateHub
 from matchlens.delivery.release import ReleaseQueues
 from matchlens.delivery.sessions import SessionStore, UnknownSession
-from matchlens.models import ViewerSession
+from matchlens.models import Lens, ViewerSession
 
 WEB_DIR = Path(__file__).resolve().parents[2] / "web"
 
@@ -46,6 +47,11 @@ def create_app(
     @app.get("/", include_in_schema=False)
     def index() -> FileResponse:
         return FileResponse(web_dir / "index.html")
+
+    @app.get("/lenses")
+    def list_lenses() -> list[Lens]:
+        """Every active lens, so the page learns them as data (invariant 10)."""
+        return lenses.all_lenses()
 
     @app.post("/session", status_code=status.HTTP_201_CREATED)
     def create_session(body: NewSession | None = None) -> ViewerSession:
