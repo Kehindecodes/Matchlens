@@ -343,6 +343,8 @@ def test_prevent_identical_reading_to_fire_multiple_times() -> None:
     moments = []
     for item in match.items:
         ingest.accept(item)
+        if isinstance(item, MatchSetup):
+            continue
         moments += [r.moment for r in spotter.consider(understanding.observe(item), item)]
     cited = [i for m in moments for i in (*m.trigger_reading_ids, *m.trigger_event_ids)]
     assert cited
