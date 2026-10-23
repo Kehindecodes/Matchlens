@@ -506,14 +506,32 @@ Four event metrics plus D24's four signals. Every value is recountable from cite
 - **Chance:** `shot_quality`, `chances`
 - **Tactical shift:** the signal that fired, as a comparative claim, against earlier or against the opponent
 
-### Still open: numbers that decide what a viewer reads
+### Standard values — the same for every match, not tuned per match
 
-Not settled here, and each changes viewer-facing text:
+| Wording | Rule |
+|---|---|
+| "a big chance" | `shot_quality` ≥ 0.25, the spotter's chance bar (`spotter_chance_quality`), so a big chance is what fires a chance moment |
+| "their third big chance in ten minutes" | `chances` over the last 10 min, including this one, said only at 3 or more |
+| "on the break" | the possession started in the defensive or middle third and reached the shot in ≤ 20 s |
+| "a patient move" | `build_up_passes` ≥ 10 |
+| (neither) | otherwise nothing is said about the build-up |
+| plain interpretive ("pressing harder") | `\|z_match\|` ≥ 1.25, the spotter's shift bar (`spotter_z_threshold`) |
+| strong interpretive ("much harder", "by far") | `\|z_match\|` ≥ 2.0 |
 
-- the quality bar and window for `chances` ("a big chance", "in the last N minutes")
-- the `build_up_passes` cut between "on the break" and "a patient move"
-- the threshold each interpretive word implies (for example the `z_match` that "much harder" needs)
+"On the break" needs the possession's start zone and duration as well as its passes, so a `build_up_passes` claim cites the possession's events, which carry both.
+
+**Why these are standard:** shot quality is an absolute function of distance and angle, the z thresholds are relative to each match's own baseline and to priors over 20 matches across the four archetypes, and the build-up rules are football definitions. Seed 1 was a sanity check, not a calibration. Across 12 generated matches (four archetypes × seeds 1–3) casual < team < analyst in card count every time, and volume follows how eventful the match is (casual 1–11, team 4–20, analyst 22–57).
+
+**Known limits, structural rather than seed-specific:**
+
+- Every goal on seed 1 came from a shot of quality 0.12–0.13, below the big-chance bar, so goal templates must handle a low `shot_quality` ("from a hard chance"), not assume a good one.
+- `territory`'s `|z_match|` tops out near 1.5 (its prior spread is wide for a 0–1 share, Q21), so territory never earns strong wording in any match.
+- All of this is measured on generated matches only; real data is out of scope.
+
+### Still open
+
 - Q25 parts 1 and 2: which moments casual sees, and whether `minimal` states a claim
+- which ticket the deterministic claim builder belongs to (none in `docs/BACKLOG.md` covers it)
 
 ---
 
