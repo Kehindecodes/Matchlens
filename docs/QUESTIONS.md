@@ -44,7 +44,7 @@ Newest at the top. Kehinde answers inline and moves the resolved ones to `docs/D
 
 **What I would do if forced:** 3a first, since it is what all three lenses lack. Then 2a and 1a, so casual gets an occasional plain-words turning point and stays the quietest panel. I have not done any of it.
 
-**Answer:**
+**Answer:** Part 3: 3a, settled as D29 (23 Oct): eight metrics, the scorer named, comparisons both ways. Parts 1 and 2 still open.
 
 ## Q24 · Are the three L4 panels fed by three sessions or by one session carrying three lenses?  [ticket: L4]  [blocking: yes]
 

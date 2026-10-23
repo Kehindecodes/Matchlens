@@ -475,6 +475,48 @@ R1 left every empty measurement out of the prior, and U4 kept every one in the m
 
 # OPEN — Kehinde decides
 
+## D29 · The claim metric vocabulary: eight metrics, the scorer named, both comparisons — SETTLED 23 Oct
+
+Answers Q25 part 3. Replaces the S4 stub's `triggers`, and closes D21's "a string until U1–U3 define what the verifier can recount": `Operand.metric` becomes a closed `Metric` enum (D14: every closed set is a named enum).
+
+### The eight
+
+| Metric | Value | Evidence |
+|---|---|---|
+| `goals` | a team's goals from kickoff to the clock | the goal events |
+| `shot_quality` | one shot's quality, 0–1 | the shot event |
+| `chances` | shots above a quality bar in a recent window | the shot events |
+| `build_up_passes` | passes in the possession that ended in the shot | that possession's events |
+| `territory` | the signal reading's value | the reading |
+| `possession_control` | the signal reading's value | the reading |
+| `pressing_intensity` | the signal reading's value | the reading |
+| `chance_quality` | the signal reading's value | the reading |
+
+Four event metrics plus D24's four signals. Every value is recountable from cited rows, so A3 can recompute it.
+
+### Settled with it
+
+1. **A claim may name the scorer.** A `goals` claim may take the scoring player as its subject (`Operand.subject` already allows a player, and `Player.name` is on the record). This is a match-scope card naming a player, **not player scope**, which stays deferred: no `Run`, no player lens, no player-level selection.
+2. **Comparative claims compare both ways.** Against the **same team earlier** (the second operand is that team's earlier reading or count, with its own window, for example before the epoch boundary: "since the equaliser") and against the **opponent** over the same window.
+3. **All eight are kept.** `build_up_passes` stays because "on the break" versus "a patient move" is the plainest "why" a goal can carry.
+
+### Per moment type
+
+- **Goal:** `goals` (scorer and score), `build_up_passes`, `shot_quality`
+- **Chance:** `shot_quality`, `chances`
+- **Tactical shift:** the signal that fired, as a comparative claim, against earlier or against the opponent
+
+### Still open: numbers that decide what a viewer reads
+
+Not settled here, and each changes viewer-facing text:
+
+- the quality bar and window for `chances` ("a big chance", "in the last N minutes")
+- the `build_up_passes` cut between "on the break" and "a patient move"
+- the threshold each interpretive word implies (for example the `z_match` that "much harder" needs)
+- Q25 parts 1 and 2: which moments casual sees, and whether `minimal` states a claim
+
+---
+
 ## O3 · Team lens register — supporter-voiced or supporter-oriented
 
 Blocking `L6`. The prototype uses supporter-**voiced** ("we are level", "that saved us"). The Features page previously listed a club-allegiance lens under *explicitly not building*, and that objection was outweighed rather than answered: a platform may not want to ship something that sounds like it takes a side.
