@@ -531,7 +531,7 @@ Four event metrics plus D24's four signals. Every value is recountable from cite
 ### Still open
 
 - Q25 parts 1 and 2: which moments casual sees, and whether `minimal` states a claim
-- which ticket the deterministic claim builder belongs to (none in `docs/BACKLOG.md` covers it)
+- ~~which ticket the deterministic claim builder belongs to~~ — a new ticket, L7 (23 Oct)
 
 ---
 
