@@ -512,7 +512,7 @@ Four event metrics plus D24's four signals. Every value is recountable from cite
 |---|---|
 | "a big chance" | `shot_quality` ≥ 0.25, the spotter's chance bar (`spotter_chance_quality`), so a big chance is what fires a chance moment |
 | "their third big chance in ten minutes" | `chances` over the last 10 min, including this one, said only at 3 or more |
-| "on the break" | the possession started by winning the ball in open play (a tackle, interception or aerial duel, not a restart) and reached the shot in ≤ 20 s, in any third (Q26: 1a) |
+| "a quick attack" (was "on the break", 23 Oct: true wherever the move started) | the possession started by winning the ball in open play (a tackle, interception or aerial duel, not a restart) and reached the shot in ≤ 20 s, in any third (Q26: 1a) |
 | "a patient move" | `build_up_passes` ≥ 10 |
 | (neither) | otherwise nothing is said about the build-up |
 | plain interpretive ("pressing harder") | `\|z_match\|` ≥ 1.25, the spotter's shift bar (`spotter_z_threshold`) |

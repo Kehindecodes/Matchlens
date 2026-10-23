@@ -224,8 +224,7 @@ A single value, not a list, so the reason is deterministic. Without a declared o
 | 4 | `verification_failed` | Every claim for this moment failed verification. ⚠️ **A quality alarm.** |
 | 5 | `claims_filtered_out` | No claim survived this lens's `allowed_claim_types` or depth filter. Correct behaviour. |
 | 6 | `below_threshold` | `moment.importance` is below this lens's `importance_threshold`. |
-| 7 | `rate_limited` | Important enough, but it would exceed `max_cards_per_10min`. |
-
+| 7 | `rate_limited` | Important enough, but it would exceed ``. |
 The hierarchy reads: *was it ever a candidate → can we say anything → should we say anything → should we say it now.*
 
 Positions 1 and 2 are the one arguable pair. Scope is first here because out-of-scope means structurally irrelevant, and reporting it as `muted` would inflate the apparent impact of a mute. Flip them if the producer view would rather see mute dominate.
