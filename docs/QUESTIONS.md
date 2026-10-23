@@ -24,6 +24,28 @@ Newest at the top. Kehinde answers inline and moves the resolved ones to `docs/D
 
 ---
 
+## Q25 · What should a casual viewer know, and where does the "why" come from before A2?  [ticket: L1, L3, A2]  [blocking: no, but the demo video is thin until it is answered]
+
+**What I need to know:** Three things, seen on the L4 screen (`docs/screenshots/L4-silent-panel.jpg`). By 51:38 on seed 1 the casual panel has shown two cards, both "Goal!" with a body that only names the team. No panel explains *why* anything happened.
+
+1. **Which moments casual sees.** `match_casual` is at `importance_threshold` 0.45 and `max_cards_per_10min` 3. On seed 1 that admits 6 of 52 moments, which so far are only the goals. The quiet panel is the thesis, but "quiet by choice" should mean casual skipped the analyst detail, not that casual cannot tell why the game turned.
+2. **Whether `minimal` speaks a claim.** `_CLAIMS_SPOKEN` in `matchlens/rendering/__init__.py` is `MINIMAL: 0, STANDARD: 1, FULL: all`. So even with real claims, a casual card would carry headline and team name only. A casual "why" would be one claim in plain words, with no numbers (`test_the_casual_cards_carry_no_numbers_and_the_analyst_cards_do` already holds casual to that).
+3. **Where real claims come from on the L1 path.** The only claim today is the S4 stub's `metric="triggers"`, `value` = how many readings and events fired the moment. That is where every analyst card's "Cited triggers: 1." comes from. No claim names the scorer, the signal that moved, or what changed. The build-order rule says L1 (templates, no LLM) carries the thesis, so the "why" cannot wait for A2's agent.
+
+**Why I cannot decide it:** (1) and (2) change what a viewer sees and when (CLAUDE.md). (3) is the `Claim` metric vocabulary, which is reserved for you before A2 and was kept with you in Q23.
+
+**Options as I see them:**
+- (1a) Lower casual's threshold so its biggest non-goal moments get through, for example the largest tactical shift of each epoch. It stays sparse, still the quietest panel, and is re-calibrated on seed 1 as L1 was. Costs: fewer seconds where casual is quiet and another panel fires; the shot still exists, but more rarely.
+- (1b) Keep casual at goals only, and let the catch-up summary (D4) carry the context. Costs: casual reads as a goal alert until D4 exists.
+- (2a) `MINIMAL: 1`: casual speaks one claim, with a casual-register fact template per metric and no numbers. Costs: one fact row per metric per depth.
+- (2b) Keep `MINIMAL: 0`; the "why" goes into the casual headline/body templates themselves, keyed on metric. Costs: templates key on the claim's metric even when no claim is spoken.
+- (3a) You design the metric vocabulary now, and a deterministic claim builder (not the agent) produces those claims from the frozen log. A2 later replaces or extends it, so the agent stays off the critical path. Costs: your schema time before 27 Oct.
+- (3b) Ship the demo with stub claims and accept thin text. Costs: every lens's "why" is missing on the video; the panels differ in volume more than in substance.
+
+**What I would do if forced:** 3a first, since it is what all three lenses lack. Then 2a and 1a, so casual gets an occasional plain-words turning point and stays the quietest panel. I have not done any of it.
+
+**Answer:**
+
 ## Q24 · Are the three L4 panels fed by three sessions or by one session carrying three lenses?  [ticket: L4]  [blocking: yes]
 
 **What I need to know:** Which shape the ticket's "⚠️ Decide how the three panels are fed" lands on. P1 (producer view, "build once") inherits it.
