@@ -1,0 +1,27 @@
+{
+  "headlines": [
+    {"language": "en", "moment_type": "goal", "depth": "casual",
+     "headline": "Goal!", "body": "{team} have scored."},
+    {"language": "en", "moment_type": "goal", "depth": "engaged",
+     "headline": "Goal for {team}", "body": "{team} have scored."},
+    {"language": "en", "moment_type": "goal", "depth": "analyst",
+     "headline": "Goal: {team}", "body": "{team} scored, {window}."},
+
+    {"language": "en", "moment_type": "chance", "depth": "casual",
+     "headline": "A big chance", "body": "{team} had a good chance."},
+    {"language": "en", "moment_type": "chance", "depth": "engaged",
+     "headline": "Chance for {team}", "body": "{team} had a clear chance and did not score."},
+    {"language": "en", "moment_type": "chance", "depth": "analyst",
+     "headline": "Chance: {team}", "body": "{team} took a shot rated as a chance that was not a goal, {window}."},
+
+    {"language": "en", "moment_type": "tactical_shift", "depth": "casual",
+     "headline": "The game is changing", "body": "Something has shifted in how {team} are playing."},
+    {"language": "en", "moment_type": "tactical_shift", "depth": "engaged",
+     "headline": "{team} are playing differently", "body": "A change in how {team} are playing has been picked up."},
+    {"language": "en", "moment_type": "tactical_shift", "depth": "analyst",
+     "headline": "Tactical shift: {team}", "body": "A measured shift in how {team} are playing crossed the spotting threshold, {window}."}
+  ],
+  "facts": [
+    {"language": "en", "metric": "triggers", "text": "Cited triggers: {value}."}
+  ]
+}

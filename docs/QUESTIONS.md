@@ -24,6 +24,26 @@ Newest at the top. Kehinde answers inline and moves the resolved ones to `docs/D
 
 ---
 
+## Q23 · What do the L3 templates key on, when no claim says which signal or what was measured?  [ticket: L3]  [blocking: yes]
+
+**What I need to know:** L3 asks for templates "keyed on moment type, signal and depth", with every number traced to a claim's value. Today Rendering cannot see two of those three:
+
+- **Signal.** A `Claim` carries `metric` as a free string (D21: "a string until U1–U3 define what the verifier can recount; then an enum"). The only claim that exists is the stub explainer's: `metric="triggers"`, `value` = how many readings and events fired the moment. Neither `Moment` nor `Claim` names a signal. The reading id does contain it (`{epoch}-{signal}-{team}-{clock}`), but parsing an id is not something to build on.
+- **Names.** A claim's subject is a team id such as `m-1-home`. The team's name is on `Match`, which Rendering has no path to.
+
+The `Rendition` question in the brief (what goes in `headline` and `body` when suppressed) is already settled by the model: both are `None` when `suppressed`, enforced by a validator. I am treating that as answered.
+
+**Why I cannot decide it:** the metric vocabulary is the `Claim` schema, which is reserved for you before A2 (CLAUDE.md), and a closed set of metrics is a new enum. Choosing one here would also decide what a viewer reads.
+
+**Options as I see them:**
+- A: build L3 over what exists. Templates are a data file keyed on moment type, metric and depth, with `triggers` and a per-type default as the only metric. Team names come in from the pipeline as a lookup. The three registers differ in detail and layout, but the analyst's number is the stub's trigger count, and a tactical shift cannot name its signal. Rows for real metrics are added to the file once A2's vocabulary exists. Costs: demo text is thin until then.
+- B: I propose the metric vocabulary (for example one metric per signal, plus `goals` and `shot_quality`) and extend the stub explainer to emit those claims from the frozen log. Costs: it pre-empts your `Claim` schema work and A2.
+- C: pause L3 until you have designed the `Claim` schema.
+
+**What I would do if forced:** A. It finishes every mechanical criterion (determinism, selected claims only, numbers from claims, suppressed path, no lens ids, no "xG") and leaves the vocabulary to you.
+
+**Answer:** A (23 Oct). Build L3 over what exists; metric vocabulary stays Kehinde's.
+
 ## Q22 · What does the team lens's reweight boost and damp, and can a goal be rate-limited?  [ticket: L2]  [blocking: yes]
 
 **What I need to know:** Two things L2's brief leaves open.
