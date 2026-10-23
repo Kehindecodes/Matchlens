@@ -24,6 +24,28 @@ Newest at the top. Kehinde answers inline and moves the resolved ones to `docs/D
 
 ---
 
+## Q26 · Three of D29's rules need facts no claim can carry  [ticket: L7]  [blocking: yes]
+
+**What I need to know:** How to carry three things D29 asks for, given that Rendering only sees a claim's operands (`subject`, `metric`, `window`, `value`, `evidence_ids`), plus `threshold` on an interpretive claim. It never sees the record.
+
+1. **"On the break" needs the move's start zone.** D29: *started in the defensive or middle third and reached the shot in ≤ 20 s*. A `build_up_passes` operand carries the passes (`value`) and the duration (`window`), but not where the move started. On seed 1, 23 of the 43 moves that ended in a shot started in the final third, so leaving the zone out would call quick moves after winning the ball high "breaks".
+2. **"The score after it" cannot be cited when the other side has not scored.** Every operand needs at least one piece of evidence (invariant 5), and a team on 0 goals has no goal event to cite. So "puts them 1–0 up" asserts something nothing backs. Two of seed 1's three goals are like this.
+3. **An interpretive claim has no direction.** "Pressing much harder" and "pressing much less" both need `|z_match|` ≥ 2.0. The claim's `threshold` says how strong the word is but not which way. The comparative claims carry direction, but casual's `allowed_claim_types` is descriptive and interpretive only, so casual never gets them.
+
+**Why I cannot decide it:** each answer either adds a field to `Claim`/`Operand` or changes a D29 rule, and the `Claim` schema is yours (CLAUDE.md: a change to what an entity means; the `Claim` schema is reserved).
+
+**Options as I see them:**
+- (1a) Drop the zone from the rule: "on the break" = shot within 20 s of winning the ball, whatever third. Costs: some fast high turnovers called breaks.
+- (1b) Add `start_zone: Zone | None` to `Operand`, set only for `build_up_passes`. Costs: a schema field that one metric uses.
+- (2a) Cite only what can be cited: "Riverside's first goal", "the scorer's second", and a score line ("2–1") only when both sides have scored. Costs: the most natural casual line, "they're 1–0 up", is never said. The scoreboard still shows the score once the score fold lands.
+- (2b) Allow `period_start` as evidence for a zero count: "nothing in this window since kickoff". Costs: evidence that proves an absence by citing something else; A3 would have to recount it as "no goal events between these".
+- (3a) A signed `threshold`: −2.0 means the wording implies `z_match` ≤ −2. No new field, but it changes what `threshold` means from "how strong" to "how strong and which way".
+- (3b) Let casual's lens allow comparative claims. Costs: a change to a lens row (L1), and comparative claims carry two numbers that casual templates must not say.
+
+**What I would do if forced:** 1a, 2a, 3a. No new field, nothing cited that is not there, and the one change of meaning is the smallest. I have not started building.
+
+**Answer:**
+
 ## Q25 · What should a casual viewer know, and where does the "why" come from before A2?  [ticket: L1, L3, A2]  [blocking: no, but the demo video is thin until it is answered]
 
 **What I need to know:** Three things, seen on the L4 screen (`docs/screenshots/L4-silent-panel.jpg`). By 51:38 on seed 1 the casual panel has shown two cards, both "Goal!" with a body that only names the team. No panel explains *why* anything happened.
