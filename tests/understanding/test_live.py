@@ -263,3 +263,14 @@ def test_a_stale_prior_stops_the_pipeline_from_starting():
 
 def test_the_pipeline_starts_on_the_committed_priors():
     Pipeline()
+
+
+def test_an_event_at_a_break_belongs_to_the_epoch_before_it(played, priors, epochs):
+    ingest = Ingest()
+    understanding = Understanding(ingest.record, priors)
+    for item in played.items:
+        ingest.accept(item)
+        understanding.observe(item)
+    for before, after in zip(epochs, epochs[1:], strict=False):
+        assert understanding.epoch_at(after.start_clock_ms) == before
+        assert understanding.epoch_at(after.start_clock_ms + 1) == after

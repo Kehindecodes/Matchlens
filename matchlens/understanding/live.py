@@ -57,3 +57,12 @@ class Understanding:
             # again rather than appending keeps two breaks at one clock as one epoch (U5).
             self._epochs = detect(reader)
         return readings
+
+    def epoch_at(self, clock_ms: int) -> Epoch:
+        """The epoch an event at `clock_ms` belongs to: one starting at `clock_ms` is the next's.
+
+        The same convention the signal windows use, so a goal belongs to the epoch it ended.
+        """
+        return next(
+            (e for e in reversed(self._epochs) if e.start_clock_ms < clock_ms), self._epochs[0]
+        )

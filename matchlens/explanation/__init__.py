@@ -9,16 +9,20 @@ from matchlens.models import Claim, ClaimType, Event, Moment, Operand, Ref, RefK
 def explain(moment: Moment, frozen_log: Sequence[Event]) -> list[Claim]:
     """Claims about `moment`, read only from the frozen log.
 
-    Stub until A2: one fixed descriptive claim, that the events which fired the moment happened
-    at its clock. It cites those events, so it passes through the same path a real claim will.
+    Stub until A2: one fixed descriptive claim, that what fired the moment happened at its clock.
+    It cites the events and readings that fired it, so it passes through the same path a real
+    claim will.
     """
     calltrace.entered("Explanation")
-    triggers = tuple(Ref(kind=RefKind.EVENT, id=e) for e in moment.trigger_event_ids)
+    triggers = (
+        *(Ref(kind=RefKind.READING, id=r) for r in moment.trigger_reading_ids),
+        *(Ref(kind=RefKind.EVENT, id=e) for e in moment.trigger_event_ids),
+    )
     if not triggers:
         return []  # nothing to cite, so no claim (invariant 5)
     operand = Operand(
         subject=moment.subject,
-        metric="trigger_events",
+        metric="triggers",
         window=Window(start_ms=moment.clock_ms, end_ms=moment.clock_ms),
         value=float(len(triggers)),
         evidence_ids=triggers,
