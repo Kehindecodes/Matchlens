@@ -518,7 +518,7 @@ Four event metrics plus D24's four signals. Every value is recountable from cite
 | plain interpretive ("pressing harder") | `\|z_match\|` ≥ 1.25, the spotter's shift bar (`spotter_z_threshold`) |
 | strong interpretive ("much harder", "by far") | `\|z_match\|` ≥ 2.0 |
 
-A `build_up_passes` claim cites the possession's events; its window is the possession's start to the shot, which is the duration the rule reads.
+A `build_up_passes` claim cites the possession's events; its window is the possession's start to the shot, which is the duration the rule reads. A move begun by a restart gets no `build_up_passes` claim (L7): no claim carries how the move began, so the claim's existence is what keeps a corner headed in from reading as a quick attack.
 
 **Amended by Q26 (23 Oct):**
 

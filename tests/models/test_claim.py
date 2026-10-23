@@ -1,7 +1,7 @@
 import pytest
 from pydantic import ValidationError
 
-from matchlens.models import Claim, ClaimType, Operand, Ref, RefKind, Window
+from matchlens.models import Claim, ClaimType, Metric, Operand, Ref, RefKind, Window
 
 HOME = Ref(kind=RefKind.TEAM, id="m-1-home")
 AWAY = Ref(kind=RefKind.TEAM, id="m-1-away")
@@ -14,7 +14,7 @@ def _events(*ids: str) -> tuple[Ref, ...]:
 
 def _operand(**overrides) -> Operand:
     fields = dict(
-        subject=HOME, metric="final_third_entries",
+        subject=HOME, metric=Metric.CHANCES,
         window=Window(start_ms=3_439_535, end_ms=4_039_535), value=9.0,
         evidence_ids=_events("ev-1601", "ev-1622"),
     )  # fmt: skip
@@ -48,7 +48,7 @@ def test_a_comparative_claim_has_two_operands_each_with_its_own_window_and_evide
 
 def test_an_interpretive_claim_is_backed_by_a_reading_and_a_threshold():
     pressing = _operand(
-        subject=AWAY, metric="pressing_intensity", value=-2.4, evidence_ids=(READING,)
+        subject=AWAY, metric=Metric.PRESSING_INTENSITY, value=-2.4, evidence_ids=(READING,)
     )
     claim = _claim(
         claim_type=ClaimType.INTERPRETIVE, operands=(pressing,),

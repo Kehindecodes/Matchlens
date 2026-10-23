@@ -36,6 +36,14 @@ class Settings(BaseSettings):
     importance_chance: float = 0.8
     importance_tactical_shift: float = 0.7
 
+    # Claims and the words they allow (D29). Standard values, not tuned per match. The big-chance
+    # bar is `spotter_chance_quality` and plain interpretive wording `spotter_z_threshold`.
+    claim_chance_window_ms: int = 600_000  # "big chances in the last ten minutes"
+    claim_strong_z: float = 2.0  # |z_match| for strong words: "much harder", "by far"
+    wording_chance_run: int = 3  # a run of big chances is spoken from the third
+    wording_quick_attack_ms: int = 20_000  # ball won in open play to the shot
+    wording_patient_passes: int = 10
+
     # Lenses
     default_lens_id: str = "match_casual"
     team_result_boost: float = 1.25  # Q22: a goal or chance is worth this much more to a supporter

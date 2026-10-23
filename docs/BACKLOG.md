@@ -94,7 +94,7 @@ Update the **Status** column when a ticket moves. Statuses: `todo`, `wip`, `done
 | L4 | Three-panel UI on one clock, silent lens visibly idle | 1 | L3, S3 | T1 | review | human idle check pending |
 | L5 | Lens switching mid-match | 0.5 | L4 | T1 | todo | — |
 | L6 | Team scope: importance reweight + partisan framing | 0.5 | L2, L3 | T1 | todo | — |
-| L7 | Deterministic claim builder: D29's metrics from the record, no model | 1.5 | L3, M1b, D29 | T1 | todo | ✅ |
+| L7 | Deterministic claim builder: D29's metrics from the record, no model | 1.5 | L3, M1b, D29 | T1 | done | ✅ |
 
 **L1** — adding a lens is inserting a row. No hardcoded lens names anywhere.
 **L2** — a moment above the analyst threshold and below the casual one produces a `suppressed` rendition for casual (V3). **Scope dispatches to two code paths** — see D2.

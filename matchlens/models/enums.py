@@ -117,6 +117,19 @@ class MomentType(StrEnum):
     PATTERN = "pattern"
 
 
+class Metric(StrEnum):
+    """What a claim's operand measures (D29). Every value is recountable from cited rows."""
+
+    GOALS = "goals"
+    SHOT_QUALITY = "shot_quality"
+    CHANCES = "chances"
+    BUILD_UP_PASSES = "build_up_passes"
+    TERRITORY = "territory"
+    POSSESSION_CONTROL = "possession_control"
+    PRESSING_INTENSITY = "pressing_intensity"
+    CHANCE_QUALITY = "chance_quality"
+
+
 class ClaimType(StrEnum):
     DESCRIPTIVE = "descriptive"
     COMPARATIVE = "comparative"

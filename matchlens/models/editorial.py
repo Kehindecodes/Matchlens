@@ -13,6 +13,7 @@ from matchlens.models.enums import (
     CheckName,
     CheckStatus,
     ClaimType,
+    Metric,
     MomentType,
     RefKind,
     SuppressionReason,
@@ -76,11 +77,11 @@ class Window(_Record):
 class Operand(_Record):
     """One side of a claim: a measured value for one subject, over its own window and evidence.
 
-    `metric` is a string until U1–U3 define what the verifier can recount (D21).
+    `metric` is one of D29's eight, each recountable from the rows `evidence_ids` cites.
     """
 
     subject: Ref  # a team or a player
-    metric: str
+    metric: Metric
     window: Window
     value: float
     evidence_ids: Annotated[tuple[Ref, ...], Field(min_length=1)]  # no evidence, no claim

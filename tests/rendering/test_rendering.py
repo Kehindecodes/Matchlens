@@ -18,6 +18,7 @@ from matchlens.models import (
     Depth,
     DetailLevel,
     Lens,
+    Metric,
     Moment,
     MomentType,
     Operand,
@@ -53,8 +54,8 @@ def _moment(type_: MomentType = MomentType.GOAL) -> Moment:
 
 def _claim(
     claim_id: str = "c1",
-    value: float = 3.0,
-    metric: str = "triggers",
+    value: float = 0.41,
+    metric: Metric = Metric.SHOT_QUALITY,
     end_ms: int = 2_052_000,
     claim_type: ClaimType = ClaimType.DESCRIPTIVE,
 ) -> Claim:
@@ -147,11 +148,12 @@ def test_every_surviving_claim_is_listed_even_when_detail_does_not_speak_it():
     assert rendition.surviving_claim_ids == ("a", "b")
 
 
-def test_a_claim_with_a_metric_no_template_covers_says_nothing_extra():
-    odd = _claim("odd", value=424242, metric="a_metric_nobody_templated")
-    text = _text(render(_moment(), _selected(odd), ANALYST, NAMES))
-    assert "424242" not in text
-    assert "a_metric_nobody_templated" not in text
+def test_a_claim_the_wording_rules_have_no_form_for_says_nothing_extra():
+    # Two big chances in ten minutes is not a run: D29 speaks a run from the third.
+    quiet = _claim("quiet", value=2, metric=Metric.CHANCES)
+    rendition = render(_moment(MomentType.CHANCE), _selected(quiet), ANALYST, NAMES)
+    words = templates.lookup("en", MomentType.CHANCE, Depth.ANALYST)
+    assert rendition.body == words.body.format(team="Larkfield", window="at 34:12")
 
 
 def test_every_number_in_the_text_comes_from_a_claim():

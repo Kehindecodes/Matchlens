@@ -24,6 +24,25 @@ Newest at the top. Kehinde answers inline and moves the resolved ones to `docs/D
 
 ---
 
+## Q27 · S6's "stage spans add up to the end-to-end latency" fails once the stages do real work  [ticket: L7, S6]  [blocking: no, but the suite is red]
+
+**What I need to know:** How S6 should count the time a moment waits behind the other moments fired by the same stream item.
+
+**What happens:** `Spotter.consider` fires every moment an item produces in one call, and each moment's root `spotting` span opens and closes there. The pipeline then runs each moment's editorial stages in turn. A moment's end-to-end therefore includes the wait for the moments before it, which no span covers. With the S4 stubs that wait was well under 5 ms, so `test_stage_durations_add_up_to_the_end_to_end_latency` passed most runs (it already failed about 1 in 3 before L7). With L7's builder the worst wait on seed 1 is 29 ms (a moment at 73:00 behind its siblings) and the test fails about 4 runs in 5. The test's own note expects this: "the slack is absolute until real agents land". A2's agent would make it far larger.
+
+L7 already makes `Pipeline.process` hand each moment's cards on as soon as that moment is done, rather than after all of the item's moments. That removed the wait after a moment's work, but not the wait before it.
+
+**Why I cannot decide it:** S6 is yours (🧑), and so is what its trace is meant to show.
+
+**Options as I see them:**
+- A: A `spotting.queued` span from the root's end to the moment's first editorial span, so the wait is visible in the trace as Spotting's output queue. The test passes as written. Costs: one more span per moment; the stage sum then includes waiting, which is honest about latency but not about work.
+- B: Measure end to end from the moment's first editorial span rather than from the root. Costs: a change to the test, and a viewer's real latency includes the wait.
+- C: Spotting opens each moment's span when that moment's editorial starts, not when it fires. Costs: the spotting span stops meaning "when the spotter decided".
+
+**What I would do if forced:** A. I have not done it, and I have not touched the test.
+
+**Answer:**
+
 ## Q26 · Three of D29's rules need facts no claim can carry  [ticket: L7]  [blocking: yes]
 
 **What I need to know:** How to carry three things D29 asks for, given that Rendering only sees a claim's operands (`subject`, `metric`, `window`, `value`, `evidence_ids`), plus `threshold` on an interpretive claim. It never sees the record.

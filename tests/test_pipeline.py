@@ -5,6 +5,7 @@ from matchlens.models import (
     CheckStatus,
     Claim,
     ClaimType,
+    Metric,
     Operand,
     Ref,
     RefKind,
@@ -16,7 +17,7 @@ from matchlens.models import (
 
 def _claim(claim_id: str) -> Claim:
     operand = Operand(
-        subject=Ref(kind=RefKind.TEAM, id="h"), metric="shots",
+        subject=Ref(kind=RefKind.TEAM, id="h"), metric=Metric.CHANCES,
         window=Window(start_ms=0, end_ms=1), value=1.0,
         evidence_ids=(Ref(kind=RefKind.EVENT, id="ev-1"),),
     )  # fmt: skip

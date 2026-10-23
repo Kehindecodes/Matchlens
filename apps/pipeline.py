@@ -8,13 +8,13 @@ Explanation → Verification → Selection → Rendering for every lens, and eac
 `Pipeline` from its paced replay, so a card is published at its moment in match time.
 """
 
-from collections.abc import Callable
+from collections.abc import Callable, Iterator, Sequence
 
 from opentelemetry import context, trace
 
 from matchlens import audit, explanation, lenses, selection, verification
 from matchlens.ingest import Ingest
-from matchlens.models import Claim, Event, Frame, Verdict, Verification
+from matchlens.models import Claim, Event, Frame, SignalReading, Verdict, Verification
 from matchlens.rendering import Card, render
 from matchlens.selection import ShownCards
 from matchlens.source import MatchSetup, StreamItem, simulate
@@ -32,16 +32,29 @@ class Pipeline:
         self._understanding = Understanding(self._ingest.record)
         self._spotter = Spotter(self._ingest.record, self._understanding.epoch_at)
         self._shown = ShownCards()  # Selection's rate-limit state: one pipeline is one match
-        self._team_names: dict[str, str] = {}  # from the match setup, which arrives first
+        self._names: dict[str, str] = {}  # team and player ids to names, from the match setup
+        self._readings: list[SignalReading] = []  # derived, append-only: what the explainer reads
 
-    def process(self, item: StreamItem) -> list[Card]:
-        """Run one stream item through the stages; the cards it produces, if any."""
+    def process(self, item: StreamItem) -> Iterator[Card]:
+        """Run one stream item through the stages; the cards it produces, if any.
+
+        Ingest, Understanding and Spotting run before this returns. Each moment's editorial
+        stages run as the cards are drawn, so a moment's cards are handed on as soon as that
+        moment is done, not after every other moment this item fired.
+        """
         self._ingest.accept(item)
         if isinstance(item, MatchSetup):
-            self._team_names = {t.team_id: t.name for t in item.match.teams}
-            return []
-        results = self._spotter.consider(self._understanding.observe(item), item)
-        return [card for result in results for card in self._editorial(result, item)]
+            self._names = {t.team_id: t.name for t in item.match.teams}
+            self._names |= {p.player_id: p.name for p in item.players}
+            return iter(())
+        readings = self._understanding.observe(item)
+        self._readings.extend(readings)
+        results = self._spotter.consider(readings, item)
+        return self._cards(results, item)
+
+    def _cards(self, results: Sequence[SpotterResult], at: Frame | Event) -> Iterator[Card]:
+        for result in results:
+            yield from self._editorial(result, at)
 
     def _editorial(self, result: SpotterResult, at: Frame | Event) -> list[Card]:
         record = self._ingest.record()
@@ -54,7 +67,13 @@ class Pipeline:
             with tracer.start_as_current_span(
                 "explanation", attributes={"moment_id": result.moment.moment_id}
             ):
-                claims = explanation.explain(result.moment, frozen_log)
+                claims = explanation.explain(
+                    result.moment,
+                    frozen_log,
+                    self._readings,
+                    self._understanding.epochs,
+                    record.match,
+                )
 
             # verify() opens its own span, so latency_ms and the span share one stopwatch.
             verifications = [verification.verify(claim, frozen_log) for claim in claims]
@@ -72,7 +91,7 @@ class Pipeline:
                 with tracer.start_as_current_span(
                     "rendering", attributes={"moment_id": result.moment.moment_id}
                 ):
-                    rendition = render(result.moment, selected, lens, self._team_names)
+                    rendition = render(result.moment, selected, lens, self._names)
                 renditions.append(rendition)
                 if not rendition.suppressed:  # a suppressed rendition is for Audit, not a viewer
                     cards.append(Card(rendition=rendition, display_at_clock=result.moment.clock_ms))
