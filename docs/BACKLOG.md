@@ -90,7 +90,7 @@ Update the **Status** column when a ticket moves. Statuses: `todo`, `wip`, `done
 |---|---|---|---|---|---|---|
 | L1 | Lens entity and three presets as config rows | 0.5 | F1 | T1 | done | ✅ |
 | L2 | **Selection**: scope dispatch, threshold, rate limit — no model calls | 1.5 | M1, L1 | T1 | done | ✅ |
-| L3 | **Rendering**: template renditions per depth — no LLM | 1 | L2 | T1 | todo | — |
+| L3 | **Rendering**: template renditions per depth — no LLM | 1 | L2 | T1 | done | ✅ |
 | L4 | Three-panel UI on one clock, silent lens visibly idle | 1 | L3, S3 | T1 | todo | — |
 | L5 | Lens switching mid-match | 0.5 | L4 | T1 | todo | — |
 | L6 | Team scope: importance reweight + partisan framing | 0.5 | L2, L3 | T1 | todo | — |

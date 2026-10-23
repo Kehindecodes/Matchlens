@@ -32,11 +32,13 @@ class Pipeline:
         self._understanding = Understanding(self._ingest.record)
         self._spotter = Spotter(self._ingest.record, self._understanding.epoch_at)
         self._shown = ShownCards()  # Selection's rate-limit state: one pipeline is one match
+        self._team_names: dict[str, str] = {}  # from the match setup, which arrives first
 
     def process(self, item: StreamItem) -> list[Card]:
         """Run one stream item through the stages; the cards it produces, if any."""
         self._ingest.accept(item)
         if isinstance(item, MatchSetup):
+            self._team_names = {t.team_id: t.name for t in item.match.teams}
             return []
         results = self._spotter.consider(self._understanding.observe(item), item)
         return [card for result in results for card in self._editorial(result, item)]
@@ -70,7 +72,7 @@ class Pipeline:
                 with tracer.start_as_current_span(
                     "rendering", attributes={"moment_id": result.moment.moment_id}
                 ):
-                    rendition = render(result.moment, selected, lens)
+                    rendition = render(result.moment, selected, lens, self._team_names)
                 renditions.append(rendition)
                 if not rendition.suppressed:  # a suppressed rendition is for Audit, not a viewer
                     cards.append(Card(rendition=rendition, display_at_clock=result.moment.clock_ms))
