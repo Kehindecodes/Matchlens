@@ -38,6 +38,8 @@ class Settings(BaseSettings):
 
     # Lenses
     default_lens_id: str = "match_casual"
+    team_result_boost: float = 1.25  # Q22: a goal or chance is worth this much more to a supporter
+    team_focus_shift_damp: float = 0.5  # Q22: a shift by the supporter's own side, scaled by this
     default_language: str = "en"  # ISO 639-1
 
     # Delivery

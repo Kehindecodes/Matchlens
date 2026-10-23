@@ -16,6 +16,7 @@ from matchlens import audit, explanation, lenses, selection, verification
 from matchlens.ingest import Ingest
 from matchlens.models import Claim, Event, Frame, Verdict, Verification
 from matchlens.rendering import Card, render
+from matchlens.selection import ShownCards
 from matchlens.source import MatchSetup, StreamItem, simulate
 from matchlens.spotting import Spotter, SpotterResult
 from matchlens.understanding import Understanding
@@ -30,6 +31,7 @@ class Pipeline:
         self._ingest = Ingest()
         self._understanding = Understanding(self._ingest.record)
         self._spotter = Spotter(self._ingest.record, self._understanding.epoch_at)
+        self._shown = ShownCards()  # Selection's rate-limit state: one pipeline is one match
 
     def process(self, item: StreamItem) -> list[Card]:
         """Run one stream item through the stages; the cards it produces, if any."""
@@ -64,13 +66,14 @@ class Pipeline:
                     "selection",
                     attributes={"moment_id": result.moment.moment_id, "lens_id": lens.lens_id},
                 ):
-                    selections = selection.select(result.moment, passing, lens)
+                    selected = selection.select(result.moment, passing, lens, self._shown)
                 with tracer.start_as_current_span(
                     "rendering", attributes={"moment_id": result.moment.moment_id}
                 ):
-                    rendition = render(result.moment, selections, lens)
+                    rendition = render(result.moment, selected, lens)
                 renditions.append(rendition)
-                cards.append(Card(rendition=rendition, display_at_clock=result.moment.clock_ms))
+                if not rendition.suppressed:  # a suppressed rendition is for Audit, not a viewer
+                    cards.append(Card(rendition=rendition, display_at_clock=result.moment.clock_ms))
             audit.record(result.moment, claims, verifications, renditions)
             return cards
         finally:
