@@ -34,7 +34,7 @@ The `matchlens-monthly` budget is **15 a month**. Model calls are billed per tok
 ```bash
 RG=rg-matchlens
 LOC=uksouth                   # see step 3: the model must be offered here
-FOUNDRY=matchlens-foundry     # also the custom domain, so it must be globally unique
+FOUNDRY=matchlens-foundry-kehinde   # also the custom domain, so it must be globally unique
 PROJECT=matchlens
 ```
 

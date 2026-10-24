@@ -24,6 +24,27 @@ Newest at the top. Kehinde answers inline and moves the resolved ones to `docs/D
 
 ---
 
+## Q34 · A live model holds every card for up to 20 s, and half the calls hit that limit  [ticket: A2, A5]  [blocking: before the model goes into the deployed app, or into a local demo run]
+
+**What I need to know:** Whether A2 may hold a moment's cards while it waits for the model, and for how long.
+
+**What happened:** `Pipeline._editorial` calls the model inline, before Selection and Rendering. In the live run over seed 1, **24 of 52 calls timed out at 20 s** (`docs/evidence/A2-live-seed1.txt`). So with a model configured, a moment's cards leave up to 20 s later than they do without one. Because the delivery app drives the pipeline from its event loop, the replay and the scoreboard stall for that time too. The deployed app has no endpoint, so it is unaffected today. But **`.env` on this machine now has one,** so a local `apps.delivery` run is affected.
+
+Under Q32: A, no card shows an A2 claim, so the wait currently buys the viewer nothing.
+
+**Why I cannot decide it:** it changes when a viewer sees a card (invariant 8 territory), and how the ladder (A5) treats a slow model.
+
+**Options as I see them:**
+- A: **Take A2 off the card path.** Cards ship with L7's claims as soon as they are ready. A2 runs on its own thread, and its claims go to Verification and Audit when they arrive. Costs: once A3 lands and A2 claims are allowed onto cards, a late A2 claim misses its card, so A5 has to decide whether it waits.
+- B: **Keep it inline with a short timeout,** such as 3–5 s, and try lower reasoning effort or a smaller digest to bring the latency in. Costs: still a delay on every moment, and probably fewer A2 answers.
+- C: **Leave it inline at 20 s** and accept the delay as the price of A2. Costs: every moment's card waits up to 20 s, and the replay stalls.
+
+**What I would do if forced:** A. It is the D35 logic applied to time: A2 contributing nothing should change nothing, and that includes when a card arrives.
+
+**Answer:**
+
+---
+
 ## Q33 · There is no model to call: no Foundry deployment exists, and nothing provisions one  [ticket: A2]  [blocking: yes]
 
 **What I need to know:** Which model and deployment A2 calls, and who provisions it. `settings.model_name` and `settings.foundry_endpoint` exist, but both are empty in `.env`, and `infra/main.bicep` has no Foundry or AI Services resource. `agent-framework==1.21.0` and `azure-ai-projects==2.7.0` are pinned and install.
@@ -36,7 +57,7 @@ Newest at the top. Kehinde answers inline and moves the resolved ones to `docs/D
 
 **What I would do if forced:** B now and A as soon as an endpoint exists. Everything except the client is testable without one.
 
-**Answer:** B for now. Kehinde, 24 Oct: build against a scripted fake; the real client waits for an endpoint.
+**Answer:** B for now. Kehinde, 24 Oct: build against a scripted fake; the real client waits for an endpoint. Then A, 24 Oct: `gpt-5.4-mini` (2026-03-17), GlobalStandard, `matchlens-foundry-kehinde` / project `matchlens`, uksouth. Set up by hand following `docs/FOUNDRY-SETUP.md`; not yet in the Bicep or the deployed app.
 
 ## Q32 · Does the model write the numbers, or only choose them? And can an A2 claim reach a card before A3 exists?  [ticket: A2]  [blocking: yes]
 
