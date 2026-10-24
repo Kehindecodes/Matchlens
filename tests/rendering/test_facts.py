@@ -43,7 +43,7 @@ def _say(claim: Claim, depth: Depth = Depth.ENGAGED) -> str | None:
 
 
 def _said(claim: Claim, depth: Depth = Depth.ENGAGED) -> str:
-    text = _said(claim, depth)
+    text = _say(claim, depth)
     assert text is not None, "this claim should be spoken"
     return text
 
