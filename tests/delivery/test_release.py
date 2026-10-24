@@ -26,6 +26,7 @@ from matchlens.source import MatchSetup, simulate
 from matchlens.source.replay import Replay
 from matchlens.understanding.match_state import MatchState
 from tests.delivery.test_http import LiveServer, _fields, _state
+from tests.overlays import overlay_for
 
 SECOND = 1_000
 OFFSET = 45 * SECOND
@@ -44,6 +45,7 @@ def _card(clock: int, lens_id: str = settings.default_lens_id, moment_id: str = 
         moment_type=MomentType.CHANCE,
         importance=0.5,
         body_in_full="b",
+        overlay=overlay_for(rendition, clock),
     )
 
 

@@ -24,6 +24,18 @@ Newest at the top. Kehinde answers inline and moves the resolved ones to `docs/D
 
 ---
 
+## Q31 · Which overlay template a card becomes, and how long it stays up  [ticket: D5]  [blocking: yes]
+
+**What I need to know:** D5 says to map rendition shape to `lower_third`, `stat_bar` or `team_card`, and that `duration_ms` is how long the overlay stays up. It does not give a mapping or a duration. Both decide what a viewer sees on the picture and for how long.
+
+**Why I cannot decide it:** it changes what a viewer sees and when (CLAUDE.md, "stop and ask"), and any duration I picked would be a guess.
+
+**Options as I see them:** template by what the card says, by moment type, or always `lower_third`. Duration from reading length, fixed per template, or one fixed value.
+
+**Answer:** Kehinde, 24 Oct: by what it says, and from reading length. A goal is a `team_card`. A card that spoke a comparison of one signal between the two sides, with both numbers, is a `stat_bar`. Anything else is a `lower_third`. Each stays up 250 ms a word, kept between 5 s and 12 s (`overlay_ms_per_word`, `overlay_min_ms`, `overlay_max_ms`). Done in D5. Building it showed that the engaged depth words a comparison without its numbers ("pressing less than ..."), so "with numbers" makes only analyst cards stat bars. The team lens's comparisons are lower thirds.
+
+---
+
 ## Q30 · What goes into each lens's catch-up, and what it may say it survived  [ticket: D4]  [blocking: yes]
 
 **What I need to know:** three things, and the brief settles none of them.

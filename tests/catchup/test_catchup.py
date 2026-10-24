@@ -23,6 +23,7 @@ from matchlens.delivery.sessions import SessionStore
 from matchlens.models import MomentType, Rendition, ViewerSession
 from matchlens.rendering import Card
 from tests.delivery.test_http import LiveServer, _fields, _state
+from tests.overlays import overlay_for
 
 MINUTE = 60_000
 JOIN = 68 * MINUTE
@@ -231,7 +232,7 @@ def _held(lens_id: str) -> CatchUp:
     )  # fmt: skip
     card = Card(
         rendition=rendition, display_at_clock=MINUTE, moment_type=MomentType.GOAL,
-        importance=1.0, body_in_full="b c1",
+        importance=1.0, body_in_full="b c1", overlay=overlay_for(rendition, MINUTE),
     )  # fmt: skip
     summary = catchup.summarise(lenses.get(lens_id), [card], 0, 2 * MINUTE)
     assert summary is not None

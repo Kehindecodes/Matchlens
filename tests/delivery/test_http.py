@@ -25,6 +25,7 @@ from matchlens.rendering import Card
 from matchlens.source import MatchSetup, simulate
 from matchlens.source.replay import Replay
 from matchlens.understanding.match_state import MatchState, TeamScore
+from tests.overlays import overlay_for
 
 
 def _state(seq: int, clock_ms: int = 0) -> MatchState:
@@ -215,6 +216,7 @@ def test_a_released_card_is_streamed_after_the_clock(live: LiveServer, queues: R
             moment_type=MomentType.CHANCE,
             importance=0.5,
             body_in_full="b",
+            overlay=overlay_for(rendition, 4_032_000),
         ),
         session,
     )
