@@ -228,7 +228,7 @@ Resolves O1. **The database is Azure Database for PostgreSQL (Flexible Server).*
 
 ### Why Postgres
 
-- **The reads are relational.** Events by clock range, the frozen log (`clock_ms < t`), and U4's aggregates over a window are ordinary SQL with an index on `(match_id, clock_ms)`. In Cosmos for NoSQL they are a new query model to learn under deadline.
+- **The reads are relational.** Events by clock range, the frozen log (`clock_ms <= t`, inclusive, settled in A1), and U4's aggregates over a window are ordinary SQL with an index on `(match_id, clock_ms)`. In Cosmos for NoSQL they are a new query model to learn under deadline.
 - **Familiar ground, by design.** `docs/LEARNING-PLAN.md` puts the learning budget on event-driven systems and agent orchestration. Storage is not one of the lessons, so it should be the known tool.
 - **Cosmos's advantages do not bite here.** Partition keys and multi-region are for scale this build explicitly does not have: one match, one pipeline (see Scope guards). Native TTL is not needed — groups A and B are append-only and kept.
 
