@@ -128,6 +128,7 @@ def test_every_goal_card_with_a_score_tells_each_side_it_from_its_side(demo):
                    for c in claims)  # fmt: skip
 
     for side in SIDES:
+        assert side.focus_team is not None
         focus = names[side.focus_team]
         goals = [demo.rendition(side, m.moment_id) for m in demo.moments.values()
                  if m.type is MomentType.GOAL]  # fmt: skip
@@ -201,8 +202,9 @@ def test_no_club_name_or_team_id_is_a_literal_in_code():
         if "source" in relative.parts[:2]:
             continue
         for node in ast.walk(ast.parse(path.read_text())):
-            text = node.value if isinstance(node, ast.Constant) else None
-            if isinstance(text, str) and any(club in text for club in clubs):
+            if not isinstance(node, ast.Constant) or not isinstance(node.value, str):
+                continue
+            if any(club in node.value for club in clubs):
                 offenders.append(f"{relative}:{node.lineno}")
     for path in (REPO_ROOT / "web").rglob("*"):
         if path.suffix in {".js", ".html"}:

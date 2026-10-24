@@ -153,9 +153,9 @@ def _score(scorer: Ref, scorer_goals: float, against: Ref, against_goals: float)
 
 def test_an_opponent_lead_is_told_as_the_focus_side_trailing():
     claim = _score(OPPONENT, 2, SIDE, 1)
-    text = render(_moment(MomentType.GOAL, OPPONENT), _selected(claim), TEAM, NAMES).body
+    text = _text(render(_moment(MomentType.GOAL, OPPONENT), _selected(claim), TEAM, NAMES))
     assert "Larkfield trail 1–2." in text
-    match = render(_moment(MomentType.GOAL, OPPONENT), _selected(claim), ANALYST, NAMES).body
+    match = _text(render(_moment(MomentType.GOAL, OPPONENT), _selected(claim), ANALYST, NAMES))
     assert "Ashworth 2, Larkfield 1." in match  # a match lens reads the claim as it is made
 
 
@@ -172,11 +172,11 @@ def test_the_team_lens_speaks_where_the_moment_leaves_its_side_first():
     assert TEAM.detail_level is DetailLevel.STANDARD  # it speaks one claim
     goal = _moment(MomentType.GOAL, OPPONENT)
     team = render(goal, _selected(first, score), TEAM, NAMES)
-    assert "Larkfield trail 1–2." in team.body
-    assert "goal for Larkfield" not in team.body
+    assert "Larkfield trail 1–2." in _text(team)
+    assert "goal for Larkfield" not in _text(team)
     assert team.surviving_claim_ids == ("goals", "score")  # the order spoken, not the order kept
     match = ANALYST.model_copy(update={"detail_level": DetailLevel.STANDARD})
-    assert "Ashworth 2" not in render(goal, _selected(first, score), match, NAMES).body
+    assert "Ashworth 2" not in _text(render(goal, _selected(first, score), match, NAMES))
 
 
 def test_a_comparison_with_the_sides_own_earlier_self_keeps_its_place():
@@ -185,8 +185,8 @@ def test_a_comparison_with_the_sides_own_earlier_self_keeps_its_place():
         update={"claim_type": ClaimType.COMPARATIVE, "operands": (earlier.operands[0],) * 2}
     )
     first = _claim("first", value=2, metric=Metric.GOALS)
-    body = render(_moment(MomentType.GOAL), _selected(first, earlier), TEAM, NAMES).body
-    assert "goal for Larkfield" in body
+    text = _text(render(_moment(MomentType.GOAL), _selected(first, earlier), TEAM, NAMES))
+    assert "goal for Larkfield" in text
 
 
 def test_an_unsided_template_cannot_name_the_focus_team(tmp_path):
