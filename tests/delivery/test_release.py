@@ -8,6 +8,7 @@ server from `test_http`; the last ones run seed 1's real cards through the route
 import asyncio
 import json
 import threading
+import time
 from datetime import UTC, datetime
 
 import pytest
@@ -368,3 +369,98 @@ def test_seed_one_leaves_cards_held_at_full_time_for_a_viewer_behind(demo_cards)
     _, depths = _replay(demo_cards, (0, OFFSET))
     assert depths["at_full_time"][0] == 0
     assert depths["at_full_time"][OFFSET] > 0
+
+
+# --- D2: two viewers on different offsets, both correct ------------------------------------------
+
+NEAR, FAR = 5 * SECOND, OFFSET
+
+
+def _drive(
+    cards: list[Card], offsets: tuple[int, ...], change: tuple[int, int, int] | None = None
+) -> list[list[tuple[int, str]]]:
+    """Each viewer's releases as (match clock, rendition id), the clock driven a second at a time.
+
+    `change` is (at clock, viewer index, new offset): that viewer's offset moves mid-match.
+    """
+    sessions, queues = SessionStore(), ReleaseQueues()
+    lens_id = cards[0].rendition.lens_id
+    viewers = [sessions.create(lens_id=lens_id, stream_offset_ms=o) for o in offsets]
+    router = CardRouter(sessions, queues)
+    arriving = [c for c in cards if c.rendition.lens_id == lens_id]
+    logs: list[list[tuple[int, str]]] = [[] for _ in viewers]
+    end = arriving[-1].display_at_clock + max(offsets) + 60 * SECOND
+    for now in range(0, end, SECOND):
+        while arriving and arriving[0].display_at_clock <= now:
+            router.receive(arriving.pop(0))
+        if change is not None and now == change[0]:
+            i = change[1]
+            viewers[i] = viewers[i].model_copy(update={"stream_offset_ms": change[2]})
+        for i, viewer in enumerate(viewers):
+            for card in queues.release_due(viewer, now):
+                assert card.display_at_clock <= now - viewer.stream_offset_ms  # never early
+                logs[i].append((now, card.rendition.rendition_id))
+    return logs
+
+
+def _ids(log: list[tuple[int, str]]) -> list[str]:
+    return [rendition_id for _, rendition_id in log]
+
+
+def test_two_offsets_receive_the_identical_cards_in_the_identical_order(demo_cards):
+    near, far = _drive(demo_cards, (NEAR, FAR))
+    lens_id = demo_cards[0].rendition.lens_id
+    expected = [c.rendition.rendition_id for c in demo_cards if c.rendition.lens_id == lens_id]
+    assert _ids(near) == _ids(far) == expected
+
+
+def test_the_near_viewer_gets_each_card_earlier_by_the_offset_difference(demo_cards):
+    near, far = _drive(demo_cards, (NEAR, FAR))
+    gaps = {f_at - n_at for (n_at, _), (f_at, _) in zip(near, far, strict=True)}
+    assert gaps == {FAR - NEAR}  # in match time; wall time is this divided by the replay speed
+
+
+def test_the_near_viewer_gets_a_card_earlier_in_wall_time():
+    hub = MatchStateHub()
+    sessions, queues = SessionStore(), ReleaseQueues()
+    near = sessions.create(stream_offset_ms=NEAR)
+    far = sessions.create(stream_offset_ms=FAR)
+    CardRouter(sessions, queues).receive(_card(SECOND))
+    speed = 40.0  # match seconds per wall second, as the replay runs
+
+    async def watch(viewer: ViewerSession, start: float) -> float:
+        async for clock_ms in hub.ticks():
+            if queues.release_due(viewer, clock_ms):
+                return time.monotonic() - start
+
+        raise AssertionError("the hub stopped")
+
+    async def run() -> tuple[float, float]:
+        start = time.monotonic()
+        watchers = [asyncio.create_task(watch(v, start)) for v in (near, far)]
+        while not all(w.done() for w in watchers):
+            await hub.advance(int((time.monotonic() - start) * speed * 1000))
+            await asyncio.sleep(0.005)
+        return watchers[0].result(), watchers[1].result()
+
+    near_at, far_at = asyncio.run(run())
+    assert far_at - near_at == pytest.approx((FAR - NEAR) / 1000 / speed, abs=0.15)
+
+
+def test_changing_one_viewers_offset_mid_match_does_not_disturb_the_other(demo_cards):
+    half_time = 45 * 60 * SECOND
+    steady_near, steady_far = _drive(demo_cards, (NEAR, FAR))
+    moved_near, moved_far = _drive(demo_cards, (NEAR, FAR), change=(half_time, 0, 20 * SECOND))
+    assert moved_far == steady_far
+    assert moved_near != steady_near  # the move did something to the viewer it was for
+    assert _ids(moved_near) == _ids(steady_near)  # and lost or repeated nothing
+
+
+def test_an_offset_of_zero_gets_each_card_on_the_first_tick_at_its_clock(demo_cards):
+    [live] = _drive(demo_cards, (0,))
+    lens_id = demo_cards[0].rendition.lens_id
+    clocks = {c.rendition.rendition_id: c.display_at_clock for c in demo_cards
+              if c.rendition.lens_id == lens_id}  # fmt: skip
+    for released_at, rendition_id in live:
+        due = clocks[rendition_id]
+        assert due <= released_at < due + SECOND

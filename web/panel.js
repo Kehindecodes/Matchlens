@@ -12,6 +12,7 @@ function mmss(ms) {
 }
 
 function showSpine(state) {
+  if (!document.getElementById("clock")) return; // a view with no shared spine (delay.html)
   if (state.seq <= spineSeq) return; // another stream already showed this instant
   spineSeq = state.seq;
   const [home, away] = state.score;
@@ -88,6 +89,12 @@ class Panel {
 
   onState(state) {
     this.clock = state.clock_ms;
+    // A view whose panels are on different offsets shows each one's own score (D32).
+    const score = this.root.querySelector(".panel-score");
+    if (score) {
+      const [home, away] = state.score;
+      score.textContent = `${home.short_name} ${home.goals}–${away.goals} ${away.short_name} · ${mmss(state.clock_ms)}`;
+    }
     this.render();
   }
 

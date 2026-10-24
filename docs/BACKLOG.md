@@ -109,7 +109,7 @@ Update the **Status** column when a ticket moves. Statuses: `todo`, `wip`, `done
 | ID | Ticket | Est | Deps | Tier | Status | Brief |
 |---|---|---|---|---|---|---|
 | 📝 D1 | `stream_offset_ms` and the per-session release queue | 1.5 | L3, S3 | T1 | done | ✅ |
-| 📝 D2 | Two sessions on different offsets, both correct | 0.5 | D1 | T1 | todo | ✅ |
+| 📝 D2 | Two sessions on different offsets, both correct | 0.5 | D1 | T1 | done | ✅ folded into D1's tests and walkthrough |
 | D3 | Speed control for the judge path | 0.5 | D1, F4 | T1 | todo | ✅ |
 | D4 | Catch-up on join, per lens, verified claims only | 1 | D1, M1 | T2 | todo | ✅ |
 | D5 | OverlayPacket endpoint | 0.5 | L3 | T2 | todo | ✅ |

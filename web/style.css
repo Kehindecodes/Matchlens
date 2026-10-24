@@ -49,3 +49,6 @@ header { position: sticky; top: 0; z-index: 1; background: var(--bg); border-bot
           border-top: 1px dashed var(--line); }
 .views { font-size: 0.8rem; margin-top: 6px; }
 .views a { color: var(--muted); }
+
+/* The delay view: each panel is its own viewer, so each carries its own score and clock. */
+.panel-score { margin: 0; font-size: 1.4rem; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: 0.02em; }
