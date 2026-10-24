@@ -1,0 +1,51 @@
+:root { --bg: #0f1115; --fg: #e8eaed; --muted: #9aa0a6; --faint: #5f6368; --accent: #34a853;
+        --panel: #14171d; --card: #1a1d24; --line: #2a2f3a; --warn: #f29900; }
+* { box-sizing: border-box; }
+body { margin: 0; min-height: 100vh; background: var(--bg); color: var(--fg);
+       font-family: system-ui, sans-serif; }
+
+/* The clock spine: one score and one clock for all three panels. */
+header { position: sticky; top: 0; z-index: 1; background: var(--bg); border-bottom: 1px solid var(--line);
+         padding: 16px; text-align: center; }
+.score { font-size: clamp(1.6rem, 5vw, 2.6rem); font-weight: 700; letter-spacing: 0.04em; }
+.score .goals { font-variant-numeric: tabular-nums; margin: 0 0.4em; }
+.clock { font-size: 1.25rem; color: var(--muted); font-variant-numeric: tabular-nums; margin-top: 4px; }
+.status { font-size: 0.8rem; color: var(--muted); margin-top: 8px; }
+.status.live::before { content: "●"; color: var(--accent); margin-right: 6px; }
+
+.panels { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;
+          padding: 16px; max-width: 1280px; margin: 0 auto; }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 16px;
+         display: flex; flex-direction: column; gap: 12px; min-width: 0; transition: border-color 0.6s; }
+.panel.spoke { border-color: var(--accent); }
+.panel-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.panel-head h2 { font-size: 1.1rem; margin: 0; }
+.panel-head .count { color: var(--faint); font-size: 0.8rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.audience { color: var(--muted); font-size: 0.85rem; margin: -8px 0 0; }
+
+/* Quiet is a state the lens chose: a steady dot and the clock it is listening at. */
+.quiet { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--muted);
+         font-variant-numeric: tabular-nums; padding: 8px 10px; border-radius: 8px; background: var(--card); }
+.quiet::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--faint); flex: none; }
+.quiet.listening::before { background: var(--accent); }
+.quiet.lost { color: var(--warn); }
+.quiet.lost::before { background: var(--warn); }
+
+.cards { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+.card time { color: var(--accent); font-variant-numeric: tabular-nums; font-size: 0.85rem; }
+.card h3 { font-size: 1rem; margin: 4px 0; }
+.card p { margin: 0; color: var(--muted); font-size: 0.92rem; line-height: 1.4; }
+.card ~ .card { opacity: 0.72; }
+
+/* The viewer view: a lens picker over one panel. */
+.single { max-width: 560px; }
+.picker { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; padding: 16px 16px 0; }
+.picker button { font: inherit; font-size: 0.9rem; color: var(--fg); background: var(--card);
+                 border: 1px solid var(--line); border-radius: 999px; padding: 6px 14px; cursor: pointer; }
+.picker button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
+.picker button:disabled { cursor: default; opacity: 0.6; }
+.switch { color: var(--faint); font-size: 0.8rem; text-align: center; padding: 2px 0;
+          border-top: 1px dashed var(--line); }
+.views { font-size: 0.8rem; margin-top: 6px; }
+.views a { color: var(--muted); }

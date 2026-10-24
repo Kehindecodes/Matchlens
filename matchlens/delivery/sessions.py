@@ -7,12 +7,17 @@ outlives a page reload, not a delivery restart.
 import uuid
 from datetime import UTC, datetime
 
+from matchlens import lenses
 from matchlens.config.settings import settings
-from matchlens.models import ViewerSession
+from matchlens.models import Scope, ViewerSession
 
 
 class UnknownSession(KeyError):
     """No session has this id, for example after a delivery restart."""
+
+
+class LensRefused(ValueError):
+    """A switch the session cannot make: an unknown lens, or a team lens with no team."""
 
 
 class SessionStore:
@@ -38,6 +43,31 @@ class SessionStore:
         )
         self._sessions[session.session_id] = session
         return session
+
+    def switch_lens(
+        self, session_id: str, lens_id: str, focus_team: str | None = None
+    ) -> ViewerSession:
+        """Move the session to `lens_id`, replacing it with an updated copy (L5).
+
+        This is where the session meets its lens, so the pairing is checked here: a team-scope
+        lens needs `focus_team`, and any other lens clears it. A refused switch leaves the
+        session as it was.
+        """
+        session = self.get(session_id)
+        try:
+            lens = lenses.get(lens_id)
+        except KeyError:
+            raise LensRefused(f"no lens {lens_id!r}") from None
+        if lens.scope is Scope.TEAM and focus_team is None:
+            raise LensRefused(f"{lens_id!r} is team scope and needs a focus_team")
+        moved = session.model_copy(
+            update={
+                "lens_id": lens_id,
+                "focus_team": focus_team if lens.scope is Scope.TEAM else None,
+            }
+        )
+        self._sessions[session_id] = moved
+        return moved
 
     def on_lens(self, lens_id: str) -> list[ViewerSession]:
         return [s for s in self._sessions.values() if s.lens_id == lens_id]

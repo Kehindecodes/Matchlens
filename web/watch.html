@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MatchLens</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <header>
+    <div class="score">
+      <span id="home-name">HOME</span><span class="goals" id="home-goals">0</span>–<span class="goals" id="away-goals">0</span><span id="away-name">AWAY</span>
+    </div>
+    <div class="clock"><span id="clock">00:00</span> · <span id="period">waiting for kickoff</span></div>
+    <div class="status" id="status">connecting…</div>
+    <div class="views"><a href="/">All three lenses side by side</a></div>
+  </header>
+  <nav class="picker" id="picker" aria-label="Lens"></nav>
+  <main class="panels single" id="panels"></main>
+
+  <template id="panel-template">
+    <section class="panel">
+      <div class="panel-head"><h2></h2><span class="count"></span></div>
+      <p class="audience"></p>
+      <div class="quiet" role="status"></div>
+      <ol class="cards" aria-live="polite"></ol>
+    </section>
+  </template>
+  <script src="/static/panel.js"></script>
+  <script src="/static/watch.js"></script>
+</body>
+</html>
