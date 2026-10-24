@@ -100,7 +100,7 @@ Eight components write to storage. Without a rule this becomes an integration da
 
 **Most "reads" are not storage reads.** Data arrives on the stream. There are only three legitimate reasons to read from storage:
 
-1. **The frozen log** — Explanation reading events strictly before a clock.
+1. **The frozen log** — Explanation reading events at or before a moment's clock (inclusive, so a goal moment can cite its goal).
 2. **History** — Catch-up and recap reading moments and renditions for a window.
 3. **Configuration** — anything reading the Lens Registry or priors.
 
