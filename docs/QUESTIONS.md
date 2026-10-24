@@ -24,22 +24,22 @@ Newest at the top. Kehinde answers inline and moves the resolved ones to `docs/D
 
 ---
 
-## Q28 · Should the team lens speak the score before the scorer?  [ticket: L6]  [blocking: no]
+## Q29 · Should the score and clock on the page be delayed by the viewer's offset too?  [ticket: D1]  [blocking: no]
 
-**What I need to know:** Whether a team lens hears a goal's claims in a different order from the match lenses.
+**What I need to know:** Whether `MatchState` goes through the per-session delay as cards do.
 
-D31's framing landed in the headline and body rows: *"Riverside Athletic concede"*, *"Redfern United have scored against Riverside Athletic."* The consequence the brief asks for — *where that leaves the side* — is in the score claim, and the team preset is `detail_level: standard`, which speaks **one** claim, the first in L7's order. For a goal that is the scorer, so on the demo match the team lens never says *"Riverside Athletic trail 1–2"*. The score is read from the focus side correctly; it is just never reached. An analyst lens (`full`) does say it.
+D1's brief says the hub is *"unchanged for state; cards go through the queue"*, and D1 builds it that way. The consequence: a viewer at a 45 s offset sees the **scoreline change 45 s before their video shows the goal**, and the page clock runs 45 s ahead of their picture. The cards are held correctly; the score next to them spoils the goal they are being held for. `match_state.py`'s own docstring says the opposite of the brief: *"the per-session release (D1) delays the score exactly as it delays a card."*
 
-**Why I cannot decide it:** it changes what a viewer sees, and L7's order is D30's, written for "a lens that speaks only some of them".
+**Why I cannot decide it:** it changes what a viewer sees and when (invariant 8 is written about cards, and this is the score), and the brief and the docstring disagree.
 
 **Options as I see them:**
-- A: leave it. The headline carries for-or-against; the score waits for `full` detail.
-- B: at team scope, Rendering speaks a comparative claim between the two sides first. The claim set is unchanged; only which one `standard` reaches moves. Costs: Rendering takes a scope-dependent ordering rule, and D30's single order stops being the only one.
-- C: change the team preset's `detail_level` to `full`. A data change, no code. Costs: it speaks the build-up and shot quality too, and stops being visibly between casual and analyst in how much it says.
+- A: leave it as the brief says. The page's score and clock are the live match. Costs: the score spoils the goal; and a panel's "just spoke" reading compares the live clock with the cards' clocks, so at a 45 s offset a card that has just arrived reads as "just spoke" for 15 s of match time, then "quiet for 1 min".
+- B: delay each state per session to `clock_ms <= match_clock_now - stream_offset_ms`, sending the latest due state on each tick. The score and the page clock both follow, because they travel in one message. The hub keeps only the latest state today, so it would hold a short history (the largest offset's worth, one state per match second). Costs: the seq in a stream id becomes the seq of the state the viewer is at, not the latest; a little memory per match.
+- ~~C: B, and the page shows the viewer's own position as its clock.~~ Withdrawn (24 Oct): the page reads its clock from the same `MatchState` as the score (`web/panel.js`), so B already moves the clock to the viewer's position with no page change. C was B.
 
-**What I would do if forced:** B, because it is the one that makes the card say what the moment means for the side. I have not done it.
+**What I would do if forced:** B. It is the rule the cards already follow, and without it the offset protects the cards and not the score. I have not done it.
 
-**Answer:** B (24 Oct). A lens with a `focus_team` speaks a comparison between the two sides before any other claim; otherwise the explainer's order holds. A 1–0 still says the scorer, because it has no score claim to bring forward (Q26 2a).
+**Answer:** B for the demo (24 Oct). In production the platform owns the scoreboard, drawn into the video and as late as it is, so MatchLens shows no score of its own; the demo page's scoreboard stands in for it. Recorded as D32.
 
 ## Q27 · S6's "stage spans add up to the end-to-end latency" fails once the stages do real work  [ticket: L7, S6]  [blocking: no, but the suite is red]
 

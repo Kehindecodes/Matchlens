@@ -473,6 +473,45 @@ R1 left every empty measurement out of the prior, and U4 kept every one in the m
 
 ---
 
+## D29 · Reserved tickets hand over; the learning moves to written walkthroughs — SETTLED 24 Oct
+
+**Every 🧑 and 🤝 marker is released.** Claude Code implements all remaining tickets, including the tests that were reserved. In exchange, each handed-over ticket ships a **walkthrough** at `docs/walkthroughs/<ID>.md`, written as the ticket's last step.
+
+### Why now
+
+Two build days remain against roughly 15 T1 ticket-days, and **8.5 of those were waiting on one person's hours** — S6, D1, D2, A1, A2, A3, A5, P4. Reserving tickets to protect the learning was the right call on 9 October, when the constraint was ambition. The constraint is now the calendar, and protecting the learning this way would cost the submission the tickets it most needs: D1 is the release queue the delivery model rests on, and A2 is what makes the brief's words *"AI insights engine"* true.
+
+### What this does not change
+
+**Decision rights do not move.** The "Stop and ask" list in `CLAUDE.md` stands exactly as written: anything OPEN, any invariant, any new entity, anything changing what a viewer sees, any cut. Claude Code is being handed **implementation**, not judgement, and a product question answered quietly is still the failure this project has guarded against from the start.
+
+### Why a walkthrough and not comments
+
+The finished code already says *what* was built. What disappears when a ticket closes is the part worth learning:
+
+- the options that were live, and why the losing ones lost
+- what was built first, broke, and got replaced
+- the thing a reader of the final code would reasonably get wrong
+- where state lives and **why it resets where it does**
+
+`docs/walkthroughs/TEMPLATE.md` is prescriptive about this and bans restating the diff. A walkthrough that paraphrases the code is worse than none, because it looks like the thing was explained.
+
+### The cost, stated rather than waved away
+
+**Reading an explanation is not writing the code.** Kehinde will get the concepts and not the reflexes — the hour lost to a state reset that fires one call too late teaches something a paragraph about it cannot. That cost is accepted, not avoided.
+
+The cheap recovery, after the 27th: take **one** walkthrough, delete its implementation, and rebuild it from the walkthrough alone. **D1** or **A3** — each carries one first-time skill. That is a day, it is not under deadline, and it recovers most of what reading loses.
+
+### Mechanics
+
+- `📝` in `docs/BACKLOG.md` replaces 🧑 and 🤝 on the eight open tickets: **implement it, and write the walkthrough.** The walkthrough is an acceptance criterion, not a courtesy.
+- Markers on **already-finished** tickets are left as they are. F3, S2, S4, M1a and M2 record what actually happened, and rewriting them would falsify the history.
+- **M1a is the exception worth considering.** It is built, it carries the streaming lesson, and it has no walkthrough. A retroactive one is probably the single highest-value page in the set — Kehinde's call whether it is worth twenty minutes before the 27th.
+
+---
+
+# OPEN — Kehinde decides
+
 ## D30 · The claim metric vocabulary: eight metrics, the scorer named, both comparisons — SETTLED 23 Oct
 
 Answers Q25 part 3. Replaces the S4 stub's `triggers`, and closes D21's "a string until U1–U3 define what the verifier can recount": `Operand.metric` becomes a closed `Metric` enum (D14: every closed set is a named enum).
@@ -539,13 +578,19 @@ A `build_up_passes` claim cites the possession's events; its window is the posse
 
 ---
 
-## D31 · The team lens is supporter-oriented, not supporter-voiced — SETTLED 24 Oct
+## D32 · The scoreboard is the platform's; the demo's stands in for it, delayed — SETTLED 24 Oct
 
-Settles O3. **Partisan in selection and emphasis, neutral in voice.** The team lens tells a moment as for or against the side it follows, by name, and never says *we*, *us* or *our*: *"Riverside Athletic concede"*, *"Redfern United have scored against Riverside Athletic"*, not *"we have conceded"*.
+Settles Q29.
 
-### Why
+**In production, MatchLens shows a viewer no score and no match clock.** The streaming platform's scoreboard is drawn into the video, so a viewer 45 s behind sees it 45 s late, with everything else on their screen. MatchLens's own feed is the one thing that runs ahead of the picture, and D1 delays what it adds to the screen: cards, and overlays (`OverlayPacket` carries no score).
 
-The objection on record was that a platform may not want to ship something that sounds like it takes a side. Supporter-oriented answers it rather than outweighing it: the lens takes a side in what it shows and what it leads with, which is the personalization, and a third-person voice is one a broadcaster can carry under its own name.
+**The demo page's scoreboard stands in for the platform's, so it is delayed by the same rule as the cards (Q29: B).** Each stream is sent the `MatchState` the viewer's video is at, `clock_ms <= match_clock_now - stream_offset_ms`. The page clock comes from the same message, so a panel's "just spoke" and "quiet for" readings are on the viewer's clock too.
+
+**If MatchLens ever draws a scoreboard of its own in production, it follows this rule.** A live one beside delayed cards spoils the goal the cards are being held for.
+
+---
+
+## O3 · Team lens register — supporter-voiced or supporter-oriented
 
 ### How it lands
 

@@ -8,8 +8,8 @@ Tickets with a file in `docs/tickets/` are ready to start. Tickets without one h
 
 See `docs/LEARNING-PLAN.md` for the reasoning. Two first-time skills are being learned here deliberately.
 
-- 🧑 **Kehinde writes this.** **Claude Code must not implement it**, even if it is blocking and even if you could do it faster. Leave it and move to another ticket.
-- 🤝 **Claude Code implements, Kehinde owns the test or the schema.** Read the ticket note.
+- 📝 **Claude Code implements it and writes a walkthrough** at `docs/walkthroughs/<ID>.md` (D29). The walkthrough is an acceptance criterion. See `docs/walkthroughs/TEMPLATE.md`.
+- 🧑 / 🤝 on a **finished** row is history: it records who wrote what at the time. Not an instruction.
 - Unmarked — Claude Code's, straightforwardly.
 
 Update the **Status** column when a ticket moves. Statuses: `todo`, `wip`, `done`, `blocked`, `cut`.
@@ -36,7 +36,7 @@ Update the **Status** column when a ticket moves. Statuses: `todo`, `wip`, `done
 | S3 | SSE endpoint, ViewerSession, page showing clock and score | 1 | S1 | T1 | done | ✅ |
 | 🤝 S4 | One hardcoded moment → rendition → SSE → card on screen | 0.5 | S2, S3 | T1 | done | ✅ |
 | S5 | Bicep, Container Apps, ACR, GitHub Actions with OIDC | 1.5 | S4 | T1 | done | ✅ |
-| 🧑 S6 | App Insights, one trace per moment across the agents | 0.5 | S5 | T2 | wip | ✅ |
+| 📝 S6 | App Insights, one trace per moment across the agents | 0.5 | S5 | T2 | wip | ✅ |
 
 ## Phase 2 · Understanding — days 5–8
 *Ships: four signals producing readings with baselines and z-scores (D24).*
@@ -108,11 +108,11 @@ Update the **Status** column when a ticket moves. Statuses: `todo`, `wip`, `done
 
 | ID | Ticket | Est | Deps | Tier | Status | Brief |
 |---|---|---|---|---|---|---|
-| 🧑 D1 | `stream_offset_ms` and the per-session release queue | 1.5 | L3, S3 | T1 | todo | — |
-| 🤝 D2 | Two sessions on different offsets, both correct | 0.5 | D1 | T1 | todo | — |
-| D3 | Speed control for the judge path | 0.5 | D1, F4 | T1 | todo | — |
-| D4 | Catch-up on join, per lens, verified claims only | 1 | D1, M1 | T2 | todo | — |
-| D5 | OverlayPacket endpoint | 0.5 | L3 | T2 | todo | — |
+| 📝 D1 | `stream_offset_ms` and the per-session release queue | 1.5 | L3, S3 | T1 | done | ✅ |
+| 📝 D2 | Two sessions on different offsets, both correct | 0.5 | D1 | T1 | todo | ✅ |
+| D3 | Speed control for the judge path | 0.5 | D1, F4 | T1 | todo | ✅ |
+| D4 | Catch-up on join, per lens, verified claims only | 1 | D1, M1 | T2 | todo | ✅ |
+| D5 | OverlayPacket endpoint | 0.5 | L3 | T2 | todo | ✅ |
 
 **D1** — release while `display_at_clock <= match_clock_now - stream_offset_ms`. **Delay only, never anticipate** (V8).
 **D2** — a 45s-behind viewer and a 5s-behind viewer each get the card at the right point in their own stream. Fold into D1 if cutting.
@@ -125,11 +125,11 @@ Update the **Status** column when a ticket moves. Statuses: `todo`, `wip`, `done
 
 | ID | Ticket | Est | Deps | Tier | Status | Brief |
 |---|---|---|---|---|---|---|
-| 🧑 A1 | Frozen-log reader: events strictly before clock X | 0.5 | S2 | T1 | todo | — |
-| 🤝 A2 | Explainer agent emitting structured Claims, not prose | 2 | A1, M1 | T1 | todo | — |
-| 🧑 A3 | Verifier: six checks, value recomputation, fails closed | 2 | A2 | T1 | todo | — |
+| 📝 A1 | Frozen-log reader: events strictly before clock X | 0.5 | S2 | T1 | todo | — |
+| 📝 A2 | Explainer agent emitting structured Claims, not prose | 2 | A1, M1 | T1 | todo | — |
+| 📝 A3 | Verifier: six checks, value recomputation, fails closed | 2 | A2 | T1 | todo | — |
 | A4 | Lens-aware generation from each lens's surviving claim set | 1 | A3, L3 | T2 | todo | — |
-| 🧑 A5 | Degradation ladder with automatic fallback L0→L4 | 0.5 | A4, L3 | T1 | todo | — |
+| 📝 A5 | Degradation ladder with automatic fallback L0→L4 | 0.5 | A4, L3 | T1 | todo | — |
 | A6 | Evidence drawer in the UI | 0.5 | A3, L4 | T2 | todo | — |
 
 **A1** — a test proves the explainer cannot see the future (V2).
@@ -148,7 +148,7 @@ Update the **Status** column when a ticket moves. Statuses: `todo`, `wip`, `done
 | P1 | Producer view: all lenses live, idle vs broken | 1 | L4 | T2 | todo | — |
 | P2 | Mute circuit breaker, ProducerAction log, viewer notice | 1 | D1 | T2 | todo | — |
 | P3 | Rejected-claims view with reasons | 0.5 | A3, P1 | T2 | todo | — |
-| 🤝 P4 | Archetype regression check in CI | 1 | R2, U3 | T2 | todo | — |
+| 📝 P4 | Archetype regression check in CI | 1 | R2, U3 | T2 | todo | — |
 | P5 | Post-match report, produced unasked | 0.5 | A3, P4 | T2 | todo | — |
 
 **P1** — largely the same component as the J3 demo view. Build once.

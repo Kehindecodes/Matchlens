@@ -27,7 +27,10 @@ _MAX_NAP_S = 0.25
 async def run_local_feed(
     hub: MatchStateHub, replay: Replay, pipeline: Pipeline, publish: Publish
 ) -> None:
-    """Play `replay` in real time: a `MatchState` each match second, and the pipeline's cards."""
+    """Play `replay` in real time: a `MatchState` each match second, and the pipeline's cards.
+
+    Runs until cancelled: after the last item it goes on advancing the hub's clock.
+    """
     tracker = MatchStateTracker(replay.setup)
     pipeline.process(replay.setup)
     replay.play()
@@ -40,6 +43,11 @@ async def run_local_feed(
                 await hub.publish(state)
         wait = replay.next_due_in()
         await asyncio.sleep(_MAX_NAP_S if wait is None else min(wait, _MAX_NAP_S))
+    # The last state is the final whistle, but a viewer behind the action is still watching:
+    # keep the clock running so the cards they are owed are released when they reach them.
+    while True:
+        await hub.advance(int(replay.position_ms))
+        await asyncio.sleep(_MAX_NAP_S)
 
 
 hub = MatchStateHub()
