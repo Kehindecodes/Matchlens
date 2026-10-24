@@ -23,7 +23,8 @@ class MatchStateHub:
         self._history: list[MatchState] = []  # in clock order, as the stream sends them
         self._history_clocks: list[int] = []
         self._clock_ms = -1  # no match clock yet
-        self._changes = 0  # counts publishes and advances, so a stream wakes for either
+        self._changes = 0  # counts publishes, advances and speed changes; a stream wakes for any
+        self._speed: float | None = None  # the replay's, once the feed says (D3, D33)
         self._changed = asyncio.Condition()
 
     @property
@@ -33,6 +34,19 @@ class MatchStateHub:
     @property
     def clock_ms(self) -> int:
         return self._clock_ms
+
+    @property
+    def speed(self) -> float | None:
+        """Match seconds per wall second, for the one match every viewer shares."""
+        return self._speed
+
+    async def set_speed(self, speed: float) -> None:
+        """Ask for a new speed. The feed applies it to the replay; streams tell their pages."""
+        async with self._changed:
+            if speed != self._speed:
+                self._speed = speed
+                self._changes += 1
+                self._changed.notify_all()
 
     def state_at(self, clock_ms: int) -> MatchState | None:
         """The last state at or before `clock_ms`, or None if the match had not reached it."""
@@ -75,7 +89,7 @@ class MatchStateHub:
             yield state
 
     async def ticks(self) -> AsyncIterator[int]:
-        """The match clock, each time something changes: a new state, or the clock moving on.
+        """The match clock, each time something changes: a state, the clock, or the speed.
 
         A new state can arrive on a clock the hub has already reached, so waking only when the
         clock moves would miss it.

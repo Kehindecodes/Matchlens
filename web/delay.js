@@ -24,7 +24,8 @@ async function start() {
     // The session picks the default lens; the panel shows it by name once the session says which.
     const session = await restoreOrCreateSession(SESSION_KEY + offset, { stream_offset_ms: offset });
     const lens = lenses.find((l) => l.lens_id === session.lens_id);
-    const panel = new Panel({ ...lens, audience: `${offset / 1000} s behind the action` });
+    const behind = offset / 1000 + (kickoffOffset() ? " s, plus watching from kickoff" : " s");
+    const panel = new Panel({ ...lens, audience: `${behind} behind the action` });
     panels.push(panel);
     document.getElementById("panels").append(panel.root);
     stream(panel, session, () => setStatus(panels), () => connect(panel, offset, panels));

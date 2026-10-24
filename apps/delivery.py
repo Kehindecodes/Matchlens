@@ -33,8 +33,10 @@ async def run_local_feed(
     """
     tracker = MatchStateTracker(replay.setup)
     pipeline.process(replay.setup)
+    await hub.set_speed(replay.speed)
     replay.play()
     while not replay.finished:
+        _follow_speed(hub, replay)
         for item in replay.poll():
             for card in pipeline.process(item):
                 publish(card)
@@ -46,8 +48,15 @@ async def run_local_feed(
     # The last state is the final whistle, but a viewer behind the action is still watching:
     # keep the clock running so the cards they are owed are released when they reach them.
     while True:
+        _follow_speed(hub, replay)
         await hub.advance(int(replay.position_ms))
         await asyncio.sleep(_MAX_NAP_S)
+
+
+def _follow_speed(hub: MatchStateHub, replay: Replay) -> None:
+    """Take up a speed a page asked for. The replay rebases, so no match time is skipped."""
+    if hub.speed is not None and hub.speed != replay.speed:
+        replay.set_speed(hub.speed)
 
 
 hub = MatchStateHub()
@@ -70,4 +79,4 @@ async def _lifespan(_: FastAPI):
         feed.cancel()
 
 
-app = create_app(hub, sessions, queues, lifespan=_lifespan)
+app = create_app(hub, sessions, queues, router, lifespan=_lifespan)
