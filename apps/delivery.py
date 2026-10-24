@@ -18,6 +18,7 @@ from matchlens.delivery.hub import MatchStateHub
 from matchlens.delivery.release import ReleaseQueues
 from matchlens.delivery.router import CardRouter
 from matchlens.delivery.sessions import SessionStore
+from matchlens.explanation import foundry
 from matchlens.source.replay import Replay
 from matchlens.understanding.match_state import MatchStateTracker
 
@@ -72,7 +73,9 @@ async def _lifespan(_: FastAPI):
     if settings.appinsights_connection_string:
         configure_azure_monitor(connection_string=settings.appinsights_connection_string)
     replay = Replay.from_seed(settings.match_seed, speed=settings.replay_speed)
-    feed = asyncio.create_task(run_local_feed(hub, replay, Pipeline(), router.receive))
+    feed = asyncio.create_task(
+        run_local_feed(hub, replay, Pipeline(foundry.from_settings()), router.receive)
+    )
     try:
         yield
     finally:

@@ -51,8 +51,16 @@ class Played:
     logs: list[FrozenLog]
 
 
-def _play(seed: int, archetype=ARCHETYPES["comeback"], poison: Played | None = None) -> Played:
-    """`poison` is a finished match: each frozen log is built from all of it, future included."""
+def _play(
+    seed: int,
+    archetype=ARCHETYPES["comeback"],
+    poison: Played | None = None,
+    proposer: explanation.Proposer | None = None,
+) -> Played:
+    """`poison` is a finished match: each frozen log is built from all of it, future included.
+
+    `proposer` is A2's model, if any.
+    """
     items = list(simulate(seed, archetype))
     ingest = Ingest()
     understanding = Understanding(ingest.record)
@@ -76,7 +84,7 @@ def _play(seed: int, archetype=ARCHETYPES["comeback"], poison: Played | None = N
                     moment, poison.ingest.record(), poison.readings.values(), poison.epochs
                 )
             logs.append(log)
-            explained.append(Explained(moment, explanation.explain(moment, log)))
+            explained.append(Explained(moment, explanation.explain(moment, log, proposer)))
     events = {e.event_id: e for e in everything}
     by_id = {r.reading_id: r for r in readings}
     return Played(explained, events, by_id, understanding.epochs, ingest, logs)

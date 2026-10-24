@@ -36,7 +36,7 @@ Newest at the top. Kehinde answers inline and moves the resolved ones to `docs/D
 
 **What I would do if forced:** B now and A as soon as an endpoint exists. Everything except the client is testable without one.
 
-**Answer:**
+**Answer:** B for now. Kehinde, 24 Oct: build against a scripted fake; the real client waits for an endpoint.
 
 ## Q32 · Does the model write the numbers, or only choose them? And can an A2 claim reach a card before A3 exists?  [ticket: A2]  [blocking: yes]
 
@@ -54,7 +54,7 @@ Newest at the top. Kehinde answers inline and moves the resolved ones to `docs/D
 
 **What I would do if forced:** A. It keeps the brief's contract (the model writes claims, A3 judges them) and puts no unchecked number on screen. B and C each give part of A3's job to A2.
 
-**Answer:**
+**Answer:** A. Kehinde, 24 Oct: the model writes full claims; they are verified and audited but held out of Selection until A3 is in.
 
 ---
 

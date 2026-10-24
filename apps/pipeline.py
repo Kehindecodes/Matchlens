@@ -13,6 +13,7 @@ from collections.abc import Callable, Iterator, Sequence
 from opentelemetry import context, trace
 
 from matchlens import audit, explanation, lenses, selection, verification
+from matchlens.explanation import Proposer, foundry
 from matchlens.ingest import FrozenLog, Ingest
 from matchlens.models import Claim, Event, Frame, SignalReading, Verdict, Verification
 from matchlens.rendering import Card, in_full, overlay_packet, render
@@ -27,13 +28,15 @@ tracer = trace.get_tracer(__name__)
 
 
 class Pipeline:
-    def __init__(self) -> None:
+    def __init__(self, proposer: Proposer | None = None) -> None:
+        """`proposer` is A2's model; with none, the claims are L7's alone (D35)."""
         self._ingest = Ingest()
         self._understanding = Understanding(self._ingest.record)
         self._spotter = Spotter(self._ingest.record, self._understanding.epoch_at)
         self._shown = ShownCards()  # Selection's rate-limit state: one pipeline is one match
         self._names: dict[str, str] = {}  # team and player ids to names, from the match setup
         self._readings: list[SignalReading] = []  # derived, append-only: what the explainer reads
+        self._proposer = proposer
 
     def process(self, item: StreamItem) -> Iterator[Card]:
         """Run one stream item through the stages; the cards it produces, if any.
@@ -74,12 +77,14 @@ class Pipeline:
                 log = FrozenLog(
                     result.moment, self._ingest.record(), self._readings, self._understanding.epochs
                 )
-                claims = explanation.explain(result.moment, log)
+                claims = explanation.explain(result.moment, log, self._proposer)
 
             # verify() opens its own span, so latency_ms and the span share one stopwatch.
             verifications = [verification.verify(claim, log.events) for claim in claims]
 
-            passing = _passing(claims, verifications)
+            # A model's claims are verified and audited, but no card shows one until A3 can
+            # judge it: the verifier is still a stub that passes everything (Q32: A).
+            passing = _passing(explanation.by_rule(claims), verifications)
 
             renditions = []
             cards = []
@@ -125,7 +130,7 @@ def _passing(claims: list[Claim], verifications: list[Verification]) -> list[Cla
 
 def run(seed: int, publish: Publish) -> None:
     """Drive one seeded match through the pipeline, publishing every card."""
-    pipeline = Pipeline()
+    pipeline = Pipeline(foundry.from_settings())
     for item in simulate(seed):
         for card in pipeline.process(item):
             publish(card)

@@ -61,6 +61,8 @@ class Settings(BaseSettings):
     # Models
     model_name: str = ""
     foundry_endpoint: str = ""
+    explainer_timeout_s: float = 20.0  # A2: a slower answer is no answer, and L7's claims stand
+    explainer_recent_ms: int = 600_000  # A2: how far back the possessions shown to the model go
 
     # Infrastructure
     service_bus_connection: str = ""
