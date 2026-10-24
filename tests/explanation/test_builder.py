@@ -11,11 +11,12 @@ from pathlib import Path
 import pytest
 
 from matchlens import explanation
-from matchlens.ingest import Ingest
+from matchlens.ingest import FrozenLog, Ingest
 from matchlens.models import (
     Action,
     Claim,
     ClaimType,
+    Epoch,
     Event,
     Metric,
     Moment,
@@ -45,17 +46,20 @@ class Played:
     explained: list[Explained]
     events: dict[str, Event]
     readings: dict[str, SignalReading]
+    epochs: tuple[Epoch, ...]
     ingest: Ingest
+    logs: list[FrozenLog]
 
 
-def _play(seed: int, archetype=ARCHETYPES["comeback"], future: bool = False) -> Played:
-    """`future` hands the explainer the whole match each time, to prove it reads none of it."""
+def _play(seed: int, archetype=ARCHETYPES["comeback"], poison: Played | None = None) -> Played:
+    """`poison` is a finished match: each frozen log is built from all of it, future included."""
     items = list(simulate(seed, archetype))
     ingest = Ingest()
     understanding = Understanding(ingest.record)
     spotter = Spotter(ingest.record, understanding.epoch_at)
     readings: list[SignalReading] = []
     explained = []
+    logs = []
     everything = [i for i in items if isinstance(i, Event)]
     for item in items:
         ingest.accept(item)
@@ -65,13 +69,17 @@ def _play(seed: int, archetype=ARCHETYPES["comeback"], future: bool = False) -> 
         readings.extend(batch)
         for result in spotter.consider(batch, item):
             moment = result.moment
-            log = everything if future else ingest.record().events_between(0, moment.clock_ms + 1)
-            claims = explanation.explain(
-                moment, log, readings, understanding.epochs, ingest.record().match
-            )
-            explained.append(Explained(moment, claims))
+            if poison is None:
+                log = FrozenLog(moment, ingest.record(), readings, understanding.epochs)
+            else:
+                log = FrozenLog(
+                    moment, poison.ingest.record(), poison.readings.values(), poison.epochs
+                )
+            logs.append(log)
+            explained.append(Explained(moment, explanation.explain(moment, log)))
     events = {e.event_id: e for e in everything}
-    return Played(explained, events, {r.reading_id: r for r in readings}, ingest)
+    by_id = {r.reading_id: r for r in readings}
+    return Played(explained, events, by_id, understanding.epochs, ingest, logs)
 
 
 @pytest.fixture(scope="module")
@@ -160,9 +168,35 @@ def test_an_interpretive_claim_is_backed_by_the_reading_that_fired_it(seed_1):
                 assert abs(fired.z_match) >= abs(claim.threshold)
 
 
-def test_the_explainer_reads_nothing_after_the_moments_clock(seed_1):
-    with_future = _play(1, future=True)
-    assert [x.claims for x in with_future.explained] == [x.claims for x in seed_1.explained]
+def _bytes(played: Played) -> list[list[str]]:
+    return [[c.model_dump_json() for c in x.claims] for x in played.explained]
+
+
+def test_the_explainer_cannot_see_the_future(seed_1):
+    # V2. Every frozen log here is built from the finished match: every event, reading and epoch
+    # after the moment is in what it was handed. Claims byte-identical to the live run's prove
+    # the log served none of it, since explain() has no filter of its own to have caught it.
+    poisoned = _play(1, poison=seed_1)
+    late = max(e.clock_ms for e in seed_1.events.values())
+    assert any(x.moment.clock_ms < late for x in poisoned.explained)  # there was a future to see
+    assert _bytes(poisoned) == _bytes(seed_1)
+
+
+def test_a_moment_can_cite_the_event_at_its_own_clock(seed_1):
+    # Inclusive at the boundary (Q6): a goal moment's clock is its goal's, and the goal is cited.
+    goals = [x for x in seed_1.explained if x.moment.type is MomentType.GOAL]
+    assert goals
+    for x in goals:
+        [trigger] = x.moment.trigger_event_ids
+        assert seed_1.events[trigger].clock_ms == x.moment.clock_ms
+        assert any(trigger in _cited(c) for c in x.claims)
+
+
+def test_a_log_frozen_at_another_clock_is_refused(seed_1):
+    first = seed_1.explained[0]
+    later = next(log for log in seed_1.logs if log.clock_ms > first.moment.clock_ms)
+    with pytest.raises(ValueError, match="frozen at"):
+        explanation.explain(first.moment, later)
 
 
 def test_the_same_seed_makes_identical_claims(seed_1):

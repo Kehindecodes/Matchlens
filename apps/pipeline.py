@@ -13,7 +13,7 @@ from collections.abc import Callable, Iterator, Sequence
 from opentelemetry import context, trace
 
 from matchlens import audit, explanation, lenses, selection, verification
-from matchlens.ingest import Ingest
+from matchlens.ingest import FrozenLog, Ingest
 from matchlens.models import Claim, Event, Frame, SignalReading, Verdict, Verification
 from matchlens.rendering import Card, in_full, overlay_packet, render
 from matchlens.selection import ShownCards
@@ -57,10 +57,6 @@ class Pipeline:
             yield from self._editorial(result, at)
 
     def _editorial(self, result: SpotterResult, at: Frame | Event) -> list[Card]:
-        record = self._ingest.record()
-        # Everything up to and including the moment's clock. A1 replaces this with the frozen-log
-        # reader, which also settles whether the clock itself is included (Q6).
-        frozen_log = record.events_between(0, result.moment.clock_ms + 1)
         parent = trace.set_span_in_context(trace.NonRecordingSpan(result.span_context))
         token = context.attach(parent)
         try:
@@ -75,16 +71,13 @@ class Pipeline:
             with tracer.start_as_current_span(
                 "explanation", attributes={"moment_id": result.moment.moment_id}
             ):
-                claims = explanation.explain(
-                    result.moment,
-                    frozen_log,
-                    self._readings,
-                    self._understanding.epochs,
-                    record.match,
+                log = FrozenLog(
+                    result.moment, self._ingest.record(), self._readings, self._understanding.epochs
                 )
+                claims = explanation.explain(result.moment, log)
 
             # verify() opens its own span, so latency_ms and the span share one stopwatch.
-            verifications = [verification.verify(claim, frozen_log) for claim in claims]
+            verifications = [verification.verify(claim, log.events) for claim in claims]
 
             passing = _passing(claims, verifications)
 
