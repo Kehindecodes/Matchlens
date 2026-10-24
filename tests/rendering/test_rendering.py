@@ -32,7 +32,8 @@ from matchlens.selection import Selection, ShownCards, select
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 SIDE = Ref(kind=RefKind.TEAM, id="side-a")
-NAMES = {"side-a": "Larkfield"}
+OPPONENT = Ref(kind=RefKind.TEAM, id="side-b")
+NAMES = {"side-a": "Larkfield", "side-b": "Ashworth"}
 EMITTED = (MomentType.GOAL, MomentType.CHANCE, MomentType.TACTICAL_SHIFT)
 
 
@@ -41,12 +42,13 @@ def _lens(depth: Depth, **changes) -> Lens:
     return lens.model_copy(update=changes)
 
 
-CASUAL, TEAM, ANALYST = _lens(Depth.CASUAL), _lens(Depth.ENGAGED), _lens(Depth.ANALYST)
+CASUAL, ANALYST = _lens(Depth.CASUAL), _lens(Depth.ANALYST)
+TEAM = _lens(Depth.ENGAGED, focus_team=SIDE.id)
 
 
-def _moment(type_: MomentType = MomentType.GOAL) -> Moment:
+def _moment(type_: MomentType = MomentType.GOAL, subject: Ref = SIDE) -> Moment:
     return Moment(
-        moment_id="m", clock_ms=2_052_000, type=type_, subject=SIDE, importance=0.9,
+        moment_id="m", clock_ms=2_052_000, type=type_, subject=subject, importance=0.9,
         trigger_reading_ids=(), trigger_event_ids=("ev",), epoch_id="e", model="spotter",
         model_version="1",
     )  # fmt: skip
@@ -99,12 +101,78 @@ def test_every_emitted_moment_type_has_a_template_at_every_depth():
             assert templates.lookup("en", type_, depth) is not None
 
 
-def test_the_team_register_is_the_match_register_until_o3():
-    """No supporter voice: the engaged text names the side and never says we, our or us."""
+# --- the team lens: supporter-oriented, neutral in voice (D31) ----------------------------------
+
+
+def test_every_emitted_moment_type_has_a_sided_template_at_every_depth():
     for type_ in EMITTED:
-        text = _text(render(_moment(type_), _selected(), TEAM, NAMES))
-        assert "Larkfield" in text
-        assert not re.search(r"\b(we|our|us)\b", text, re.I)
+        for depth in Depth:
+            for side in templates.SIDES:
+                assert templates.lookup("en", type_, depth, side) is not None
+
+
+@pytest.mark.parametrize("type_", EMITTED)
+def test_the_team_lens_tells_a_moment_for_and_against_its_side_differently(type_):
+    ours = _text(render(_moment(type_, SIDE), _selected(), TEAM, NAMES))
+    theirs = _text(render(_moment(type_, OPPONENT), _selected(), TEAM, NAMES))
+    assert ours != theirs
+    assert "Larkfield" in ours and "Larkfield" in theirs  # the focus side is in every card
+    assert "Ashworth" in theirs
+
+
+@pytest.mark.parametrize("type_", EMITTED)
+@pytest.mark.parametrize("subject", [SIDE, OPPONENT])
+def test_the_team_lens_is_partisan_in_emphasis_and_never_in_voice(type_, subject):
+    for depth in Depth:
+        lens = TEAM.model_copy(update={"depth": depth})
+        text = _text(render(_moment(type_, subject), _selected(), lens, NAMES))
+        assert not re.search(r"\b(we|our|us|ours)\b", text, re.I), text
+
+
+def test_the_team_lens_reads_from_whichever_side_it_is_pointed_at():
+    other = TEAM.model_copy(update={"focus_team": OPPONENT.id})
+    moment = _moment(MomentType.GOAL, SIDE)
+    assert _text(render(moment, _selected(), TEAM, NAMES)) != _text(
+        render(moment, _selected(), other, NAMES)
+    )
+
+
+def _score(scorer: Ref, scorer_goals: float, against: Ref, against_goals: float) -> Claim:
+    def operand(team: Ref, value: float) -> Operand:
+        return Operand(
+            subject=team, metric=Metric.GOALS, window=Window(start_ms=0, end_ms=2_052_000),
+            value=value, evidence_ids=(Ref(kind=RefKind.EVENT, id="ev"),),
+        )  # fmt: skip
+
+    return Claim(
+        claim_id="score", moment_id="m", claim_type=ClaimType.COMPARATIVE,
+        operands=(operand(scorer, scorer_goals), operand(against, against_goals)),
+        backing_reading=None, threshold=None, model="m", model_version="v",
+    )  # fmt: skip
+
+
+def test_an_opponent_lead_is_told_as_the_focus_side_trailing():
+    claim = _score(OPPONENT, 2, SIDE, 1)
+    text = render(_moment(MomentType.GOAL, OPPONENT), _selected(claim), TEAM, NAMES).body
+    assert "Larkfield trail 1–2." in text
+    match = render(_moment(MomentType.GOAL, OPPONENT), _selected(claim), ANALYST, NAMES).body
+    assert "Ashworth 2, Larkfield 1." in match  # a match lens reads the claim as it is made
+
+
+def test_reading_from_the_focus_side_leaves_the_claim_as_it_was_made():
+    claim = _score(OPPONENT, 2, SIDE, 1)
+    before = claim.model_dump()
+    render(_moment(MomentType.GOAL, OPPONENT), _selected(claim), TEAM, NAMES)
+    assert claim.model_dump() == before
+
+
+def test_an_unsided_template_cannot_name_the_focus_team(tmp_path):
+    data = json.loads(templates.TEMPLATES_PATH.read_text())
+    data["headlines"][0]["body"] = "{focus} have scored."
+    path = tmp_path / "templates.json"
+    path.write_text(json.dumps(data))
+    with pytest.raises(ValueError, match="focus"):
+        templates.load(path)
 
 
 def test_templates_are_keyed_on_depth_not_on_the_lens():

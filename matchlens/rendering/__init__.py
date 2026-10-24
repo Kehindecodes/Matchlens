@@ -25,6 +25,9 @@ def render(moment: Moment, selection: Selection, lens: Lens, names: Mapping[str,
     Selection already decided (D17). A selection with no claims is a suppressed rendition
     carrying Selection's reason (invariant 11). `names` maps a team or player id to what a
     viewer calls it.
+
+    A lens with a `focus_team` is told the moment as for or against that side, and hears a
+    comparison between the two sides from that side (D31). The claims are the same ones.
     """
     calltrace.entered("Rendering")
     base = {
@@ -44,13 +47,17 @@ def render(moment: Moment, selection: Selection, lens: Lens, names: Mapping[str,
             suppression_reason=selection.suppression_reason,
         )
 
-    words = templates.lookup(lens.language, moment.type, lens.depth)
+    focus = lens.focus_team
+    side = None if focus is None else "for" if moment.subject.id == focus else "against"
+    words = templates.lookup(lens.language, moment.type, lens.depth, side)
     fields = {"team": names[moment.subject.id], "window": f"at {clock(moment.clock_ms)}"}
+    if focus is not None:
+        fields["focus"] = names[focus]
     limit = _CLAIMS_SPOKEN[lens.detail_level]
     spoken = [
         text
         for claim in selection.claims
-        if (text := sentence(claim, lens.depth, lens.language, names)) is not None
+        if (text := sentence(claim, lens.depth, lens.language, names, focus)) is not None
     ][:limit]
     return Rendition(
         **base,

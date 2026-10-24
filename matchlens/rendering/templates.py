@@ -1,11 +1,14 @@
 """The template rows Rendering fills, read from committed data.
 
 Rows are keyed on language, moment type and depth, never on a lens, so a lens is free to change
-without a template changing (invariant 10). A fact row phrases one claim: it is keyed on the
-claim's metric, the form Rendering reads the claim as (D30's wording rules), and the depth. The
-four signal metrics share the `signal` rows and differ by the phrase their `signals` row gives.
-A claim whose form has no row is not spoken, because a number nobody templated is a number
-nobody agreed to say.
+without a template changing (invariant 10). A lens with a `focus_team` reads the rows that also
+carry a side, `for` when the moment's subject is the focus team and `against` when it is the
+opponent: supporter-oriented, partisan in emphasis and neutral in voice (D31).
+
+A fact row phrases one claim: it is keyed on the claim's metric, the form Rendering reads the
+claim as (D30's wording rules), and the depth. The four signal metrics share the `signal` rows
+and differ by the phrase their `signals` row gives. A claim whose form has no row is not
+spoken, because a number nobody templated is a number nobody agreed to say.
 """
 
 import json
@@ -20,6 +23,8 @@ TEMPLATES_PATH = Path(__file__).with_name("templates.json")
 SIGNAL_ROWS = "signal"  # the fact rows the four signal metrics share
 
 _HEADLINE_FIELDS = frozenset({"team", "window"})
+_SIDED_FIELDS = _HEADLINE_FIELDS | {"focus"}  # a sided row may also name the focus team
+SIDES = ("for", "against")
 _FACT_FIELDS = frozenset(
     {"name", "other", "value", "other_value", "ordinal", "phrase", "label"}
     | {"minutes", "seconds", "until", "sigma"}
@@ -43,7 +48,7 @@ class SignalWords:
 
 @dataclass(frozen=True)
 class Templates:
-    headlines: dict[tuple[str, MomentType, Depth], Words]
+    headlines: dict[tuple[str, MomentType, Depth, str | None], Words]  # the last is the side
     facts: dict[tuple[str, str, str, Depth], str]  # language, metric or `signal`, form, depth
     signals: dict[tuple[str, Metric], SignalWords]
     ordinals: dict[str, tuple[str, ...]]
@@ -65,12 +70,14 @@ def _checked(template: str, allowed: frozenset[str]) -> str:
 def load(path: Path = TEMPLATES_PATH) -> Templates:
     """The rows in this file, each checked for the fields it uses."""
     data = json.loads(path.read_text())
-    headlines = {
-        (row["language"], MomentType(row["moment_type"]), Depth(row["depth"])): Words(
-            _checked(row["headline"], _HEADLINE_FIELDS), _checked(row["body"], _HEADLINE_FIELDS)
-        )
-        for row in data["headlines"]
-    }
+    headlines = {}
+    for row in data["headlines"]:
+        side = row.get("side")
+        if side is not None and side not in SIDES:
+            raise ValueError(f"side {side!r} is not one of {SIDES}")
+        allowed = _HEADLINE_FIELDS if side is None else _SIDED_FIELDS
+        key = (row["language"], MomentType(row["moment_type"]), Depth(row["depth"]), side)
+        headlines[key] = Words(_checked(row["headline"], allowed), _checked(row["body"], allowed))
     facts = {}
     for row in data.get("facts", []):
         depth = Depth(row["depth"])
@@ -91,12 +98,17 @@ def load(path: Path = TEMPLATES_PATH) -> Templates:
 _TEMPLATES = load()
 
 
-def lookup(language: str, type_: MomentType, depth: Depth) -> Words:
-    """The words for this moment type at this depth. Raises `LookupError` if there are none."""
+def lookup(language: str, type_: MomentType, depth: Depth, side: str | None = None) -> Words:
+    """The words for this moment type at this depth, told from `side` if one is given.
+
+    Raises `LookupError` if there are none. A sided lookup never falls back to the unsided row,
+    because a team lens reading the match register would look like framing that worked.
+    """
     try:
-        return _TEMPLATES.headlines[(language, type_, depth)]
+        return _TEMPLATES.headlines[(language, type_, depth, side)]
     except KeyError:
-        raise LookupError(f"no template for {type_} at {depth} in {language!r}") from None
+        told = f" told {side}" if side else ""
+        raise LookupError(f"no template for {type_} at {depth}{told} in {language!r}") from None
 
 
 def fact(language: str, metric: Metric, form: str, depth: Depth) -> str | None:

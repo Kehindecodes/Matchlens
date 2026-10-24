@@ -24,6 +24,23 @@ Newest at the top. Kehinde answers inline and moves the resolved ones to `docs/D
 
 ---
 
+## Q28 · Should the team lens speak the score before the scorer?  [ticket: L6]  [blocking: no]
+
+**What I need to know:** Whether a team lens hears a goal's claims in a different order from the match lenses.
+
+D31's framing landed in the headline and body rows: *"Riverside Athletic concede"*, *"Redfern United have scored against Riverside Athletic."* The consequence the brief asks for — *where that leaves the side* — is in the score claim, and the team preset is `detail_level: standard`, which speaks **one** claim, the first in L7's order. For a goal that is the scorer, so on the demo match the team lens never says *"Riverside Athletic trail 1–2"*. The score is read from the focus side correctly; it is just never reached. An analyst lens (`full`) does say it.
+
+**Why I cannot decide it:** it changes what a viewer sees, and L7's order is D30's, written for "a lens that speaks only some of them".
+
+**Options as I see them:**
+- A: leave it. The headline carries for-or-against; the score waits for `full` detail.
+- B: at team scope, Rendering speaks a comparative claim between the two sides first. The claim set is unchanged; only which one `standard` reaches moves. Costs: Rendering takes a scope-dependent ordering rule, and D30's single order stops being the only one.
+- C: change the team preset's `detail_level` to `full`. A data change, no code. Costs: it speaks the build-up and shot quality too, and stops being visibly between casual and analyst in how much it says.
+
+**What I would do if forced:** B, because it is the one that makes the card say what the moment means for the side. I have not done it.
+
+**Answer:**
+
 ## Q27 · S6's "stage spans add up to the end-to-end latency" fails once the stages do real work  [ticket: L7, S6]  [blocking: no, but the suite is red]
 
 **What I need to know:** How S6 should count the time a moment waits behind the other moments fired by the same stream item.

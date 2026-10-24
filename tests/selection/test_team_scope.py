@@ -1,8 +1,7 @@
 """L6: the team lens reweights and keeps both sides' moments; it does not filter by subject (D2).
 
 Seed 1 runs through the pipeline once, with the team lens pointed at each side as two lenses
-next to the presets. Both sides come from the match setup, so no test here names a club. The
-framing half is blocked on O3, so the one test that needs it is a strict xfail.
+next to the presets. Both sides come from the match setup, so no test here names a club.
 """
 
 import ast
@@ -94,13 +93,15 @@ def test_every_goal_and_every_shown_chance_is_shown_to_both_sides(demo):
     assert differ <= {MomentType.TACTICAL_SHIFT}
 
 
-@pytest.mark.xfail(strict=True, reason="the framing half is blocked on O3 (L6)")
-def test_the_same_moment_reads_differently_to_each_side(demo):
+def test_the_same_moment_reads_differently_to_each_side_from_the_same_claims(demo):
+    """Reframe, not refilter (D31): one claim set, a sentence for each side."""
     home, away = SIDES
-    for moment_id in demo.shown(home) & demo.shown(away):
-        texts = {(demo.rendition(s, moment_id).headline, demo.rendition(s, moment_id).body)
-                 for s in SIDES}  # fmt: skip
-        assert len(texts) == 2
+    both = demo.shown(home) & demo.shown(away)
+    assert both
+    for moment_id in both:
+        ours, theirs = (demo.rendition(side, moment_id) for side in SIDES)
+        assert ours.surviving_claim_ids == theirs.surviving_claim_ids
+        assert (ours.headline, ours.body) != (theirs.headline, theirs.body)
 
 
 # --- the reweight on the demo match --------------------------------------------------------------
