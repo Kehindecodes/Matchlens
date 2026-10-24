@@ -25,6 +25,97 @@ function showSpine(state) {
   document.getElementById("period").textContent = state.period === 1 ? "1st half" : "2nd half";
 }
 
+// --- playback: the speed every viewer shares, and watching from kickoff (D3, D33) ---------------
+
+const SPEEDS = [1, 5, 25, 50]; // the choices the page offers; the server refuses anything else past its max
+const KICKOFF_KEY = "matchlens.kickoff_offset_ms"; // how far behind live this tab chose to watch
+
+const KICKOFF_PENDING = "pending"; // chosen, but the live clock is read when the sessions are made
+
+function kickoffOffset() {
+  const ms = Number(sessionStorage.getItem(KICKOFF_KEY));
+  return Number.isFinite(ms) && ms > 0 ? ms : 0;
+}
+
+// Read the live clock once, as late as possible, and share it with every panel in the tab, so
+// they all start at 0:00 together rather than wherever the clock got to during the reload.
+let kickoffRead = null;
+function resolveKickoff() {
+  if (sessionStorage.getItem(KICKOFF_KEY) !== KICKOFF_PENDING) return Promise.resolve();
+  kickoffRead ??= fetch("/playback")
+    .then((res) => res.json())
+    .then(({ clock_ms }) => sessionStorage.setItem(KICKOFF_KEY, String(Math.max(0, clock_ms))));
+  return kickoffRead;
+}
+
+let shownSpeed = null;
+
+function showSpeed(speed) {
+  shownSpeed = speed;
+  const bar = document.getElementById("playback");
+  if (!bar) return;
+  bar.querySelector(".speed").textContent = speed === null ? "Speed: starting…" : `Speed ${speed}×`;
+  bar.querySelectorAll("button[data-speed]").forEach((b) => {
+    b.setAttribute("aria-pressed", String(Number(b.dataset.speed) === speed));
+  });
+}
+
+async function chooseSpeed(speed) {
+  const note = document.querySelector("#playback .note");
+  const res = await fetch("/playback", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ speed }),
+  });
+  note.textContent = res.ok ? "Speed changes for everyone watching." : `The server refused ${speed}×.`;
+}
+
+// A new session for every panel in this tab, each that much further behind live: the tab then
+// watches the match from 0:00 while everyone else carries on where they are.
+function watchFromKickoff() {
+  sessionStorage.clear();
+  sessionStorage.setItem(KICKOFF_KEY, KICKOFF_PENDING);
+  location.reload();
+}
+
+function backToLive() {
+  sessionStorage.clear();
+  location.reload();
+}
+
+function mountPlayback() {
+  const bar = document.getElementById("playback");
+  if (!bar) return;
+  const speed = document.createElement("span");
+  speed.className = "speed";
+  const choices = document.createElement("span");
+  choices.className = "choices";
+  for (const x of SPEEDS) {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.dataset.speed = String(x);
+    b.textContent = `${x}×`;
+    b.addEventListener("click", () => chooseSpeed(x));
+    choices.append(b);
+  }
+  const behind = sessionStorage.getItem(KICKOFF_KEY) !== null;
+  const jump = document.createElement("button");
+  jump.type = "button";
+  jump.className = "jump";
+  jump.textContent = behind ? "Back to live" : "Watch from kickoff";
+  jump.addEventListener("click", behind ? backToLive : watchFromKickoff);
+  const note = document.createElement("span");
+  note.className = "note";
+  note.textContent = "Speed changes for everyone watching.";
+  if (behind) resolveKickoff().then(() => {
+    note.textContent = `Watching from kickoff, ${mmss(kickoffOffset())} behind live.`;
+  });
+  bar.replaceChildren(speed, choices, jump, note);
+  showSpeed(shownSpeed);
+}
+
+mountPlayback();
+
 // sessionStorage survives a reload but is not shared between tabs, so each tab is its own viewer.
 async function restoreOrCreateSession(key, body) {
   const id = sessionStorage.getItem(key);
@@ -33,10 +124,13 @@ async function restoreOrCreateSession(key, body) {
     if (res.ok) return res.json();
   }
   // First visit, or the server no longer knows this session.
+  // A tab watching from kickoff puts every session it makes that far further behind.
+  await resolveKickoff();
+  const offset = kickoffOffset() + (body.stream_offset_ms || 0);
   const res = await fetch("/session", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
+    body: JSON.stringify({ ...body, stream_offset_ms: offset }),
   });
   const session = await res.json();
   sessionStorage.setItem(key, session.session_id);
@@ -149,6 +243,7 @@ function stream(panel, session, onStatus, reopen) {
     panel.onState(state);
   });
   source.addEventListener("card", (e) => panel.addCard(JSON.parse(e.data)));
+  source.addEventListener("playback", (e) => showSpeed(JSON.parse(e.data).speed));
   source.addEventListener("error", () => {
     if (unloading) return; // a reload closes the stream; that is not a lost session
     panel.live = false;

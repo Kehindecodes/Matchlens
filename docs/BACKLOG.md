@@ -93,7 +93,7 @@ Update the **Status** column when a ticket moves. Statuses: `todo`, `wip`, `done
 | L3 | **Rendering**: template renditions per depth — no LLM | 1 | L2 | T1 | done | ✅ |
 | L4 | Three-panel UI on one clock, silent lens visibly idle | 1 | L3, S3 | T1 | review | human idle check pending |
 | L5 | Lens switching mid-match | 0.5 | L4 | T1 | done | ✅ |
-| L6 | Team scope: importance reweight + partisan framing | 0.5 | L2, L3 | T1 | todo | — |
+| L6 | Team scope: importance reweight + partisan framing | 0.5 | L2, L3 | T1 | done | ✅ |
 | L7 | Deterministic claim builder: D30's metrics from the record, no model | 1.5 | L3, M1b, D30 | T1 | done | ✅ |
 
 **L1** — adding a lens is inserting a row. No hardcoded lens names anywhere.
@@ -101,7 +101,7 @@ Update the **Status** column when a ticket moves. Statuses: `todo`, `wip`, `done
 **L3** — each lens produces text at its own register from the same claim set, deterministically.
 **L4** — an idle lens reads as deliberately quiet, not broken (J3, P1).
 **L5** — switch takes effect on the next card, no reload, showing what that lens *would* have shown (V6).
-**L6** — needs **no new entities**. Opponent moments still appear; neutral curiosities drop; text states consequence for the chosen side. Switching sides reframes later cards without changing which events exist (V11). **Blocked on O3.**
+**L6** — needs **no new entities**. Opponent moments still appear; neutral curiosities drop; text states consequence for the chosen side. Switching sides reframes later cards without changing which events exist (V11). Framing is supporter-oriented (D31).
 **L7** — every moment gets real claims in D30's eight metrics, so cards say why with no model. Replaces the S4 stub explainer; A2 emits the same vocabulary on top, and A5 falls back to it.
 
 ## Phase 5 · Delivery — days 12–13
@@ -110,7 +110,7 @@ Update the **Status** column when a ticket moves. Statuses: `todo`, `wip`, `done
 |---|---|---|---|---|---|---|
 | 📝 D1 | `stream_offset_ms` and the per-session release queue | 1.5 | L3, S3 | T1 | done | ✅ |
 | 📝 D2 | Two sessions on different offsets, both correct | 0.5 | D1 | T1 | done | ✅ folded into D1's tests and walkthrough |
-| D3 | Speed control for the judge path | 0.5 | D1, F4 | T1 | todo | ✅ |
+| D3 | Speed control for the judge path | 0.5 | D1, F4 | T1 | done | ✅ J1: 227.4 s at 25× |
 | D4 | Catch-up on join, per lens, verified claims only | 1 | D1, M1 | T2 | todo | ✅ |
 | D5 | OverlayPacket endpoint | 0.5 | L3 | T2 | todo | ✅ |
 

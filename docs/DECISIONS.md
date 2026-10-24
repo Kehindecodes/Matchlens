@@ -510,8 +510,6 @@ The cheap recovery, after the 27th: take **one** walkthrough, delete its impleme
 
 ---
 
-# OPEN — Kehinde decides
-
 ## D30 · The claim metric vocabulary: eight metrics, the scorer named, both comparisons — SETTLED 23 Oct
 
 Answers Q25 part 3. Replaces the S4 stub's `triggers`, and closes D21's "a string until U1–U3 define what the verifier can recount": `Operand.metric` becomes a closed `Metric` enum (D14: every closed set is a named enum).
@@ -578,6 +576,23 @@ A `build_up_passes` claim cites the possession's events; its window is the posse
 
 ---
 
+## D31 · The team lens is supporter-oriented, not supporter-voiced — SETTLED 24 Oct
+
+Settles O3. **Partisan in selection and emphasis, neutral in voice.** The team lens tells a moment as for or against the side it follows, by name, and never says *we*, *us* or *our*: *"Riverside Athletic concede"*, *"Redfern United have scored against Riverside Athletic"*, not *"we have conceded"*.
+
+### Why
+
+The objection on record was that a platform may not want to ship something that sounds like it takes a side. Supporter-oriented answers it rather than outweighing it: the lens takes a side in what it shows and what it leads with, which is the personalization, and a third-person voice is one a broadcaster can carry under its own name.
+
+### How it lands
+
+- Headline rows carry an optional `side`, `for` or `against`, read by any lens with a `focus_team`. Keyed on the side, never on a lens or a club (invariant 10). A sided lookup does not fall back to the match register, so a missing row fails loudly instead of looking like framing that worked.
+- A comparison between the two sides is read from the focus side: *"Oakhurst lead 2–1"* is said as *"Redfern trail 1–2"*. The claim is not changed; Rendering reads a reversed copy and stores nothing.
+- A comparison between the two sides is also spoken **first** (Q28: B), so a lens that speaks one claim says where the moment leaves the side — the score, not the scorer. A 1–0 has no score claim (Q26 2a) and still says the scorer. Only the spoken order moves; the claim set does not.
+- No new entity, field or enum value. The same claims, a different sentence (V11).
+
+---
+
 ## D32 · The scoreboard is the platform's; the demo's stands in for it, delayed — SETTLED 24 Oct
 
 Settles Q29.
@@ -590,9 +605,19 @@ Settles Q29.
 
 ---
 
-## O3 · Team lens register — supporter-voiced or supporter-oriented
+## D33 · Watching from kickoff is per viewer; the speed is one control for everyone — SETTLED 24 Oct
 
-Blocking `L6`. The prototype uses supporter-**voiced** ("we are level", "that saved us"). The Features page previously listed a club-allegiance lens under *explicitly not building*, and that objection was outweighed rather than answered: a platform may not want to ship something that sounds like it takes a side.
+Answers D3's two open choices.
+
+**"Watch from kickoff" belongs to one viewer.** A tab that asks for it makes its sessions as far behind live as the match has run, so its video is at 0:00 and everyone else carries on where they are. It is D1's offset, not a second mechanism: the same release rule, the same delayed scoreboard (D32). Delivery keeps every card it has received, so a new session is given the cards its video has not reached yet. That also closes a D1 gap: a viewer 45 s behind who joined at 68:00 used to miss the cards from 67:15 to 68:00.
+
+**The speed is one setting for the match, and the page can change it.** One match runs per process, so there is nothing per-viewer to change. Any viewer's choice changes it for everyone watching, and the page says so beside the control. An invalid speed is refused (`0 < speed <= max_replay_speed`), never clamped or defaulted.
+
+**Rejected:** restarting the replay for everyone. Any visitor would reset every other judge's match mid-viewing.
+
+---
+
+# OPEN — Kehinde decides
 
 ## O4 · Audit as an Azure Function or in-process
 
