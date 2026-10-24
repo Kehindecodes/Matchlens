@@ -1,7 +1,8 @@
-"""Fan-out of the latest `MatchState`, and of the match clock, to every open stream.
+"""Fan-out of `MatchState`, and of the match clock, to every open stream.
 
-Only the latest state is kept: a viewer who reconnects is sent where the match is now, not every
-tick they missed. Every session gets each state as it arrives; cards wait in the release queue.
+Every state is kept, one per match second, so a stream can send each viewer the state their
+video is at rather than the live one (D32): the scoreboard on the page waits by the same rule
+as the cards. A viewer who reconnects is sent where their video is now, not every tick missed.
 
 The clock is kept apart from the state because it outlives it. The last state is the final
 whistle, but a viewer behind the action is still watching, so the clock keeps advancing with
@@ -9,25 +10,20 @@ whistle, but a viewer behind the action is still watching, so the clock keeps ad
 """
 
 import asyncio
+import bisect
 import functools
 from collections.abc import AsyncIterator
-from dataclasses import dataclass
 
 from matchlens.understanding.match_state import MatchState
-
-
-@dataclass(frozen=True)
-class Tick:
-    """What a stream wakes for: a newer state, if there is one, and the match clock now."""
-
-    state: MatchState | None
-    clock_ms: int
 
 
 class MatchStateHub:
     def __init__(self) -> None:
         self._latest: MatchState | None = None
+        self._history: list[MatchState] = []  # in clock order, as the stream sends them
+        self._history_clocks: list[int] = []
         self._clock_ms = -1  # no match clock yet
+        self._changes = 0  # counts publishes and advances, so a stream wakes for either
         self._changed = asyncio.Condition()
 
     @property
@@ -38,13 +34,25 @@ class MatchStateHub:
     def clock_ms(self) -> int:
         return self._clock_ms
 
+    def state_at(self, clock_ms: int) -> MatchState | None:
+        """The last state at or before `clock_ms`, or None if the match had not reached it."""
+        i = bisect.bisect_right(self._history_clocks, clock_ms)
+        return self._history[i - 1] if i else None
+
+    def _changed_since(self, changes: int) -> bool:
+        return self._changes > changes
+
     def _is_newer(self, seq: int) -> bool:
         return self._latest is not None and self._latest.seq > seq
 
     async def publish(self, state: MatchState) -> None:
         async with self._changed:
             self._latest = state
+            if not self._history_clocks or state.clock_ms >= self._history_clocks[-1]:
+                self._history.append(state)
+                self._history_clocks.append(state.clock_ms)
             self._clock_ms = max(self._clock_ms, state.clock_ms)
+            self._changes += 1
             self._changed.notify_all()
 
     async def advance(self, clock_ms: int) -> None:
@@ -52,6 +60,7 @@ class MatchStateHub:
         async with self._changed:
             if clock_ms > self._clock_ms:
                 self._clock_ms = clock_ms
+                self._changes += 1
                 self._changed.notify_all()
 
     async def follow(self, after_seq: int | None = None) -> AsyncIterator[MatchState]:
@@ -65,20 +74,16 @@ class MatchStateHub:
             last = state.seq
             yield state
 
-    async def ticks(self, after_seq: int | None = None) -> AsyncIterator[Tick]:
-        """A tick whenever a state above `after_seq` arrives or the clock moves on."""
-        last_seq = -1 if after_seq is None else after_seq
-        last_clock = -1
+    async def ticks(self) -> AsyncIterator[int]:
+        """The match clock, each time something changes: a new state, or the clock moving on.
 
-        def woken() -> bool:
-            return self._is_newer(last_seq) or self._clock_ms > last_clock
-
+        A new state can arrive on a clock the hub has already reached, so waking only when the
+        clock moves would miss it.
+        """
+        seen = 0
         while True:
             async with self._changed:
-                await self._changed.wait_for(woken)
-                newer = self._latest if self._is_newer(last_seq) else None
+                await self._changed.wait_for(functools.partial(self._changed_since, seen))
+                seen = self._changes
                 clock = self._clock_ms
-            if newer is not None:
-                last_seq = newer.seq
-            last_clock = clock
-            yield Tick(state=newer, clock_ms=clock)
+            yield clock

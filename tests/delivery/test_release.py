@@ -23,6 +23,7 @@ from matchlens.models import Frame, Phase, Rendition, ViewerSession
 from matchlens.rendering import Card
 from matchlens.source import MatchSetup, simulate
 from matchlens.source.replay import Replay
+from matchlens.understanding.match_state import MatchState
 from tests.delivery.test_http import LiveServer, _fields, _state
 
 SECOND = 1_000
@@ -259,6 +260,63 @@ def test_a_new_session_with_an_offset_is_refused_if_negative(live):
     assert live.client.post("/session", json={"stream_offset_ms": -1}).status_code == 422
     made = live.client.post("/session", json={"stream_offset_ms": OFFSET}).json()
     assert made["stream_offset_ms"] == OFFSET
+
+
+# --- the scoreboard waits too (D32) -------------------------------------------------------------
+
+
+def _scored(seq: int, clock_ms: int, home: int) -> MatchState:
+    return _state(seq, clock_ms).model_copy(
+        update={
+            "score": (_state(seq).score[0].model_copy(update={"goals": home}), _state(seq).score[1])
+        }
+    )
+
+
+def test_the_hub_gives_the_state_a_clock_had_reached():
+    hub = MatchStateHub()
+
+    async def run() -> None:
+        assert hub.state_at(0) is None
+        await hub.publish(_scored(1, 10 * SECOND, 0))
+        await hub.publish(_scored(2, 20 * SECOND, 1))
+        assert hub.state_at(5 * SECOND) is None
+        seqs = [hub.state_at(c) for c in (15 * SECOND, 20 * SECOND, 10**9)]
+        assert [state.seq if state else None for state in seqs] == [1, 2, 2]
+
+    asyncio.run(run())
+
+
+def test_a_viewer_behind_is_sent_the_state_their_video_is_at(live):
+    session_id = live.client.post("/session", json={"stream_offset_ms": OFFSET}).json()[
+        "session_id"
+    ]
+    live.publish(_scored(1, 10 * SECOND, 0))
+    live.publish(_scored(2, 60 * SECOND, 1))  # the goal, live
+    [block] = live.events(session_id, 1)
+    fields = _fields(block)
+    assert fields["id"] == "1:0"  # 60 s live is 15 s on this viewer's video
+    data = json.loads(fields["data"])
+    assert data["clock_ms"] == 10 * SECOND
+    assert data["score"][0]["goals"] == 0  # the goal is not on their screen yet
+
+
+def test_a_viewer_with_no_offset_is_sent_the_live_state(live):
+    session_id = live.session()
+    live.publish(_scored(1, 10 * SECOND, 0))
+    live.publish(_scored(2, 60 * SECOND, 1))
+    [block] = live.events(session_id, 1)
+    assert json.loads(_fields(block)["data"])["score"][0]["goals"] == 1
+
+
+def test_a_viewer_before_kickoff_on_their_video_is_sent_no_state_yet(live):
+    session_id = live.client.post("/session", json={"stream_offset_ms": OFFSET}).json()[
+        "session_id"
+    ]
+    live.publish(_scored(1, 10 * SECOND, 0))
+    threading.Timer(0.3, live.publish, (_scored(2, 56 * SECOND, 0),)).start()
+    [block] = live.events(session_id, 1)
+    assert _fields(block)["id"] == "1:0"  # only once the live clock is 10 s plus the offset
 
 
 # --- seed 1, end to end --------------------------------------------------------------------------

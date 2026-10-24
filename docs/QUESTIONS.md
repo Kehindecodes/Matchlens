@@ -39,7 +39,7 @@ D1's brief says the hub is *"unchanged for state; cards go through the queue"*, 
 
 **What I would do if forced:** B. It is the rule the cards already follow, and without it the offset protects the cards and not the score. I have not done it.
 
-**Answer:**
+**Answer:** B for the demo (24 Oct). In production the platform owns the scoreboard, drawn into the video and as late as it is, so MatchLens shows no score of its own; the demo page's scoreboard stands in for it. Recorded as D32.
 
 ## Q27 · S6's "stage spans add up to the end-to-end latency" fails once the stages do real work  [ticket: L7, S6]  [blocking: no, but the suite is red]
 

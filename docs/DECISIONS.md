@@ -541,6 +541,18 @@ A `build_up_passes` claim cites the possession's events; its window is the posse
 
 ---
 
+## D32 · The scoreboard is the platform's; the demo's stands in for it, delayed — SETTLED 24 Oct
+
+Settles Q29.
+
+**In production, MatchLens shows a viewer no score and no match clock.** The streaming platform's scoreboard is drawn into the video, so a viewer 45 s behind sees it 45 s late, with everything else on their screen. MatchLens's own feed is the one thing that runs ahead of the picture, and D1 delays what it adds to the screen: cards, and overlays (`OverlayPacket` carries no score).
+
+**The demo page's scoreboard stands in for the platform's, so it is delayed by the same rule as the cards (Q29: B).** Each stream is sent the `MatchState` the viewer's video is at, `clock_ms <= match_clock_now - stream_offset_ms`. The page clock comes from the same message, so a panel's "just spoke" and "quiet for" readings are on the viewer's clock too.
+
+**If MatchLens ever draws a scoreboard of its own in production, it follows this rule.** A live one beside delayed cards spoils the goal the cards are being held for.
+
+---
+
 ## O3 · Team lens register — supporter-voiced or supporter-oriented
 
 Blocking `L6`. The prototype uses supporter-**voiced** ("we are level", "that saved us"). The Features page previously listed a club-allegiance lens under *explicitly not building*, and that objection was outweighed rather than answered: a platform may not want to ship something that sounds like it takes a side.

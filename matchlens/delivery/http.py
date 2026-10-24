@@ -13,6 +13,7 @@ from pydantic import BaseModel, ConfigDict
 from matchlens import lenses
 from matchlens.delivery.hub import MatchStateHub
 from matchlens.delivery.release import ReleaseQueues
+from matchlens.delivery.session_clock import viewer_position
 from matchlens.delivery.sessions import LensRefused, SessionStore, UnknownSession
 from matchlens.models import ClockMs, Lens, ViewerSession
 
@@ -90,7 +91,7 @@ def create_app(
         session: Annotated[ViewerSession, Depends(_session)],
         last_event_id: Annotated[str | None, Header()] = None,
     ) -> AsyncIterator[ServerSentEvent]:
-        """States as they arrive, and this session's cards as its video reaches them (D1).
+        """The state and the cards this session's video has reached, as it reaches them (D1, D32).
 
         Every event's id is `<state seq>:<cards released>`, so whichever event a browser saw
         last, `Last-Event-ID` says both where the clock was and how many cards it had. A
@@ -100,16 +101,19 @@ def create_app(
         after_seq, sent = _resume_point(last_event_id)
         sent = queues.count_released(session.session_id) if sent is None else sent
         seq = -1 if after_seq is None else after_seq
-        async for tick in hub.ticks(after_seq):
-            if tick.state is not None:
-                seq = tick.state.seq
-                yield ServerSentEvent(data=tick.state, event="match_state", id=f"{seq}:{sent}")
+        async for clock_ms in hub.ticks():
             # Read afresh each tick: a lens switch replaces the session while this stream is open.
             try:
                 current = sessions.get(session.session_id)
             except UnknownSession:
                 return
-            released = queues.release_due(current, tick.clock_ms)
+            # The state this viewer's video is at, not the live one: the page's scoreboard stands
+            # in for the platform's, which is in the video and as late as it is (D32).
+            due = hub.state_at(viewer_position(current, clock_ms))
+            if due is not None and due.seq > seq:
+                seq = due.seq
+                yield ServerSentEvent(data=due, event="match_state", id=f"{seq}:{sent}")
+            released = queues.release_due(current, clock_ms)
             if released:
                 sessions.mark_seen(current.session_id, released[-1].display_at_clock)
             for card in queues.released(current.session_id, sent):
