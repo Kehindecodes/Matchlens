@@ -24,6 +24,40 @@ Newest at the top. Kehinde answers inline and moves the resolved ones to `docs/D
 
 ---
 
+## Q33 · There is no model to call: no Foundry deployment exists, and nothing provisions one  [ticket: A2]  [blocking: yes]
+
+**What I need to know:** Which model and deployment A2 calls, and who provisions it. `settings.model_name` and `settings.foundry_endpoint` exist, but both are empty in `.env`, and `infra/main.bicep` has no Foundry or AI Services resource. `agent-framework==1.21.0` and `azure-ai-projects==2.7.0` are pinned and install.
+
+**Why I cannot decide it:** choosing a model is an architecture decision. Adding a resource to the Bicep changes the deployed footprint and its cost. And without a live model, the walkthrough's *"what the model got wrong before it got it right"* would be a guess.
+
+**Options as I see them:**
+- A: You create a Foundry project and a model deployment (or tell me which one), and put the endpoint and deployment name in `.env`. I add the resource to `main.bicep` so the deployed app has it too. Costs: your time in the portal today, plus model spend.
+- B: I build A2 against a scripted fake client only, and the real client stays untested until you have an endpoint. Costs: the walkthrough cannot say what a real model did, and the demo shows no A2 claims.
+
+**What I would do if forced:** B now and A as soon as an endpoint exists. Everything except the client is testable without one.
+
+**Answer:**
+
+## Q32 · Does the model write the numbers, or only choose them? And can an A2 claim reach a card before A3 exists?  [ticket: A2]  [blocking: yes]
+
+**What I need to know:** Two linked things.
+
+1. **What the model emits.** The brief says its response is *"parsed into `Claim` objects"*, so the model writes `value` and `evidence_ids` itself, and A3 recomputes them. The other reading is that code works out the candidate operands from the frozen log (every D30 metric, for each side, over each window D30 allows), and the model only **chooses** among them: which to claim, which comparison, which threshold band. Code then builds the `Claim`.
+2. **What happens before A3 lands.** `verify()` is still the stub that passes everything. `_CLAIMS_SPOKEN[FULL]` is `None`, so the analyst lens speaks every claim that passes. As things stand, any A2 claim would reach analyst cards with no one having checked its number.
+
+**Why I cannot decide it:** both change what a viewer sees (an unverified model number on screen). The first also decides whether D35's demo shot exists: *"A3 rejecting an A2 claim while L7's claims stand."* If the model only chooses, its numbers cannot be wrong. A3 could still reject a claim on entailment or coverage, but never on value.
+
+**Options as I see them:**
+- A: **The model writes full claims.** They are schema-validated and dropped whole if non-conforming. They are **held out of Selection until A3 is in**: built, logged and audited, but never shown. Costs: A2 adds nothing visible until A3 lands, and A3 is another 2 days.
+- B: **The model writes full claims, and A2 recomputes each value and drops any that does not match**, at source, before Verification. Costs: A2 runs part of A3's value check. That is two places owning one rule, which A1 just removed for time. A3 would see no wrong numbers to reject.
+- C: **The model chooses among operands that code computed.** Values recompute by construction. The parsed choice is validated, and a non-conforming one produces no claims. Costs: a smaller lesson in what models get wrong, and D35's rejection shot shrinks to entailment and coverage.
+
+**What I would do if forced:** A. It keeps the brief's contract (the model writes claims, A3 judges them) and puts no unchecked number on screen. B and C each give part of A3's job to A2.
+
+**Answer:**
+
+---
+
 ## Q31 · Which overlay template a card becomes, and how long it stays up  [ticket: D5]  [blocking: yes]
 
 **What I need to know:** D5 says to map rendition shape to `lower_third`, `stat_bar` or `team_card`, and that `duration_ms` is how long the overlay stays up. It does not give a mapping or a duration. Both decide what a viewer sees on the picture and for how long.
