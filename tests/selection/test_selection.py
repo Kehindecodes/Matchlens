@@ -17,6 +17,7 @@ from matchlens.models import (
     ClaimType,
     Depth,
     Lens,
+    Metric,
     Moment,
     MomentType,
     Operand,
@@ -60,7 +61,7 @@ def _moment(
 
 def _claim(claim_type: ClaimType = ClaimType.DESCRIPTIVE, claim_id: str = "c") -> Claim:
     operand = Operand(
-        subject=FOCUS, metric="shots", window=Window(start_ms=0, end_ms=1), value=1.0,
+        subject=FOCUS, metric=Metric.CHANCES, window=Window(start_ms=0, end_ms=1), value=1.0,
         evidence_ids=(Ref(kind=RefKind.EVENT, id="ev"),),
     )  # fmt: skip
     interpretive = claim_type is ClaimType.INTERPRETIVE

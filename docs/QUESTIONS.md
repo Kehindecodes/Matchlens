@@ -24,6 +24,69 @@ Newest at the top. Kehinde answers inline and moves the resolved ones to `docs/D
 
 ---
 
+## Q27 · S6's "stage spans add up to the end-to-end latency" fails once the stages do real work  [ticket: L7, S6]  [blocking: no, but the suite is red]
+
+**What I need to know:** How S6 should count the time a moment waits behind the other moments fired by the same stream item.
+
+**What happens:** `Spotter.consider` fires every moment an item produces in one call, and each moment's root `spotting` span opens and closes there. The pipeline then runs each moment's editorial stages in turn. A moment's end-to-end therefore includes the wait for the moments before it, which no span covers. With the S4 stubs that wait was well under 5 ms, so `test_stage_durations_add_up_to_the_end_to_end_latency` passed most runs (it already failed about 1 in 3 before L7). With L7's builder the worst wait on seed 1 is 29 ms (a moment at 73:00 behind its siblings) and the test fails about 4 runs in 5. The test's own note expects this: "the slack is absolute until real agents land". A2's agent would make it far larger.
+
+L7 already makes `Pipeline.process` hand each moment's cards on as soon as that moment is done, rather than after all of the item's moments. That removed the wait after a moment's work, but not the wait before it.
+
+**Why I cannot decide it:** S6 is yours (🧑), and so is what its trace is meant to show.
+
+**Options as I see them:**
+- A: A `spotting.queued` span from the root's end to the moment's first editorial span, so the wait is visible in the trace as Spotting's output queue. The test passes as written. Costs: one more span per moment; the stage sum then includes waiting, which is honest about latency but not about work.
+- B: Measure end to end from the moment's first editorial span rather than from the root. Costs: a change to the test, and a viewer's real latency includes the wait.
+- C: Spotting opens each moment's span when that moment's editorial starts, not when it fires. Costs: the spotting span stops meaning "when the spotter decided".
+
+**What I would do if forced:** A. I have not done it, and I have not touched the test.
+
+**Answer:** A (23 Oct). Done in L7 as a `queued` span from the moment's spotting span ending to its turn. Named `queued`, not `spotting.queued`: the test counts a stage once through its outermost span, so a `spotting.*` child of the root would fold into Spotting and leave the wait uncounted. The test passes 6 of 6 on its own and failed 1 of 2 full-suite runs, against an absolute 5 ms slack.
+
+## Q26 · Three of D30's rules need facts no claim can carry  [ticket: L7]  [blocking: yes]
+
+**What I need to know:** How to carry three things D30 asks for, given that Rendering only sees a claim's operands (`subject`, `metric`, `window`, `value`, `evidence_ids`), plus `threshold` on an interpretive claim. It never sees the record.
+
+1. **"On the break" needs the move's start zone.** D30: *started in the defensive or middle third and reached the shot in ≤ 20 s*. A `build_up_passes` operand carries the passes (`value`) and the duration (`window`), but not where the move started. On seed 1, 23 of the 43 moves that ended in a shot started in the final third, so leaving the zone out would call quick moves after winning the ball high "breaks".
+2. **"The score after it" cannot be cited when the other side has not scored.** Every operand needs at least one piece of evidence (invariant 5), and a team on 0 goals has no goal event to cite. So "puts them 1–0 up" asserts something nothing backs. Two of seed 1's three goals are like this.
+3. **An interpretive claim has no direction.** "Pressing much harder" and "pressing much less" both need `|z_match|` ≥ 2.0. The claim's `threshold` says how strong the word is but not which way. The comparative claims carry direction, but casual's `allowed_claim_types` is descriptive and interpretive only, so casual never gets them.
+
+**Why I cannot decide it:** each answer either adds a field to `Claim`/`Operand` or changes a D30 rule, and the `Claim` schema is yours (CLAUDE.md: a change to what an entity means; the `Claim` schema is reserved).
+
+**Options as I see them:**
+- (1a) Drop the zone from the rule: "on the break" = shot within 20 s of winning the ball, whatever third. Costs: some fast high turnovers called breaks.
+- (1b) Add `start_zone: Zone | None` to `Operand`, set only for `build_up_passes`. Costs: a schema field that one metric uses.
+- (2a) Cite only what can be cited: "Riverside's first goal", "the scorer's second", and a score line ("2–1") only when both sides have scored. Costs: the most natural casual line, "they're 1–0 up", is never said. The scoreboard still shows the score once the score fold lands.
+- (2b) Allow `period_start` as evidence for a zero count: "nothing in this window since kickoff". Costs: evidence that proves an absence by citing something else; A3 would have to recount it as "no goal events between these".
+- (3a) A signed `threshold`: −2.0 means the wording implies `z_match` ≤ −2. No new field, but it changes what `threshold` means from "how strong" to "how strong and which way".
+- (3b) Let casual's lens allow comparative claims. Costs: a change to a lens row (L1), and comparative claims carry two numbers that casual templates must not say.
+
+**What I would do if forced:** 1a, 2a, 3a. No new field, nothing cited that is not there, and the one change of meaning is the smallest. I have not started building.
+
+**Answer:** 1a, 2a, 3a (23 Oct). Recorded in D30.
+
+## Q25 · What should a casual viewer know, and where does the "why" come from before A2?  [ticket: L1, L3, A2]  [blocking: no, but the demo video is thin until it is answered]
+
+**What I need to know:** Three things, seen on the L4 screen (`docs/screenshots/L4-silent-panel.jpg`). By 51:38 on seed 1 the casual panel has shown two cards, both "Goal!" with a body that only names the team. No panel explains *why* anything happened.
+
+1. **Which moments casual sees.** `match_casual` is at `importance_threshold` 0.45 and `max_cards_per_10min` 3. On seed 1 that admits 6 of 52 moments, which so far are only the goals. The quiet panel is the thesis, but "quiet by choice" should mean casual skipped the analyst detail, not that casual cannot tell why the game turned.
+2. **Whether `minimal` speaks a claim.** `_CLAIMS_SPOKEN` in `matchlens/rendering/__init__.py` is `MINIMAL: 0, STANDARD: 1, FULL: all`. So even with real claims, a casual card would carry headline and team name only. A casual "why" would be one claim in plain words, with no numbers (`test_the_casual_cards_carry_no_numbers_and_the_analyst_cards_do` already holds casual to that).
+3. **Where real claims come from on the L1 path.** The only claim today is the S4 stub's `metric="triggers"`, `value` = how many readings and events fired the moment. That is where every analyst card's "Cited triggers: 1." comes from. No claim names the scorer, the signal that moved, or what changed. The build-order rule says L1 (templates, no LLM) carries the thesis, so the "why" cannot wait for A2's agent.
+
+**Why I cannot decide it:** (1) and (2) change what a viewer sees and when (CLAUDE.md). (3) is the `Claim` metric vocabulary, which is reserved for you before A2 and was kept with you in Q23.
+
+**Options as I see them:**
+- (1a) Lower casual's threshold so its biggest non-goal moments get through, for example the largest tactical shift of each epoch. It stays sparse, still the quietest panel, and is re-calibrated on seed 1 as L1 was. Costs: fewer seconds where casual is quiet and another panel fires; the shot still exists, but more rarely.
+- (1b) Keep casual at goals only, and let the catch-up summary (D4) carry the context. Costs: casual reads as a goal alert until D4 exists.
+- (2a) `MINIMAL: 1`: casual speaks one claim, with a casual-register fact template per metric and no numbers. Costs: one fact row per metric per depth.
+- (2b) Keep `MINIMAL: 0`; the "why" goes into the casual headline/body templates themselves, keyed on metric. Costs: templates key on the claim's metric even when no claim is spoken.
+- (3a) You design the metric vocabulary now, and a deterministic claim builder (not the agent) produces those claims from the frozen log. A2 later replaces or extends it, so the agent stays off the critical path. Costs: your schema time before 27 Oct.
+- (3b) Ship the demo with stub claims and accept thin text. Costs: every lens's "why" is missing on the video; the panels differ in volume more than in substance.
+
+**What I would do if forced:** 3a first, since it is what all three lenses lack. Then 2a and 1a, so casual gets an occasional plain-words turning point and stays the quietest panel. I have not done any of it.
+
+**Answer:** Part 3: 3a, settled as D30 (23 Oct): eight metrics, the scorer named, comparisons both ways. Parts 1 and 2 still open.
+
 ## Q24 · Are the three L4 panels fed by three sessions or by one session carrying three lenses?  [ticket: L4]  [blocking: yes]
 
 **What I need to know:** Which shape the ticket's "⚠️ Decide how the three panels are fed" lands on. P1 (producer view, "build once") inherits it.

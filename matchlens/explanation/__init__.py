@@ -3,39 +3,32 @@
 from collections.abc import Sequence
 
 from matchlens import calltrace
-from matchlens.models import Claim, ClaimType, Event, Moment, Operand, Ref, RefKind, Window
+from matchlens.explanation.builder import explain_moment
+from matchlens.models import Claim, Epoch, Event, Match, Moment, SignalReading
+
+__all__ = ["explain"]
 
 
-def explain(moment: Moment, frozen_log: Sequence[Event]) -> list[Claim]:
-    """Claims about `moment`, read only from the frozen log.
+def explain(
+    moment: Moment,
+    frozen_log: Sequence[Event],
+    readings: Sequence[SignalReading],
+    epochs: Sequence[Epoch],
+    match: Match,
+) -> list[Claim]:
+    """Claims about `moment`, read only from what had happened by its clock.
 
-    Stub until A2: one fixed descriptive claim, that what fired the moment happened at its clock.
-    It cites the events and readings that fired it, so it passes through the same path a real
-    claim will.
+    The L1 explainer (L7): D30's claims built by rule from the frozen log and the readings, with
+    no model. Nothing after `moment.clock_ms` is read, whatever the caller passes (invariant 6),
+    and no input can reach a frame (invariant 1). A claim with nothing to cite is not made
+    (invariant 5).
     """
     calltrace.entered("Explanation")
-    triggers = (
-        *(Ref(kind=RefKind.READING, id=r) for r in moment.trigger_reading_ids),
-        *(Ref(kind=RefKind.EVENT, id=e) for e in moment.trigger_event_ids),
+    clock = moment.clock_ms
+    return explain_moment(
+        moment,
+        [e for e in frozen_log if e.clock_ms <= clock],
+        [r for r in readings if r.clock_ms <= clock],
+        [e for e in epochs if e.start_clock_ms <= clock],
+        match,
     )
-    if not triggers:
-        return []  # nothing to cite, so no claim (invariant 5)
-    operand = Operand(
-        subject=moment.subject,
-        metric="triggers",
-        window=Window(start_ms=moment.clock_ms, end_ms=moment.clock_ms),
-        value=float(len(triggers)),
-        evidence_ids=triggers,
-    )
-    return [
-        Claim(
-            claim_id=f"{moment.moment_id}:c1",
-            moment_id=moment.moment_id,
-            claim_type=ClaimType.DESCRIPTIVE,
-            operands=(operand,),
-            backing_reading=None,
-            threshold=None,
-            model="stub",
-            model_version="S4",
-        )
-    ]

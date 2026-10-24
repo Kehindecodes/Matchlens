@@ -67,7 +67,8 @@ flowchart LR
 5. Spotting compares readings against thresholds, scores importance, applies cooldown and duplicate suppression, and emits a `Moment` citing what fired it.
 6. Explanation takes the moment, reads a log **frozen at that moment's clock**, and emits `Claim`s — never prose.
 7. Verification runs the six checks per claim, recomputes values independently, and persists a `Verification` per claim. Fails closed.
-8. Selection takes the moment plus its passing claims. For each lens: dispatch on `scope`, apply `importance_threshold` and `max_cards_per_10min`, filter by `allowed_claim_types`. The output is a claim subset per lens — **never text, and never a model call**.
+8. Selection takes the moment plus its passing claims. For each lens: dispatch on `scope`, apply `importance_threshold` and `
+`, filter by `allowed_claim_types`. The output is a claim subset per lens — **never text, and never a model call**.
 9. Rendering turns each lens's subset into a `Rendition` — **including `suppressed=true` ones**, which are records, not absences. A lens whose subset came back empty still gets a rendition, carrying the `suppression_reason` Selection resolved.
 10. Renditions go onto the broker, partitioned by `match_id`.
 11. Delivery holds each rendition in a per-session queue and releases it when `display_at_clock <= match_clock_now - stream_offset_ms` for that session.

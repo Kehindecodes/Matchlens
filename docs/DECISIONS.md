@@ -475,6 +475,72 @@ R1 left every empty measurement out of the prior, and U4 kept every one in the m
 
 # OPEN — Kehinde decides
 
+## D30 · The claim metric vocabulary: eight metrics, the scorer named, both comparisons — SETTLED 23 Oct
+
+Answers Q25 part 3. Replaces the S4 stub's `triggers`, and closes D21's "a string until U1–U3 define what the verifier can recount": `Operand.metric` becomes a closed `Metric` enum (D14: every closed set is a named enum).
+
+### The eight
+
+| Metric | Value | Evidence |
+|---|---|---|
+| `goals` | a team's goals from kickoff to the clock | the goal events |
+| `shot_quality` | one shot's quality, 0–1 | the shot event |
+| `chances` | shots above a quality bar in a recent window | the shot events |
+| `build_up_passes` | passes in the possession that ended in the shot | that possession's events |
+| `territory` | the signal reading's value | the reading |
+| `possession_control` | the signal reading's value | the reading |
+| `pressing_intensity` | the signal reading's value | the reading |
+| `chance_quality` | the signal reading's value | the reading |
+
+Four event metrics plus D24's four signals. Every value is recountable from cited rows, so A3 can recompute it.
+
+### Settled with it
+
+1. **A claim may name the scorer.** A `goals` claim may take the scoring player as its subject (`Operand.subject` already allows a player, and `Player.name` is on the record). This is a match-scope card naming a player, **not player scope**, which stays deferred: no `Run`, no player lens, no player-level selection.
+2. **Comparative claims compare both ways.** Against the **same team earlier** (the second operand is that team's earlier reading or count, with its own window, for example before the epoch boundary: "since the equaliser") and against the **opponent** over the same window.
+3. **All eight are kept.** `build_up_passes` stays because "on the break" versus "a patient move" is the plainest "why" a goal can carry.
+
+### Per moment type
+
+- **Goal:** `goals` (scorer and score), `build_up_passes`, `shot_quality`
+- **Chance:** `shot_quality`, `chances`
+- **Tactical shift:** the signal that fired, as a comparative claim, against earlier or against the opponent
+
+### Standard values — the same for every match, not tuned per match
+
+| Wording | Rule |
+|---|---|
+| "a big chance" | `shot_quality` ≥ 0.25, the spotter's chance bar (`spotter_chance_quality`), so a big chance is what fires a chance moment |
+| "their third big chance in ten minutes" | `chances` over the last 10 min, including this one, said only at 3 or more |
+| "a quick attack" (was "on the break", 23 Oct: true wherever the move started) | the possession started by winning the ball in open play (a tackle, interception or aerial duel, not a restart) and reached the shot in ≤ 20 s, in any third (Q26: 1a) |
+| "a patient move" | `build_up_passes` ≥ 10 |
+| (neither) | otherwise nothing is said about the build-up |
+| plain interpretive ("pressing harder") | `\|z_match\|` ≥ 1.25, the spotter's shift bar (`spotter_z_threshold`) |
+| strong interpretive ("much harder", "by far") | `\|z_match\|` ≥ 2.0 |
+
+A `build_up_passes` claim cites the possession's events; its window is the possession's start to the shot, which is the duration the rule reads. A move begun by a restart gets no `build_up_passes` claim (L7): no claim carries how the move began, so the claim's existence is what keeps a corner headed in from reading as a quick attack.
+
+**Amended by Q26 (23 Oct):**
+
+- **No zone in "on the break" (1a).** No claim carries where a move started, so the rule reads only the duration and how the ball was won.
+- **Only what can be cited (2a).** A team on 0 goals has nothing to cite, so no claim asserts it. Goal text says "their first goal" or "his second"; a score line such as "2–1" only when both sides have scored.
+- **A signed `threshold` (3a).** On an interpretive claim, `threshold` is the `z_match` the wording implies, with its sign: 2.0 means `z_match` ≥ 2 ("much harder"), −2.0 means `z_match` ≤ −2 ("much less"). This changes `threshold` from "how strong" to "how strong and which way".
+
+**Why these are standard:** shot quality is an absolute function of distance and angle, the z thresholds are relative to each match's own baseline and to priors over 20 matches across the four archetypes, and the build-up rules are football definitions. Seed 1 was a sanity check, not a calibration. Across 12 generated matches (four archetypes × seeds 1–3) casual < team < analyst in card count every time, and volume follows how eventful the match is (casual 1–11, team 4–20, analyst 22–57).
+
+**Known limits, structural rather than seed-specific:**
+
+- Every goal on seed 1 came from a shot of quality 0.12–0.13, below the big-chance bar, so goal templates must handle a low `shot_quality` ("from a hard chance"), not assume a good one.
+- `territory`'s `|z_match|` tops out near 1.5 (its prior spread is wide for a 0–1 share, Q21), so territory never earns strong wording in any match.
+- All of this is measured on generated matches only; real data is out of scope.
+
+### Still open
+
+- Q25 parts 1 and 2: which moments casual sees, and whether `minimal` states a claim
+- ~~which ticket the deterministic claim builder belongs to~~ — a new ticket, L7 (23 Oct)
+
+---
+
 ## O3 · Team lens register — supporter-voiced or supporter-oriented
 
 Blocking `L6`. The prototype uses supporter-**voiced** ("we are level", "that saved us"). The Features page previously listed a club-allegiance lens under *explicitly not building*, and that objection was outweighed rather than answered: a platform may not want to ship something that sounds like it takes a side.

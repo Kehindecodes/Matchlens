@@ -58,6 +58,11 @@ class Understanding:
             self._epochs = detect(reader)
         return readings
 
+    @property
+    def epochs(self) -> tuple[Epoch, ...]:
+        """The epochs found so far, in clock order."""
+        return tuple(self._epochs)
+
     def epoch_at(self, clock_ms: int) -> Epoch:
         """The epoch an event at `clock_ms` belongs to: one starting at `clock_ms` is the next's.
 

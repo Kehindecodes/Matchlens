@@ -11,7 +11,7 @@ The simulator only emits on-ball events while play is live, so stopped time fall
 possession's terminating event and the next restart, never inside a possession.
 """
 
-from collections.abc import Sequence
+from collections.abc import Iterable, Sequence
 
 from matchlens import calltrace
 from matchlens.ingest import RecordReader
@@ -40,7 +40,14 @@ def sequence(reader: RecordReader, from_clock_ms: int, to_clock_ms: int) -> list
     through a possession holds only its tail.
     """
     calltrace.entered("Understanding")
-    match = reader.match
+    return from_events(reader.match, reader.events_between(from_clock_ms, to_clock_ms))
+
+
+def from_events(match: Match, events: Iterable[Event]) -> list[Possession]:
+    """The possessions in `events`, which are in clock order, by the same rules as `sequence`.
+
+    For a reader that holds events rather than the record, such as the explainer's frozen log.
+    """
     possessions: list[Possession] = []
     current: list[Event] = []
 
@@ -48,7 +55,7 @@ def sequence(reader: RecordReader, from_clock_ms: int, to_clock_ms: int) -> list
         possessions.append(_possession(match, current, outcome, terminator))
         current.clear()
 
-    for event in reader.events_between(from_clock_ms, to_clock_ms):
+    for event in events:
         if event.action is Action.PERIOD_END:
             if current:
                 close(PossessionOutcome.PERIOD_END, event)
