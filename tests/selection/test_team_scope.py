@@ -12,7 +12,16 @@ import pytest
 from apps import pipeline
 from matchlens import lenses
 from matchlens.config import settings
-from matchlens.models import Depth, Lens, Moment, MomentType, Rendition, Scope, SuppressionReason
+from matchlens.models import (
+    Claim,
+    Depth,
+    Lens,
+    Moment,
+    MomentType,
+    Rendition,
+    Scope,
+    SuppressionReason,
+)
 from matchlens.selection.scope import judged_importance
 from matchlens.source import MatchSetup, simulate
 from tests.lenses.test_lenses import REPO_ROOT
@@ -40,9 +49,11 @@ class Demo:
     def __init__(self) -> None:
         self.moments: dict[str, Moment] = {}
         self.renditions: list[Rendition] = []
+        self.claims: dict[str, Claim] = {}
 
     def record(self, moment, claims, verifications, renditions) -> None:
         self.moments[moment.moment_id] = moment
+        self.claims |= {c.claim_id: c for c in claims}
         self.renditions.extend(renditions)
 
     def shown(self, lens: Lens) -> set[str]:
@@ -102,6 +113,29 @@ def test_the_same_moment_reads_differently_to_each_side_from_the_same_claims(dem
         ours, theirs = (demo.rendition(side, moment_id) for side in SIDES)
         assert ours.surviving_claim_ids == theirs.surviving_claim_ids
         assert (ours.headline, ours.body) != (theirs.headline, theirs.body)
+
+
+def test_every_goal_card_with_a_score_tells_each_side_it_from_its_side(demo):
+    """Q28: B. The score is the first claim a team lens speaks, so it survives `standard`.
+
+    A 1–0 has no score claim to speak: the side on nought cites nothing (Q26 2a).
+    """
+    names = {t.team_id: t.name for t in SETUP.match.teams}
+
+    def has_score(rendition: Rendition) -> bool:
+        claims = [demo.claims[i] for i in rendition.surviving_claim_ids]
+        return any(len(c.operands) == 2 and c.operands[0].subject != c.operands[1].subject
+                   for c in claims)  # fmt: skip
+
+    for side in SIDES:
+        focus = names[side.focus_team]
+        goals = [demo.rendition(side, m.moment_id) for m in demo.moments.values()
+                 if m.type is MomentType.GOAL]  # fmt: skip
+        scored = [r for r in goals if has_score(r)]
+        assert scored
+        for rendition in scored:
+            body = rendition.body or ""
+            assert any(f"{focus} {w}" in body for w in ("lead", "trail")) or "Level" in body, body
 
 
 # --- the reweight on the demo match --------------------------------------------------------------

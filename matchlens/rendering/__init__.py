@@ -4,7 +4,7 @@ from collections.abc import Mapping
 from datetime import UTC, datetime
 
 from matchlens import calltrace
-from matchlens.models import DetailLevel, Lens, Moment, Rendition
+from matchlens.models import Claim, DetailLevel, Lens, Moment, Rendition
 from matchlens.rendering import templates
 from matchlens.rendering.card import Card
 from matchlens.rendering.facts import clock, sentence
@@ -27,7 +27,8 @@ def render(moment: Moment, selection: Selection, lens: Lens, names: Mapping[str,
     viewer calls it.
 
     A lens with a `focus_team` is told the moment as for or against that side, and hears a
-    comparison between the two sides from that side (D31). The claims are the same ones.
+    comparison between the two sides from that side and before any other claim, because that is
+    where the moment leaves the side (D31, Q28: B). The claims are the same ones.
     """
     calltrace.entered("Rendering")
     base = {
@@ -54,9 +55,10 @@ def render(moment: Moment, selection: Selection, lens: Lens, names: Mapping[str,
     if focus is not None:
         fields["focus"] = names[focus]
     limit = _CLAIMS_SPOKEN[lens.detail_level]
+    claims = selection.claims if focus is None else _sides_first(selection.claims)
     spoken = [
         text
-        for claim in selection.claims
+        for claim in claims
         if (text := sentence(claim, lens.depth, lens.language, names, focus)) is not None
     ][:limit]
     return Rendition(
@@ -66,3 +68,12 @@ def render(moment: Moment, selection: Selection, lens: Lens, names: Mapping[str,
         suppressed=False,
         suppression_reason=None,
     )
+
+
+def _sides_first(claims: tuple[Claim, ...]) -> list[Claim]:
+    """`claims` with the comparisons between two sides first, otherwise in the explainer's order."""
+    return sorted(claims, key=lambda c: not _between_sides(c))  # sorted is stable
+
+
+def _between_sides(claim: Claim) -> bool:
+    return len(claim.operands) == 2 and claim.operands[0].subject != claim.operands[1].subject

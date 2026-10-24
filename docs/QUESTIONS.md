@@ -39,7 +39,7 @@ D31's framing landed in the headline and body rows: *"Riverside Athletic concede
 
 **What I would do if forced:** B, because it is the one that makes the card say what the moment means for the side. I have not done it.
 
-**Answer:**
+**Answer:** B (24 Oct). A lens with a `focus_team` speaks a comparison between the two sides before any other claim; otherwise the explainer's order holds. A 1–0 still says the scorer, because it has no score claim to bring forward (Q26 2a).
 
 ## Q27 · S6's "stage spans add up to the end-to-end latency" fails once the stages do real work  [ticket: L7, S6]  [blocking: no, but the suite is red]
 

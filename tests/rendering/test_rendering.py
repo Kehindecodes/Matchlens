@@ -166,6 +166,29 @@ def test_reading_from_the_focus_side_leaves_the_claim_as_it_was_made():
     assert claim.model_dump() == before
 
 
+def test_the_team_lens_speaks_where_the_moment_leaves_its_side_first():
+    """Q28: B. One spoken claim, and for a team lens it is the score, not the explainer's first."""
+    first, score = _claim("goals", value=2, metric=Metric.GOALS), _score(OPPONENT, 2, SIDE, 1)
+    assert TEAM.detail_level is DetailLevel.STANDARD  # it speaks one claim
+    goal = _moment(MomentType.GOAL, OPPONENT)
+    team = render(goal, _selected(first, score), TEAM, NAMES)
+    assert "Larkfield trail 1–2." in team.body
+    assert "goal for Larkfield" not in team.body
+    assert team.surviving_claim_ids == ("goals", "score")  # the order spoken, not the order kept
+    match = ANALYST.model_copy(update={"detail_level": DetailLevel.STANDARD})
+    assert "Ashworth 2" not in render(goal, _selected(first, score), match, NAMES).body
+
+
+def test_a_comparison_with_the_sides_own_earlier_self_keeps_its_place():
+    earlier = _claim("earlier", value=0.6, metric=Metric.POSSESSION_CONTROL)
+    earlier = earlier.model_copy(
+        update={"claim_type": ClaimType.COMPARATIVE, "operands": (earlier.operands[0],) * 2}
+    )
+    first = _claim("first", value=2, metric=Metric.GOALS)
+    body = render(_moment(MomentType.GOAL), _selected(first, earlier), TEAM, NAMES).body
+    assert "goal for Larkfield" in body
+
+
 def test_an_unsided_template_cannot_name_the_focus_team(tmp_path):
     data = json.loads(templates.TEMPLATES_PATH.read_text())
     data["headlines"][0]["body"] = "{focus} have scored."

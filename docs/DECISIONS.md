@@ -551,6 +551,7 @@ The objection on record was that a platform may not want to ship something that 
 
 - Headline rows carry an optional `side`, `for` or `against`, read by any lens with a `focus_team`. Keyed on the side, never on a lens or a club (invariant 10). A sided lookup does not fall back to the match register, so a missing row fails loudly instead of looking like framing that worked.
 - A comparison between the two sides is read from the focus side: *"Oakhurst lead 2–1"* is said as *"Redfern trail 1–2"*. The claim is not changed; Rendering reads a reversed copy and stores nothing.
+- A comparison between the two sides is also spoken **first** (Q28: B), so a lens that speaks one claim says where the moment leaves the side — the score, not the scorer. A 1–0 has no score claim (Q26 2a) and still says the scorer. Only the spoken order moves; the claim set does not.
 - No new entity, field or enum value. The same claims, a different sentence (V11).
 
 ---
