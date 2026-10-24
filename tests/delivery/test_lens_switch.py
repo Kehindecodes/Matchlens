@@ -14,7 +14,7 @@ from matchlens.delivery.http import create_app
 from matchlens.delivery.hub import MatchStateHub
 from matchlens.delivery.release import ReleaseQueues
 from matchlens.delivery.sessions import SessionStore
-from matchlens.models import Rendition, Scope
+from matchlens.models import MomentType, Rendition, Scope
 from matchlens.rendering import Card
 from tests.delivery.test_http import LiveServer, _fields, _state
 
@@ -94,7 +94,13 @@ def _card(lens_id: str, moment_id: str, clock_ms: int) -> Card:
         language="en", headline=moment_id, body="b", surviving_claim_ids=(), suppressed=False,
         suppression_reason=None, rendered_at=datetime.now(UTC),
     )  # fmt: skip
-    return Card(rendition=rendition, display_at_clock=clock_ms)
+    return Card(
+        rendition=rendition,
+        display_at_clock=clock_ms,
+        moment_type=MomentType.CHANCE,
+        importance=0.5,
+        body_in_full="b",
+    )
 
 
 @pytest.fixture

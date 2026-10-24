@@ -20,7 +20,7 @@ from matchlens.delivery.hub import MatchStateHub
 from matchlens.delivery.release import ReleaseQueues
 from matchlens.delivery.router import CardRouter
 from matchlens.delivery.sessions import SessionStore
-from matchlens.models import Frame, Phase, Rendition, ViewerSession
+from matchlens.models import Frame, MomentType, Phase, Rendition, ViewerSession
 from matchlens.rendering import Card
 from matchlens.source import MatchSetup, simulate
 from matchlens.source.replay import Replay
@@ -38,7 +38,13 @@ def _card(clock: int, lens_id: str = settings.default_lens_id, moment_id: str = 
         language="en", headline="h", body="b", surviving_claim_ids=(), suppressed=False,
         suppression_reason=None, rendered_at=datetime.now(UTC),
     )  # fmt: skip
-    return Card(rendition=rendition, display_at_clock=clock)
+    return Card(
+        rendition=rendition,
+        display_at_clock=clock,
+        moment_type=MomentType.CHANCE,
+        importance=0.5,
+        body_in_full="b",
+    )
 
 
 def _clocks(cards: list[Card]) -> list[int]:

@@ -53,6 +53,7 @@ class Settings(BaseSettings):
     # Delivery
     replay_speed: float = 25.0  # the in-process feed, until the pipeline sends over Service Bus
     max_replay_speed: float = 100.0  # the most the page may ask for (D3); above it is refused
+    catchup_key_moments: int = 3  # D4, Q30: what a late joiner is told when nobody has scored
 
     # Models
     model_name: str = ""

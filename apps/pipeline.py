@@ -15,7 +15,7 @@ from opentelemetry import context, trace
 from matchlens import audit, explanation, lenses, selection, verification
 from matchlens.ingest import Ingest
 from matchlens.models import Claim, Event, Frame, SignalReading, Verdict, Verification
-from matchlens.rendering import Card, render
+from matchlens.rendering import Card, in_full, render
 from matchlens.selection import ShownCards
 from matchlens.source import MatchSetup, StreamItem, simulate
 from matchlens.spotting import Spotter, SpotterResult
@@ -100,9 +100,18 @@ class Pipeline:
                     "rendering", attributes={"moment_id": result.moment.moment_id}
                 ):
                     rendition = render(result.moment, selected, lens, self._names)
+                    body_in_full = in_full(result.moment, selected, lens, self._names)
                 renditions.append(rendition)
                 if not rendition.suppressed:  # a suppressed rendition is for Audit, not a viewer
-                    cards.append(Card(rendition=rendition, display_at_clock=result.moment.clock_ms))
+                    cards.append(
+                        Card(
+                            rendition=rendition,
+                            display_at_clock=result.moment.clock_ms,
+                            moment_type=result.moment.type,
+                            importance=result.moment.importance,
+                            body_in_full=body_in_full,
+                        )
+                    )
             audit.record(result.moment, claims, verifications, renditions)
             return cards
         finally:
