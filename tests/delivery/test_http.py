@@ -20,7 +20,7 @@ from matchlens.delivery.http import create_app
 from matchlens.delivery.hub import MatchStateHub
 from matchlens.delivery.release import ReleaseQueues
 from matchlens.delivery.sessions import SessionStore
-from matchlens.models import Frame, Phase, Rendition
+from matchlens.models import Frame, MomentType, Phase, Rendition
 from matchlens.rendering import Card
 from matchlens.source import MatchSetup, simulate
 from matchlens.source.replay import Replay
@@ -208,7 +208,16 @@ def test_a_released_card_is_streamed_after_the_clock(live: LiveServer, queues: R
         headline="The walking skeleton", body="b", surviving_claim_ids=(), suppressed=False,
         suppression_reason=None, rendered_at=datetime.now(UTC),
     )  # fmt: skip
-    queues.enqueue(Card(rendition=rendition, display_at_clock=4_032_000), session)
+    queues.enqueue(
+        Card(
+            rendition=rendition,
+            display_at_clock=4_032_000,
+            moment_type=MomentType.CHANCE,
+            importance=0.5,
+            body_in_full="b",
+        ),
+        session,
+    )
     live.publish(_state(seq=7, clock_ms=4_033_000))
     state, card = live.events(session_id, 2)
     assert _fields(state)["event"] == "match_state"

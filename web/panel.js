@@ -212,6 +212,29 @@ class Panel {
     this.render();
   }
 
+  // What this lens showed before the viewer joined, told once above the cards (D4). It is not
+  // a card: it is not counted, and it does not say the panel just spoke.
+  showCatchUp(summary) {
+    const section = document.createElement("section");
+    section.className = "catchup";
+    const h3 = document.createElement("h3");
+    h3.textContent = `The match so far · to ${mmss(summary.to_clock)}`;
+    const ol = document.createElement("ol");
+    for (const line of summary.lines) {
+      const li = document.createElement("li");
+      const time = document.createElement("time");
+      time.textContent = mmss(line.clock_ms);
+      const strong = document.createElement("strong");
+      strong.textContent = line.headline;
+      const p = document.createElement("p");
+      p.textContent = line.body;
+      li.append(time, " ", strong, p);
+      ol.append(li);
+    }
+    section.append(h3, ol);
+    this.cards.before(section);
+  }
+
   // A lens switch: the cards already shown stay as they were, and a marker says where the new
   // lens takes over. Nothing is re-rendered or back-filled (L5).
   switchTo(lens) {
@@ -243,6 +266,7 @@ function stream(panel, session, onStatus, reopen) {
     panel.onState(state);
   });
   source.addEventListener("card", (e) => panel.addCard(JSON.parse(e.data)));
+  source.addEventListener("catch_up", (e) => panel.showCatchUp(JSON.parse(e.data)));
   source.addEventListener("playback", (e) => showSpeed(JSON.parse(e.data).speed));
   source.addEventListener("error", () => {
     if (unloading) return; // a reload closes the stream; that is not a lost session

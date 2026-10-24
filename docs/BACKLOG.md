@@ -111,7 +111,7 @@ Update the **Status** column when a ticket moves. Statuses: `todo`, `wip`, `done
 | 📝 D1 | `stream_offset_ms` and the per-session release queue | 1.5 | L3, S3 | T1 | done | ✅ |
 | 📝 D2 | Two sessions on different offsets, both correct | 0.5 | D1 | T1 | done | ✅ folded into D1's tests and walkthrough |
 | D3 | Speed control for the judge path | 0.5 | D1, F4 | T1 | done | ✅ J1: 227.4 s at 25× |
-| D4 | Catch-up on join, per lens, verified claims only | 1 | D1, M1 | T2 | todo | ✅ |
+| D4 | Catch-up on join, per lens, claims that survived Selection (A3 is a stub) | 1 | D1, M1 | T2 | done | ✅ |
 | D5 | OverlayPacket endpoint | 0.5 | L3 | T2 | todo | ✅ |
 
 **D1** — release while `display_at_clock <= match_clock_now - stream_offset_ms`. **Delay only, never anticipate** (V8).
@@ -125,12 +125,12 @@ Update the **Status** column when a ticket moves. Statuses: `todo`, `wip`, `done
 
 | ID | Ticket | Est | Deps | Tier | Status | Brief |
 |---|---|---|---|---|---|---|
-| 📝 A1 | Frozen-log reader: events strictly before clock X | 0.5 | S2 | T1 | todo | — |
-| 📝 A2 | Explainer agent emitting structured Claims, not prose | 2 | A1, M1 | T1 | todo | — |
-| 📝 A3 | Verifier: six checks, value recomputation, fails closed | 2 | A2 | T1 | todo | — |
-| A4 | Lens-aware generation from each lens's surviving claim set | 1 | A3, L3 | T2 | todo | — |
-| 📝 A5 | Degradation ladder with automatic fallback L0→L4 | 0.5 | A4, L3 | T1 | todo | — |
-| A6 | Evidence drawer in the UI | 0.5 | A3, L4 | T2 | todo | — |
+| 📝 A1 | Frozen-log reader: events strictly before clock X | 0.5 | S2 | T1 | todo | ✅ |
+| 📝 A2 | Explainer agent emitting structured Claims, not prose | 2 | A1, M1b | T1 | todo | ✅ |
+| 📝 A3 | Verifier: six checks, value recomputation, fails closed | 2 | A2 | T1 | todo | ✅ |
+| A4 | Lens-aware generation from each lens's surviving claim set | 1 | A3, L3 | T2 | todo | ✅ |
+| 📝 A5 | Degradation ladder with automatic fallback L0→L4 | 0.5 | A4, L3 | T1 | todo | ✅ |
+| A6 | Evidence drawer in the UI | 0.5 | A3, L4 | T2 | todo | ✅ |
 
 **A1** — a test proves the explainer cannot see the future (V2).
 **A2** — claims carry type, metric, value, window and `evidence_ids`. A claim with no citable evidence is dropped at source.
@@ -161,7 +161,7 @@ Update the **Status** column when a ticket moves. Statuses: `todo`, `wip`, `done
 
 | ID | Ticket | Est | Deps | Tier | Status | Brief |
 |---|---|---|---|---|---|---|
-| X1 | Recap per lens | 1 | A3 | T3 | todo | — |
+| X1 | Recap per lens — **same mechanism as D4, merge them (D34)** | 1 | A3 | T3 | todo | — |
 | X2 | Second language via LexiconEntry | 1 (0.5 lite) | A4 | T3 | todo | — |
 | X3 | Demo video, README, pitch | 1.5 | all | T1 | todo | — |
 | X4 | Judging-window hardening | 0.5 | S5 | T1 | todo | — |

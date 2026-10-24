@@ -24,6 +24,35 @@ Newest at the top. Kehinde answers inline and moves the resolved ones to `docs/D
 
 ---
 
+## Q30 · What goes into each lens's catch-up, and what it may say it survived  [ticket: D4]  [blocking: yes]
+
+**What I need to know:** three things, and the brief settles none of them.
+
+1. **Does the casual summary say "goals and nothing else", or "what casual showed"?** Those two are different on seed 1. Before 68:00 the casual lens showed three cards: two goals and *a big chance at 59:00*. The brief says *"a casual joiner gets the goals and nothing else"* and also *"only what their lens would have shown"*. Keeping only the goals is a new rule: a summary that drops some of a lens's own cards by moment type.
+2. **What is "the tactical shape of the half" for the analyst?** Before 68:00 the analyst lens showed 27 cards: 17 tactical shifts, 8 chances and 2 goals. Listing 27 headlines is a replay with the bodies taken off, which the brief rules out. A shape means grouping, for example "Riverside Athletic: pressing harder 13:00, 29:00; less of the ball 21:00". That is new wording no card has used. Every line would still cite its moments, but the grouping rule decides what an analyst reads.
+3. **O6 is still OPEN, so what does the summary say its claims survived?** A3 is a stub that passes every claim (`verification/__init__.py`), so "verified" would be false. The brief says to state the weaker criterion ("survived Selection") rather than swap it in quietly. I can only state that honestly once O6 says whether A3 is coming.
+
+**Why I cannot decide it:** all three change what a viewer sees on joining (CLAUDE.md, "stop and ask"). Part 1 drops some of a lens's shown cards from its own summary. Part 3 depends on O6, which is OPEN.
+
+**After D34 (24 Oct):** D34 makes the summary panel-only and makes it the same function as X1's full-time recap. It also says the merged X1 "no longer needs the verifier". I read that as: the summary does not wait for A3. Parts 1 and 2 still stand, and part 2 gets bigger. By full time the analyst lens has shown 22–57 cards in each of D30's 12 calibration matches, so the grouping rule decides the analyst recap as well as the 68th-minute catch-up. Part 3 narrows to wording only: is "from the moments this lens selected" the right thing to say while A3 is a stub?
+
+**What does not need you** (no change to what a viewer sees, so I can build it once you answer):
+- The summary is built from the cards the session's lens already produced up to its position at join, taken from the router's kept history (D33). So it holds "only what their lens would have shown" by construction. It also inherits the team lens's sided wording (D31) without new framing.
+- The split happens at `CardRouter.join`, at one position: cards up to the position go to the summary, cards after it go to the queue. Nothing is summarised *and* sent as a card. Today `_catch_up` runs on first release, at a slightly later position than join, and that gap would cover the same cards twice.
+- The summary goes into the session's log as its own SSE event. `Last-Event-ID` already counts that log, so a reconnect does not repeat it. A joiner at kickoff gets no summary at all.
+- Built from template rows keyed on depth and moment type, never on a lens (invariant 10).
+
+**Options as I see them:**
+- A: **Summarise what the lens showed, grouped by depth's template rows.** Casual: one line per goal (the big chance stays out, because there is no casual catch-up row for chances). Team: one line per goal and per chance, sided. Analyst: goals, then chances, then tactical shifts grouped by team and signal. The template rows decide which moment types a depth summarises, so "casual gets goals only" is a data row, not code. Costs: needs the moment type on `Card` (a stream message, not an entity). Part 1 becomes "only goals" through a data row.
+- B: **One line per card the lens showed, headline only, nothing dropped or grouped.** Casual gets 3 lines and analyst gets 27. No new wording. Costs: fails "summary, not replay" for the analyst, and casual gets the chance.
+- C: **Cut D4** (T2, first in Phase 5 to cut, with one build day left). Costs: L5's lens switch still shows only later cards, and a late joiner gets nothing about the match so far.
+
+**What I would do if forced:** A. For part 3, the summary would say "from the moments and claims this lens selected", with no "verified" until A3 lands. I have not done it.
+
+**Answer:** Kehinde: *"every viewer should just get only goals, what caused it, how it was scored … if there are no goals, just key moments."* Key moments are the top 3 by importance that the lens showed (`catchup_key_moments = 3`). Done in D4. Each goal is one line from the card the lens showed, with every claim Selection kept for that lens spoken at its depth and from its side, so the casual line now says the scorer and how the move began, with no number. The ticket's "analyst gets the tactical shape of the half" is replaced by this. The summary does not say "verified".
+
+---
+
 ## Q29 · Should the score and clock on the page be delayed by the viewer's offset too?  [ticket: D1]  [blocking: no]
 
 **What I need to know:** Whether `MatchState` goes through the per-session delay as cards do.

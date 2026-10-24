@@ -10,7 +10,7 @@ from matchlens.rendering.card import Card
 from matchlens.rendering.facts import clock, sentence
 from matchlens.selection import Selection
 
-__all__ = ["Card", "render"]
+__all__ = ["Card", "in_full", "render"]
 
 # How many selected claims a lens speaks, by how much detail it wants. None is all of them.
 _CLAIMS_SPOKEN = {DetailLevel.MINIMAL: 0, DetailLevel.STANDARD: 1, DetailLevel.FULL: None}
@@ -48,26 +48,50 @@ def render(moment: Moment, selection: Selection, lens: Lens, names: Mapping[str,
             suppression_reason=selection.suppression_reason,
         )
 
+    headline, body = _words(moment, selection, lens, names, _CLAIMS_SPOKEN[lens.detail_level])
+    return Rendition(
+        **base,
+        headline=headline,
+        body=body,
+        suppressed=False,
+        suppression_reason=None,
+    )
+
+
+def in_full(moment: Moment, selection: Selection, lens: Lens, names: Mapping[str, str]) -> str:
+    """The body `render` writes for this lens, with every selected claim spoken (D4).
+
+    A catch-up line is the one place a lens says more than its card did: a late joiner is told
+    how a goal came about even on a lens whose card only said it happened. The claims are still
+    the ones Selection kept for this lens, read at its depth and from its side. Empty for a
+    suppressed selection, which has nothing to say.
+    """
+    if selection.suppression_reason is not None:
+        return ""
+    return _words(moment, selection, lens, names, None)[1]
+
+
+def _words(
+    moment: Moment,
+    selection: Selection,
+    lens: Lens,
+    names: Mapping[str, str],
+    limit: int | None,
+) -> tuple[str, str]:
+    """The headline and the body, speaking the first `limit` claims that have words."""
     focus = lens.focus_team
     side = None if focus is None else "for" if moment.subject.id == focus else "against"
     words = templates.lookup(lens.language, moment.type, lens.depth, side)
     fields = {"team": names[moment.subject.id], "window": f"at {clock(moment.clock_ms)}"}
     if focus is not None:
         fields["focus"] = names[focus]
-    limit = _CLAIMS_SPOKEN[lens.detail_level]
     claims = selection.claims if focus is None else _sides_first(selection.claims)
     spoken = [
         text
         for claim in claims
         if (text := sentence(claim, lens.depth, lens.language, names, focus)) is not None
     ][:limit]
-    return Rendition(
-        **base,
-        headline=words.headline.format(**fields),
-        body=" ".join([words.body.format(**fields), *spoken]),
-        suppressed=False,
-        suppression_reason=None,
-    )
+    return words.headline.format(**fields), " ".join([words.body.format(**fields), *spoken])
 
 
 def _sides_first(claims: tuple[Claim, ...]) -> list[Claim]:

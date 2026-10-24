@@ -11,6 +11,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ConfigDict, Field
 
 from matchlens import lenses
+from matchlens.catchup import CatchUp
 from matchlens.config.settings import settings
 from matchlens.delivery.hub import MatchStateHub
 from matchlens.delivery.release import ReleaseQueues
@@ -127,6 +128,8 @@ def create_app(
     ) -> AsyncIterator[ServerSentEvent]:
         """The state and the cards this session's video has reached, as it reaches them (D1, D32).
 
+        A late joiner's catch-up (D4) comes first, as a `catch_up` event counted like a card.
+
         Every event's id is `<state seq>:<cards released>`, so whichever event a browser saw
         last, `Last-Event-ID` says both where the clock was and how many cards it had. A
         reconnect resumes after both; a new connection with no id starts after every card
@@ -154,9 +157,10 @@ def create_app(
             released = queues.release_due(current, clock_ms)
             if released:
                 sessions.mark_seen(current.session_id, released[-1].display_at_clock)
-            for card in queues.released(current.session_id, sent):
+            for entry in queues.released(current.session_id, sent):
                 sent += 1
-                yield ServerSentEvent(data=card, event="card", id=f"{seq}:{sent}")
+                event = "catch_up" if isinstance(entry, CatchUp) else "card"
+                yield ServerSentEvent(data=entry, event=event, id=f"{seq}:{sent}")
 
     app.mount("/static", StaticFiles(directory=web_dir), name="static")
     return app
