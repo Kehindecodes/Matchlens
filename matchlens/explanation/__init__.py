@@ -9,7 +9,7 @@ from matchlens.explanation.builder import MODEL, explain_moment
 from matchlens.ingest import FrozenLog
 from matchlens.models import Claim, Moment
 
-__all__ = ["Answer", "Proposer", "by_rule", "explain"]
+__all__ = ["Answer", "Proposer", "by_rule", "explain", "propose"]
 
 
 def explain(moment: Moment, log: FrozenLog, proposer: Proposer | None = None) -> list[Claim]:
@@ -32,6 +32,17 @@ def explain(moment: Moment, log: FrozenLog, proposer: Proposer | None = None) ->
     if proposer is not None:
         claims += agent.propose(moment, log, claims, proposer)
     return claims
+
+
+def propose(
+    moment: Moment, log: FrozenLog, made: Sequence[Claim], proposer: Proposer
+) -> list[Claim]:
+    """Only the claims the model adds to `made`, L7's claims for `moment` (A2).
+
+    The same as the tail `explain` adds with a proposer, for a caller that has sent `made` on
+    already and asks the model afterwards (Q34: A).
+    """
+    return agent.propose(moment, log, made, proposer)
 
 
 def by_rule(claims: Sequence[Claim]) -> list[Claim]:

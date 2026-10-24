@@ -41,7 +41,7 @@ Under Q32: A, no card shows an A2 claim, so the wait currently buys the viewer n
 
 **What I would do if forced:** A. It is the D35 logic applied to time: A2 contributing nothing should change nothing, and that includes when a card arrives.
 
-**Answer:**
+**Answer:** A. Kehinde, 25 Oct: A2 runs off the card path; cards ship with L7's claims, the model's are verified and audited when it answers.
 
 ---
 

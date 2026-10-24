@@ -7,6 +7,7 @@ follows the instructions would write. The others fail in the ways a real one doe
 
 import json
 import logging
+import threading
 from typing import override
 
 import pytest
@@ -346,37 +347,73 @@ def test_a_model_that_fails_to_answer_gives_no_claims_and_is_logged(honest, capl
 # --- A2 contributing nothing changes nothing -----------------------------------------------------
 
 
-def _cards(proposer: Proposer | None) -> list[str]:
-    """Seed 1 through the pipeline: every card, as JSON."""
-    the_pipeline = pipeline.Pipeline(proposer)
-    cards = [
+class Held(Proposer):
+    """`model`, but no answer comes until the test lets it: a model slower than the match."""
+
+    def __init__(self, model: Proposer):
+        self.model = model
+        self.released = threading.Event()
+        self.asked = 0
+        self.inline = False  # asked on the thread that makes the cards
+
+    @override
+    def propose(self, instructions: str, prompt: str) -> Answer:
+        self.asked += 1
+        if threading.current_thread() is threading.main_thread():
+            self.inline = True
+            raise AssertionError("the card path asked the model")
+        if not self.released.wait(timeout=60):
+            raise AssertionError("the card path waited for the model")
+        return self.model.propose(instructions, prompt)
+
+
+def _cards(the_pipeline: pipeline.Pipeline) -> list[str]:
+    """Seed 1 through `the_pipeline`: every card, as JSON."""
+    return [
         c.model_dump_json(exclude={"rendition": {"rendered_at"}})  # wall time, not content
         for item in simulate(1)
         for c in the_pipeline.process(item)
     ]
-    return cards
 
 
 @pytest.fixture(scope="module")
 def alone() -> list[str]:
-    return _cards(None)
+    return _cards(pipeline.Pipeline())
 
 
 @pytest.mark.parametrize("model", [Fails, Liar])
-def test_no_card_depends_on_a2(model, alone, monkeypatch):
-    # D35, and Q32: A. With no model the cards are L7's. A model that fails, and one whose
-    # every number is wrong, both leave every card byte-identical, because no card shows a
-    # model's claim until A3 can judge it. Audit is handed them all the same.
-    audited: list[Claim] = []
+def test_no_card_depends_on_a2_or_waits_for_it(model, alone, monkeypatch):
+    # D35 and Q32: A. A model that fails, and one whose every number is wrong, both leave every
+    # card byte-identical to the run with no model. Q34: A. And none of those cards waits for
+    # it: the model gives no answer at all until every card of the match has gone out. Audit is
+    # handed its claims, with their verifications, once it does answer.
+    audited: list[tuple[Claim, ...]] = []
+    verified: list[str] = []
     real = pipeline.audit.record
 
     def record(moment, claims, verifications, renditions):
-        audited.extend(claims)
+        audited.append(tuple(claims))
+        verified.extend(v.claim_id for v in verifications)
         real(moment, claims, verifications, renditions)
 
     monkeypatch.setattr(pipeline.audit, "record", record)
-    cards = _cards(model())
-    assert alone
-    assert cards == alone
-    if model is not Fails:
-        assert any(c.model == MODEL for c in audited)
+    held = Held(model())
+    the_pipeline = pipeline.Pipeline(held)
+    try:
+        cards = _cards(the_pipeline)
+        assert not held.inline
+        assert alone
+        assert cards == alone
+        held.released.set()
+        the_pipeline.drain()
+    finally:
+        held.released.set()
+        the_pipeline.close()
+
+    assert held.asked > 1  # every moment was put to the model, one after another
+    proposed = [c for claims in audited for c in claims if c.model == MODEL]
+    if model is Fails:
+        assert not proposed
+    else:
+        assert proposed
+        assert {c.claim_id for c in proposed} <= set(verified)
