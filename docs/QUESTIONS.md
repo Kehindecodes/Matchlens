@@ -33,9 +33,9 @@ D1's brief says the hub is *"unchanged for state; cards go through the queue"*, 
 **Why I cannot decide it:** it changes what a viewer sees and when (invariant 8 is written about cards, and this is the score), and the brief and the docstring disagree.
 
 **Options as I see them:**
-- A: leave it as the brief says. The page's score and clock are the live match.
-- B: delay each state per session to `clock_ms <= match_clock_now - stream_offset_ms`, sending the latest due state on each tick. The hub keeps only the latest state today, so it would hold a short history (the largest offset's worth, one state per match second). Costs: the seq in a stream id becomes the seq of the state the viewer is at, not the latest; a little memory per match.
-- C: B, and the page shows the viewer's own position as its clock. Costs: a page change.
+- A: leave it as the brief says. The page's score and clock are the live match. Costs: the score spoils the goal; and a panel's "just spoke" reading compares the live clock with the cards' clocks, so at a 45 s offset a card that has just arrived reads as "just spoke" for 15 s of match time, then "quiet for 1 min".
+- B: delay each state per session to `clock_ms <= match_clock_now - stream_offset_ms`, sending the latest due state on each tick. The score and the page clock both follow, because they travel in one message. The hub keeps only the latest state today, so it would hold a short history (the largest offset's worth, one state per match second). Costs: the seq in a stream id becomes the seq of the state the viewer is at, not the latest; a little memory per match.
+- ~~C: B, and the page shows the viewer's own position as its clock.~~ Withdrawn (24 Oct): the page reads its clock from the same `MatchState` as the score (`web/panel.js`), so B already moves the clock to the viewer's position with no page change. C was B.
 
 **What I would do if forced:** B. It is the rule the cards already follow, and without it the offset protects the cards and not the score. I have not done it.
 
