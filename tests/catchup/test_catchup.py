@@ -76,8 +76,7 @@ def test_a_68th_minute_joiner_gets_a_summary_of_0_to_68_and_none_of_those_cards(
     first, *rest = _log(queues, session)
     assert isinstance(first, CatchUp)
     assert (first.from_clock, first.to_clock) == (0, JOIN)
-    assert all(isinstance(entry, Card) for entry in rest)
-    assert all(card.display_at_clock > JOIN for card in rest)
+    assert all(isinstance(entry, Card) and entry.display_at_clock > JOIN for entry in rest)
 
 
 @pytest.mark.parametrize("lens_id", LENS_IDS)
@@ -94,7 +93,7 @@ def test_a_viewer_behind_is_summarised_to_where_their_video_is(seed_one):
     first, *rest = _log(queues, session)
     assert isinstance(first, CatchUp)
     assert first.to_clock == JOIN - 45_000
-    assert all(card.display_at_clock > JOIN - 45_000 for card in rest)
+    assert all(isinstance(e, Card) and e.display_at_clock > JOIN - 45_000 for e in rest)
 
 
 # --- per lens -------------------------------------------------------------------------------------
