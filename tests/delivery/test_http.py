@@ -138,6 +138,13 @@ def test_the_page_is_served(client: TestClient):
     assert client.get("/static/app.js").status_code == 200
 
 
+def test_the_delay_view_is_served(client: TestClient):
+    r = client.get("/delay")
+    assert r.status_code == 200
+    assert "delay.js" in r.text
+    assert client.get("/static/delay.js").status_code == 200
+
+
 # --- sessions -------------------------------------------------------------------------------------
 
 
