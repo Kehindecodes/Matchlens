@@ -39,17 +39,19 @@ Write the question into `docs/QUESTIONS.md` with the ticket ID and what you need
 - A library not in the pinned stack below
 - Anything where the honest answer is "I guessed"
 
-### Tickets that are not yours to implement
+### Tickets you implement, and must explain (D29)
 
-MatchLens is a learning project. Two things are firsts for Kehinde — **building an event-driven system** and **orchestrating AI agents** — and the tickets carrying those lessons are his to write.
+MatchLens is a learning project. Two things are firsts for Kehinde — **building an event-driven system** and **orchestrating AI agents** — and until 24 October the tickets carrying those lessons were reserved for him to write.
 
-- **🧑 in `docs/BACKLOG.md` means do not implement it.** Not even if it is blocking. Not even if you could do it faster. Especially not if you could do it faster — speed is not what these tickets are for. If a 🧑 ticket blocks you, say so and pick up something else.
-- **🤝 means implement it, but Kehinde owns the test or the schema.** The ticket note says which. Do not also write that test; leave it failing or absent and say so.
-- If you believe a 🧑 ticket is mis-assigned, write it in `docs/QUESTIONS.md`. Do not decide it yourself.
+**That reservation is lifted (D29).** With two build days left, implement everything, tests included. The learning moves from writing the code to reading an account of it.
 
-The currently reserved tickets are **D1, A1, A3, A5, S6**, plus the roster projection inside A1/U5 and the `Claim` schema design before A2. `docs/LEARNING-PLAN.md` has the reasoning.
+- **📝 in `docs/BACKLOG.md` means: implement it, and write a walkthrough** at `docs/walkthroughs/<ID>.md` as the ticket's last step. **The walkthrough is an acceptance criterion**, not a courtesy — the ticket is not done without it.
+- Read `docs/walkthroughs/TEMPLATE.md` before writing the first one. It is prescriptive, and the one rule is: **do not describe what the code does.** Describe what the finished code cannot show — the options that lost, what broke, what a reader would get wrong, where state lives and when it resets.
+- 🧑 and 🤝 markers on **finished** tickets are history, not instructions. Leave them.
 
-**S4 is 🤝, not unmarked (D20).** Claude Code wires `apps/pipeline.py`. The two call-path criteria were Kehinde's, then handed back to Claude Code on 18 Oct (D20, amended).
+**This hands over implementation, not judgement.** The "Stop and ask" list above stands unchanged. Anything OPEN, any invariant, any new entity, anything changing what a viewer sees, any cut — still write it in `docs/QUESTIONS.md` and stop. A product decision taken quietly is the one failure this project has guarded against from the beginning, and a deadline is not a reason to start.
+
+**S4 is 🤝, not unmarked (D20).** Claude Code wires `apps/pipeline.py`. The two call-path criteria were Kehinde's, then handed back to Claude Code on 18 Oct (D20, amended). Finished, so this is a record rather than an instruction (D29).
 
 ### Decide yourself. Do not ask.
 

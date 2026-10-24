@@ -1,5 +1,17 @@
 # Learning plan — what Kehinde writes by hand
 
+> **Superseded as a build assignment, 24 Oct (D29).** Every reserved ticket has been handed to Claude
+> Code, which implements it and writes a walkthrough at `docs/walkthroughs/<ID>.md`.
+>
+> **This document is still the best thing in the repo for deciding what to read and why.** The per-ticket
+> reasoning below — why a ticket carries a lesson, and which lesson — is what makes the walkthroughs
+> worth opening in the right order. Read it as a reading list, not a work list. The 🧑 and 🤝 markers
+> below now mean "this is where the learning is", not "do not delegate this".
+>
+> The cost is recorded honestly in D29: reading is not writing. The recovery is one ticket rebuilt from
+> its walkthrough after the 27th — **D1** or **A3**, one first-time skill each.
+
+
 MatchLens is a learning project as much as a submission. Two things are firsts: **building an event-driven system**, and **orchestrating AI agents**. This file says which tickets Kehinde writes himself and why, so the learning is not accidentally delegated away.
 
 > **For Claude Code:** a ticket marked 🧑 in `docs/BACKLOG.md` is **not yours to implement**, even if it is blocking and even if you could do it faster. Leave it. A ticket marked 🤝 is yours to implement, but Kehinde writes the test or owns the schema — read the note on that ticket. See the rule in `CLAUDE.md`.
