@@ -73,6 +73,11 @@ def create_app(
     def watch() -> FileResponse:
         return FileResponse(web_dir / "watch.html")
 
+    @app.get("/delay", include_in_schema=False)
+    def delay() -> FileResponse:
+        """Two viewers on different offsets, side by side (D2)."""
+        return FileResponse(web_dir / "delay.html")
+
     @app.get("/session/{session_id}")
     def get_session(session_id: str) -> ViewerSession:
         return _session(session_id)

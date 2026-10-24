@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MatchLens</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <header>
+    <div class="score">Two viewers, one match</div>
+    <div class="clock">Each panel is a viewer whose video is behind the action by a different amount.</div>
+    <div class="status" id="status">connecting…</div>
+    <div class="views"><a href="/">All three lenses side by side</a></div>
+  </header>
+  <main class="panels" id="panels"></main>
+
+  <template id="panel-template">
+    <section class="panel">
+      <div class="panel-head"><h2></h2><span class="count"></span></div>
+      <p class="audience"></p>
+      <p class="panel-score" aria-live="polite"></p>
+      <div class="quiet" role="status"></div>
+      <ol class="cards" aria-live="polite"></ol>
+    </section>
+  </template>
+  <script src="/static/panel.js"></script>
+  <script src="/static/delay.js"></script>
+</body>
+</html>
