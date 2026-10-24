@@ -161,7 +161,7 @@ Update the **Status** column when a ticket moves. Statuses: `todo`, `wip`, `done
 
 | ID | Ticket | Est | Deps | Tier | Status | Brief |
 |---|---|---|---|---|---|---|
-| X1 | Recap per lens | 1 | A3 | T3 | todo | — |
+| X1 | Recap per lens — **same mechanism as D4, merge them (D34)** | 1 | A3 | T3 | todo | — |
 | X2 | Second language via LexiconEntry | 1 (0.5 lite) | A4 | T3 | todo | — |
 | X3 | Demo video, README, pitch | 1.5 | all | T1 | todo | — |
 | X4 | Judging-window hardening | 0.5 | S5 | T1 | todo | — |

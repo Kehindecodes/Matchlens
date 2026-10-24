@@ -617,6 +617,41 @@ Answers D3's two open choices.
 
 ---
 
+## D34 · One delivery surface: the overlay packet is the in-player form, not a broadcast feed — SETTLED 24 Oct
+
+**MatchLens delivers to one surface — a streaming player, per viewer.** Broadcast is not a target.
+
+### Two surfaces, and only one of them is ours
+
+| Surface | Shape | History | Catch-up |
+|---|---|---|---|
+| **Companion panel** — cards beside or below the video (L4) | a list | yes | natural: one block at the top |
+| **Overlay on the picture** — `OverlayPacket`, `display_at_clock` + `duration_ms` | transient graphic | none | nowhere to put it |
+
+### Why broadcast is ruled out rather than deferred
+
+Overlays composited onto a video feed are **one-to-many by construction.** A graphics system renders one thing for everyone watching that feed, so the lens becomes a *per-feed* choice a producer makes and per-viewer personalization collapses. That is precisely the limitation Positioning named in Prime Vision — *"alt-casts are one-to-many, not per-viewer"* — and shipping into that path would mean giving up the only differentiator that survived the Premier League app, FotMob and Sofascore.
+
+### So what `OverlayPacket` is
+
+**The machine-readable form of a card, for a streaming player to render over the picture rather than beside it** — rendered client-side, per session, so personalization stays intact.
+
+This is a stronger claim than the broadcast one, because it is the space nothing occupies: Sofascore's insights are a tab you navigate to, FotMob's are prose you read instead of watching, and an insight **on** the picture that differs per viewer is unoccupied. D5 is the only artifact in the build that demonstrates the output is in a form that could do it.
+
+On the brief: *"in the way the platform's rendering partner handles overlays in the production path"* describes the one-to-many case. We answer the **streaming** scenario of "studio, broadcast, or streaming" and say which, rather than claiming all three and keeping none of them properly.
+
+### D4 is panel-only
+
+Catch-up needs a surface with history. On the overlay path there is nowhere to put a summary, and in broadcast the question does not arise — linear TV already serves late joiners with a rotating score bug. D4 therefore belongs to the panel, with at most a single "match so far" overlay on join (`OverlayTemplate.STAT_BAR` is close to purpose-built for that).
+
+**And it is a smaller problem than the ticket implies.** D1's release rule is keyed on the viewer's own position, not wall clock — so a viewer using start-over, beginning at kickoff forty minutes into a live match, receives every card at the right moment with no catch-up at all. **Catch-up is only for someone joining live and staying live.** That is a good property of D1 and worth saying in the pitch.
+
+### D4 and X1 are one mechanism
+
+A summary of 0→68 for a joiner, and a recap of 0→full-time at the whistle, are the same function with a different `to_clock`. Build it once and both the catch-up ticket and the brief's *"automated match recaps"* — which it names twice — are answered. X1 sits at T3 with a dependency on A3; merged with D4 it is cheaper than either alone and no longer needs the verifier.
+
+---
+
 # OPEN — Kehinde decides
 
 ## O4 · Audit as an Azure Function or in-process
