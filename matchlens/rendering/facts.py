@@ -29,7 +29,7 @@ def sentence(
 
     `focus` is the team id a lens follows, if it follows one.
     """
-    claim = _from(claim, focus)
+    claim = told_from(claim, focus)
     read = _read(claim, language)
     if read is None:
         return None
@@ -44,7 +44,7 @@ def sentence(
     return said[0].upper() + said[1:]  # a row may open on a label: "possession share ..."
 
 
-def _from(claim: Claim, focus: str | None) -> Claim:
+def told_from(claim: Claim, focus: str | None) -> Claim:
     """`claim` with the focus team's operand first, if it compares the focus team with another."""
     if focus is None or len(claim.operands) != 2:
         return claim

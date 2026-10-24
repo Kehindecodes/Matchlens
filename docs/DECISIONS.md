@@ -510,8 +510,6 @@ The cheap recovery, after the 27th: take **one** walkthrough, delete its impleme
 
 ---
 
-# OPEN — Kehinde decides
-
 ## D30 · The claim metric vocabulary: eight metrics, the scorer named, both comparisons — SETTLED 23 Oct
 
 Answers Q25 part 3. Replaces the S4 stub's `triggers`, and closes D21's "a string until U1–U3 define what the verifier can recount": `Operand.metric` becomes a closed `Metric` enum (D14: every closed set is a named enum).
@@ -578,6 +576,23 @@ A `build_up_passes` claim cites the possession's events; its window is the posse
 
 ---
 
+## D31 · The team lens is supporter-oriented, not supporter-voiced — SETTLED 24 Oct
+
+Settles O3. **Partisan in selection and emphasis, neutral in voice.** The team lens tells a moment as for or against the side it follows, by name, and never says *we*, *us* or *our*: *"Riverside Athletic concede"*, *"Redfern United have scored against Riverside Athletic"*, not *"we have conceded"*.
+
+### Why
+
+The objection on record was that a platform may not want to ship something that sounds like it takes a side. Supporter-oriented answers it rather than outweighing it: the lens takes a side in what it shows and what it leads with, which is the personalization, and a third-person voice is one a broadcaster can carry under its own name.
+
+### How it lands
+
+- Headline rows carry an optional `side`, `for` or `against`, read by any lens with a `focus_team`. Keyed on the side, never on a lens or a club (invariant 10). A sided lookup does not fall back to the match register, so a missing row fails loudly instead of looking like framing that worked.
+- A comparison between the two sides is read from the focus side: *"Oakhurst lead 2–1"* is said as *"Redfern trail 1–2"*. The claim is not changed; Rendering reads a reversed copy and stores nothing.
+- A comparison between the two sides is also spoken **first** (Q28: B), so a lens that speaks one claim says where the moment leaves the side — the score, not the scorer. A 1–0 has no score claim (Q26 2a) and still says the scorer. Only the spoken order moves; the claim set does not.
+- No new entity, field or enum value. The same claims, a different sentence (V11).
+
+---
+
 ## D32 · The scoreboard is the platform's; the demo's stands in for it, delayed — SETTLED 24 Oct
 
 Settles Q29.
@@ -590,14 +605,92 @@ Settles Q29.
 
 ---
 
-## O3 · Team lens register — supporter-voiced or supporter-oriented
+## D33 · Watching from kickoff is per viewer; the speed is one control for everyone — SETTLED 24 Oct
 
-### How it lands
+Answers D3's two open choices.
 
-- Headline rows carry an optional `side`, `for` or `against`, read by any lens with a `focus_team`. Keyed on the side, never on a lens or a club (invariant 10). A sided lookup does not fall back to the match register, so a missing row fails loudly instead of looking like framing that worked.
-- A comparison between the two sides is read from the focus side: *"Oakhurst lead 2–1"* is said as *"Redfern trail 1–2"*. The claim is not changed; Rendering reads a reversed copy and stores nothing.
-- A comparison between the two sides is also spoken **first** (Q28: B), so a lens that speaks one claim says where the moment leaves the side — the score, not the scorer. A 1–0 has no score claim (Q26 2a) and still says the scorer. Only the spoken order moves; the claim set does not.
-- No new entity, field or enum value. The same claims, a different sentence (V11).
+**"Watch from kickoff" belongs to one viewer.** A tab that asks for it makes its sessions as far behind live as the match has run, so its video is at 0:00 and everyone else carries on where they are. It is D1's offset, not a second mechanism: the same release rule, the same delayed scoreboard (D32). Delivery keeps every card it has received, so a new session is given the cards its video has not reached yet. That also closes a D1 gap: a viewer 45 s behind who joined at 68:00 used to miss the cards from 67:15 to 68:00.
+
+**The speed is one setting for the match, and the page can change it.** One match runs per process, so there is nothing per-viewer to change. Any viewer's choice changes it for everyone watching, and the page says so beside the control. An invalid speed is refused (`0 < speed <= max_replay_speed`), never clamped or defaulted.
+
+**Rejected:** restarting the replay for everyone. Any visitor would reset every other judge's match mid-viewing.
+
+---
+
+## D34 · One delivery surface: the overlay packet is the in-player form, not a broadcast feed — SETTLED 24 Oct
+
+**MatchLens delivers to one surface — a streaming player, per viewer.** Broadcast is not a target.
+
+### Two surfaces, and only one of them is ours
+
+| Surface | Shape | History | Catch-up |
+|---|---|---|---|
+| **Companion panel** — cards beside or below the video (L4) | a list | yes | natural: one block at the top |
+| **Overlay on the picture** — `OverlayPacket`, `display_at_clock` + `duration_ms` | transient graphic | none | nowhere to put it |
+
+### Why broadcast is ruled out rather than deferred
+
+Overlays composited onto a video feed are **one-to-many by construction.** A graphics system renders one thing for everyone watching that feed, so the lens becomes a *per-feed* choice a producer makes and per-viewer personalization collapses. That is precisely the limitation Positioning named in Prime Vision — *"alt-casts are one-to-many, not per-viewer"* — and shipping into that path would mean giving up the only differentiator that survived the Premier League app, FotMob and Sofascore.
+
+### So what `OverlayPacket` is
+
+**The machine-readable form of a card, for a streaming player to render over the picture rather than beside it** — rendered client-side, per session, so personalization stays intact.
+
+This is a stronger claim than the broadcast one, because it is the space nothing occupies: Sofascore's insights are a tab you navigate to, FotMob's are prose you read instead of watching, and an insight **on** the picture that differs per viewer is unoccupied. D5 is the only artifact in the build that demonstrates the output is in a form that could do it.
+
+On the brief: *"in the way the platform's rendering partner handles overlays in the production path"* describes the one-to-many case. We answer the **streaming** scenario of "studio, broadcast, or streaming" and say which, rather than claiming all three and keeping none of them properly.
+
+### D4 is panel-only
+
+Catch-up needs a surface with history. On the overlay path there is nowhere to put a summary, and in broadcast the question does not arise — linear TV already serves late joiners with a rotating score bug. D4 therefore belongs to the panel, with at most a single "match so far" overlay on join (`OverlayTemplate.STAT_BAR` is close to purpose-built for that).
+
+**And it is a smaller problem than the ticket implies.** D1's release rule is keyed on the viewer's own position, not wall clock — so a viewer using start-over, beginning at kickoff forty minutes into a live match, receives every card at the right moment with no catch-up at all. **Catch-up is only for someone joining live and staying live.** That is a good property of D1 and worth saying in the pitch.
+
+### D4 and X1 are one mechanism
+
+A summary of 0→68 for a joiner, and a recap of 0→full-time at the whistle, are the same function with a different `to_clock`. Build it once and both the catch-up ticket and the brief's *"automated match recaps"* — which it names twice — are answered. X1 sits at T3 with a dependency on A3; merged with D4 it is cheaper than either alone and no longer needs the verifier.
+
+---
+
+## D35 · The claim path stays deterministic; A2 adds to it rather than replacing it — SETTLED 24 Oct
+
+**L7 remains the claim source. A2 proposes additional claims on top of it.** The ladder's L0 is not "the agents make everything" — it is "the agents add what the rules cannot".
+
+### Why not A2 primary with L7 as the fallback
+
+A claim is the **audit substrate**: what A3 verifies, what the evidence drawer shows, what every number in every card traces back to. If A2 generates the claims, a model failure removes the **evidence**, not just the wording — and the product then needs a working swap plus a trigger to detect when to make it.
+
+Additive instead: A2 contributing nothing means simply fewer claims. Nothing else changes, and there is no swap to get wrong.
+
+### It separates two substitutions the ladder had conflated
+
+| | Rules | Model | Load-bearing |
+|---|---|---|---|
+| **Claims** | **L7** | A2 — **additive** | **yes**, it is the audit substrate |
+| **Prose** | **L3** | A4 — **replaces** | no, same claims with better words |
+
+Replacing L3 with A4 is cheap and safe. Replacing L7 would put a model underneath the verifiability claim, which is the one claim the whole design exists to support.
+
+### What A2 can still add, and why it is bounded
+
+`Metric` is closed at eight (D30) and L7 applies the per-moment-type table exhaustively, so a model **cannot** add a metric — the enum and invariant 5 both stop it. What it can do is choose the telling comparison where D30 permits two (the same team earlier, or the opponent over the same window), choose the window that makes the point, and judge which claims are worth making at all.
+
+Real but modest, and bounded by the vocabulary — which is precisely what makes a model's output verifiable here.
+
+### Consequences
+
+- **A5 shrinks.** No fallback is needed for the claim half. The ladder's model rung is the prose rung (A4 → L3), plus the optional A2 layer going quiet.
+- Every card always carries recomputable claims, model or no model.
+- A2 becomes shippable in pieces: half working still adds value, where a primary A2 must be complete or the demo is swapping paths mid-match.
+- **The multi-agent story is unchanged.** A2 proposes, A3 judges, P3 shows the rejections. The best demo shot becomes **A3 rejecting an A2 claim while L7's claims stand and the card still ships** — disagreement and graceful degradation in a single frame.
+
+### The agent count, stated plainly
+
+**Two LLM agents: A2 (explainer) and A4 (renderer).** The minimum shipping configuration is one, A4.
+
+**A3 is not an LLM agent.** All six checks are recomputations and set comparisons — citation resolves refs, temporal compares clocks, entity reads the log, value recomputes from the record, entailment compares operand evidence against `subject`/`metric`, coverage is a subset test. None needs a model, and a model-based verifier would itself be unverifiable, which is the regress this design exists to avoid. `Verification.model` records the checker's version, as invariant 7 asks for any judgement, rule or model.
+
+So the honest headline is not an agent count. It is: **a model-assisted pipeline in which a deterministic adjudicator can overrule the model and records why.**
 
 ---
 

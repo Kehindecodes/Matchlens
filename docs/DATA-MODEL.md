@@ -271,7 +271,7 @@ A producer is a role, not an entity — what gets stored is what they did.
 `action_id`, `target_id`, `action` (`suppress` | `hold` | `release` | `pin`), `actor`, `clock_ms`, `reason`.
 
 ### OverlayPacket
-A rendition formatted for a graphics system. The fast path that does not wait for an LLM — what makes the output broadcast-ready rather than just a web page.
+A rendition formatted for **a streaming player to render over the picture**, not for a broadcast graphics system (D34). The fast path that does not wait for an LLM — what lets an insight sit *on* the video rather than beside it, rendered client-side so it stays per-viewer.
 
 `packet_id`, `rendition_id`, `display_at_clock` (**match clock, never wall clock**), `duration_ms`, `template` (`lower_third` | `stat_bar` | `team_card` — `player_card` arrives with player scope), `payload`.
 

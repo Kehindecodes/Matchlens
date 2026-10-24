@@ -4,18 +4,22 @@ from collections.abc import AsyncIterator
 from pathlib import Path
 from typing import Annotated
 
-from fastapi import Depends, FastAPI, Header, HTTPException, status
+from fastapi import Depends, FastAPI, Header, HTTPException, Query, status
 from fastapi.responses import FileResponse
 from fastapi.sse import EventSourceResponse, ServerSentEvent
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 from matchlens import lenses
+from matchlens.catchup import CatchUp
+from matchlens.config.settings import settings
 from matchlens.delivery.hub import MatchStateHub
 from matchlens.delivery.release import ReleaseQueues
+from matchlens.delivery.router import CardRouter
 from matchlens.delivery.session_clock import viewer_position
 from matchlens.delivery.sessions import LensRefused, SessionStore, UnknownSession
-from matchlens.models import ClockMs, Lens, ViewerSession
+from matchlens.models import ClockMs, Lens, OverlayPacket, ViewerSession
+from matchlens.rendering import Card
 
 WEB_DIR = Path(__file__).resolve().parents[2] / "web"
 
@@ -29,6 +33,18 @@ class NewSession(BaseModel):
     stream_offset_ms: ClockMs = 0  # how far this viewer's video lags the action (D7)
 
 
+class SpeedChange(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    speed: float = Field(gt=0, le=settings.max_replay_speed)  # refused, never clamped (D3)
+
+
+class Playback(BaseModel):
+    speed: float | None  # None until the match has started
+    clock_ms: int  # the live match clock; -1 before kickoff
+    max_speed: float
+
+
 class LensSwitch(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -40,12 +56,14 @@ def create_app(
     hub: MatchStateHub,
     sessions: SessionStore,
     queues: ReleaseQueues | None = None,
+    router: CardRouter | None = None,
     *,
     web_dir: Path = WEB_DIR,
     lifespan=None,
 ) -> FastAPI:
     app = FastAPI(title="MatchLens delivery", lifespan=lifespan)
     queues = ReleaseQueues() if queues is None else queues
+    router = CardRouter(sessions, queues) if router is None else router
 
     def _session(session_id: str) -> ViewerSession:
         try:
@@ -65,13 +83,26 @@ def create_app(
     @app.post("/session", status_code=status.HTTP_201_CREATED)
     def create_session(body: NewSession | None = None) -> ViewerSession:
         body = body or NewSession()
-        return sessions.create(
+        session = sessions.create(
             body.lens_id, body.language, body.focus_team, stream_offset_ms=body.stream_offset_ms
         )
+        router.join(session, hub.clock_ms)
+        return session
 
     @app.get("/watch", include_in_schema=False)
     def watch() -> FileResponse:
         return FileResponse(web_dir / "watch.html")
+
+    @app.get("/playback")
+    def get_playback() -> Playback:
+        """How fast the match is running and where it is, live (D3)."""
+        return Playback(speed=hub.speed, clock_ms=hub.clock_ms, max_speed=settings.max_replay_speed)
+
+    @app.post("/playback")
+    async def set_playback(body: SpeedChange) -> Playback:
+        """Change the speed of the one match every viewer shares (D33)."""
+        await hub.set_speed(body.speed)
+        return get_playback()
 
     @app.get("/delay", include_in_schema=False)
     def delay() -> FileResponse:
@@ -81,6 +112,19 @@ def create_app(
     @app.get("/session/{session_id}")
     def get_session(session_id: str) -> ViewerSession:
         return _session(session_id)
+
+    @app.get("/session/{session_id}/overlays")
+    def overlays(session_id: str, after: Annotated[int, Query(ge=0)] = 0) -> list[OverlayPacket]:
+        """The overlay packets this session has had released, from the `after`-th on (D5).
+
+        One per card, in the order the cards were released, which is `display_at_clock` order.
+        Only what the viewer's video has reached: a player polling this is never handed an
+        overlay for something it has not shown yet (invariant 8). The stream's `card` events
+        carry the same packet, for a player that would rather listen than poll.
+        """
+        _session(session_id)
+        cards = [e for e in queues.released(session_id) if isinstance(e, Card)]
+        return [card.overlay for card in cards[after:]]
 
     @app.post("/session/{session_id}/lens")
     def switch_lens(session_id: str, body: LensSwitch) -> ViewerSession:
@@ -98,6 +142,8 @@ def create_app(
     ) -> AsyncIterator[ServerSentEvent]:
         """The state and the cards this session's video has reached, as it reaches them (D1, D32).
 
+        A late joiner's catch-up (D4) comes first, as a `catch_up` event counted like a card.
+
         Every event's id is `<state seq>:<cards released>`, so whichever event a browser saw
         last, `Last-Event-ID` says both where the clock was and how many cards it had. A
         reconnect resumes after both; a new connection with no id starts after every card
@@ -106,7 +152,11 @@ def create_app(
         after_seq, sent = _resume_point(last_event_id)
         sent = queues.count_released(session.session_id) if sent is None else sent
         seq = -1 if after_seq is None else after_seq
+        speed = None
         async for clock_ms in hub.ticks():
+            if hub.speed != speed:  # the speed is live, not delayed: it is how the match runs
+                speed = hub.speed
+                yield ServerSentEvent(data={"speed": speed}, event="playback")
             # Read afresh each tick: a lens switch replaces the session while this stream is open.
             try:
                 current = sessions.get(session.session_id)
@@ -121,9 +171,10 @@ def create_app(
             released = queues.release_due(current, clock_ms)
             if released:
                 sessions.mark_seen(current.session_id, released[-1].display_at_clock)
-            for card in queues.released(current.session_id, sent):
+            for entry in queues.released(current.session_id, sent):
                 sent += 1
-                yield ServerSentEvent(data=card, event="card", id=f"{seq}:{sent}")
+                event = "catch_up" if isinstance(entry, CatchUp) else "card"
+                yield ServerSentEvent(data=entry, event=event, id=f"{seq}:{sent}")
 
     app.mount("/static", StaticFiles(directory=web_dir), name="static")
     return app

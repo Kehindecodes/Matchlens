@@ -1,0 +1,43 @@
+[
+  {
+    "packet_id": "moment-m-1-epoch0-pressing_intensity-m-1-home-780000:match_analyst:overlay",
+    "rendition_id": "moment-m-1-epoch0-pressing_intensity-m-1-home-780000:match_analyst",
+    "display_at_clock": 780000,
+    "duration_ms": 5000,
+    "template": "stat_bar",
+    "payload": {
+      "headline": "Tactical shift: Riverside Athletic",
+      "clock": "13:00",
+      "label": "pressing intensity",
+      "team": "Riverside Athletic",
+      "value": 10.67,
+      "other": "Redfern United",
+      "other_value": 7.0
+    }
+  },
+  {
+    "packet_id": "moment-m-1-e595:match_analyst:overlay",
+    "rendition_id": "moment-m-1-e595:match_analyst",
+    "display_at_clock": 1825035,
+    "duration_ms": 5750,
+    "template": "lower_third",
+    "payload": {
+      "headline": "Chance: Redfern United",
+      "clock": "30:25",
+      "body": "Redfern United took a shot rated as a chance that was not a goal, at 30:25. Shot quality 0.26."
+    }
+  },
+  {
+    "packet_id": "moment-m-1-e701:team_engaged:overlay",
+    "rendition_id": "moment-m-1-e701:team_engaged",
+    "display_at_clock": 2134035,
+    "duration_ms": 5000,
+    "template": "team_card",
+    "payload": {
+      "headline": "Riverside Athletic score",
+      "clock": "35:34",
+      "team": "Riverside Athletic",
+      "body": "A goal for Riverside Athletic. Level at 1–1."
+    }
+  }
+]

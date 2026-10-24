@@ -20,12 +20,13 @@ from matchlens.delivery.hub import MatchStateHub
 from matchlens.delivery.release import ReleaseQueues
 from matchlens.delivery.router import CardRouter
 from matchlens.delivery.sessions import SessionStore
-from matchlens.models import Frame, Phase, Rendition, ViewerSession
+from matchlens.models import Frame, MomentType, Phase, Rendition, ViewerSession
 from matchlens.rendering import Card
 from matchlens.source import MatchSetup, simulate
 from matchlens.source.replay import Replay
 from matchlens.understanding.match_state import MatchState
 from tests.delivery.test_http import LiveServer, _fields, _state
+from tests.overlays import overlay_for
 
 SECOND = 1_000
 OFFSET = 45 * SECOND
@@ -38,7 +39,14 @@ def _card(clock: int, lens_id: str = settings.default_lens_id, moment_id: str = 
         language="en", headline="h", body="b", surviving_claim_ids=(), suppressed=False,
         suppression_reason=None, rendered_at=datetime.now(UTC),
     )  # fmt: skip
-    return Card(rendition=rendition, display_at_clock=clock)
+    return Card(
+        rendition=rendition,
+        display_at_clock=clock,
+        moment_type=MomentType.CHANCE,
+        importance=0.5,
+        body_in_full="b",
+        overlay=overlay_for(rendition, clock),
+    )
 
 
 def _clocks(cards: list[Card]) -> list[int]:

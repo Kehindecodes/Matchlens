@@ -92,7 +92,11 @@ class ProducerAction(_Record):
 
 
 class OverlayPacket(_Record):
-    """A rendition formatted for a graphics system."""
+    """A rendition formatted for a streaming player to render over the picture (D34).
+
+    Client-side and per session, which is what keeps it personalized — a broadcast graphics system
+    would render one overlay for everyone on the feed.
+    """
 
     packet_id: str
     rendition_id: str

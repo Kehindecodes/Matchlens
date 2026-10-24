@@ -5,8 +5,9 @@ from matchlens.config import settings
 from matchlens.delivery.release import ReleaseQueues
 from matchlens.delivery.router import CardRouter
 from matchlens.delivery.sessions import SessionStore
-from matchlens.models import Rendition
+from matchlens.models import MomentType, Rendition
 from matchlens.rendering import Card
+from tests.overlays import overlay_for
 
 
 def _card(lens_id: str = "match_casual", clock: int = 1_000) -> Card:
@@ -15,7 +16,14 @@ def _card(lens_id: str = "match_casual", clock: int = 1_000) -> Card:
         body="b", surviving_claim_ids=(), suppressed=False, suppression_reason=None,
         rendered_at=datetime.now(UTC),
     )  # fmt: skip
-    return Card(rendition=rendition, display_at_clock=clock)
+    return Card(
+        rendition=rendition,
+        display_at_clock=clock,
+        moment_type=MomentType.CHANCE,
+        importance=0.5,
+        body_in_full="b",
+        overlay=overlay_for(rendition, clock),
+    )
 
 
 def test_a_card_reaches_every_session_on_its_lens():
@@ -37,15 +45,17 @@ def test_a_released_card_is_not_released_again():
     assert queues.release_due(session, 1_000) == []
 
 
-def test_a_sessions_first_release_asks_catch_up_and_the_session_clock():
+def test_a_late_join_asks_catch_up_and_the_lens_registry_and_a_release_does_not():
     sessions, queues = SessionStore(), ReleaseQueues()
+    router = CardRouter(sessions, queues)
+    router.receive(_card())
     session = sessions.create()
-    with calltrace.recording() as first:
-        queues.release_due(session, 0)
-    with calltrace.recording() as second:
-        queues.release_due(session, 0)
-    assert {"Session Clock", "Catch-up", "Lens Registry"} <= set(first)
-    assert "Catch-up" not in second
+    with calltrace.recording() as join:
+        router.join(session, 2_000)
+    with calltrace.recording() as release:
+        queues.release_due(session, 2_000)
+    assert {"Session Clock", "Catch-up", "Lens Registry"} <= set(join)
+    assert "Catch-up" not in release
 
 
 def test_the_registry_serves_the_default_lens_as_data():
