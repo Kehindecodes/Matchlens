@@ -112,7 +112,7 @@ Update the **Status** column when a ticket moves. Statuses: `todo`, `wip`, `done
 | 📝 D2 | Two sessions on different offsets, both correct | 0.5 | D1 | T1 | done | ✅ folded into D1's tests and walkthrough |
 | D3 | Speed control for the judge path | 0.5 | D1, F4 | T1 | done | ✅ J1: 227.4 s at 25× |
 | D4 | Catch-up on join, per lens, claims that survived Selection (A3 is a stub) | 1 | D1, M1 | T2 | done | ✅ |
-| D5 | OverlayPacket endpoint | 0.5 | L3 | T2 | todo | ✅ |
+| D5 | OverlayPacket endpoint | 0.5 | L3 | T2 | done | ✅ |
 
 **D1** — release while `display_at_clock <= match_clock_now - stream_offset_ms`. **Delay only, never anticipate** (V8).
 **D2** — a 45s-behind viewer and a 5s-behind viewer each get the card at the right point in their own stream. Fold into D1 if cutting.

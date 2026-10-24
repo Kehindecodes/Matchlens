@@ -17,6 +17,7 @@ from matchlens.delivery.sessions import SessionStore
 from matchlens.models import MomentType, Rendition, Scope
 from matchlens.rendering import Card
 from tests.delivery.test_http import LiveServer, _fields, _state
+from tests.overlays import overlay_for
 
 MATCH = [lens for lens in lenses.all_lenses() if lens.scope is Scope.MATCH]
 TEAM = next(lens for lens in lenses.all_lenses() if lens.scope is Scope.TEAM)
@@ -100,6 +101,7 @@ def _card(lens_id: str, moment_id: str, clock_ms: int) -> Card:
         moment_type=MomentType.CHANCE,
         importance=0.5,
         body_in_full="b",
+        overlay=overlay_for(rendition, clock_ms),
     )
 
 

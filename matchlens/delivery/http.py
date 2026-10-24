@@ -4,7 +4,7 @@ from collections.abc import AsyncIterator
 from pathlib import Path
 from typing import Annotated
 
-from fastapi import Depends, FastAPI, Header, HTTPException, status
+from fastapi import Depends, FastAPI, Header, HTTPException, Query, status
 from fastapi.responses import FileResponse
 from fastapi.sse import EventSourceResponse, ServerSentEvent
 from fastapi.staticfiles import StaticFiles
@@ -18,7 +18,8 @@ from matchlens.delivery.release import ReleaseQueues
 from matchlens.delivery.router import CardRouter
 from matchlens.delivery.session_clock import viewer_position
 from matchlens.delivery.sessions import LensRefused, SessionStore, UnknownSession
-from matchlens.models import ClockMs, Lens, ViewerSession
+from matchlens.models import ClockMs, Lens, OverlayPacket, ViewerSession
+from matchlens.rendering import Card
 
 WEB_DIR = Path(__file__).resolve().parents[2] / "web"
 
@@ -111,6 +112,19 @@ def create_app(
     @app.get("/session/{session_id}")
     def get_session(session_id: str) -> ViewerSession:
         return _session(session_id)
+
+    @app.get("/session/{session_id}/overlays")
+    def overlays(session_id: str, after: Annotated[int, Query(ge=0)] = 0) -> list[OverlayPacket]:
+        """The overlay packets this session has had released, from the `after`-th on (D5).
+
+        One per card, in the order the cards were released, which is `display_at_clock` order.
+        Only what the viewer's video has reached: a player polling this is never handed an
+        overlay for something it has not shown yet (invariant 8). The stream's `card` events
+        carry the same packet, for a player that would rather listen than poll.
+        """
+        _session(session_id)
+        cards = [e for e in queues.released(session_id) if isinstance(e, Card)]
+        return [card.overlay for card in cards[after:]]
 
     @app.post("/session/{session_id}/lens")
     def switch_lens(session_id: str, body: LensSwitch) -> ViewerSession:

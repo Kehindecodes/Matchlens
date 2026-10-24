@@ -15,7 +15,7 @@ from opentelemetry import context, trace
 from matchlens import audit, explanation, lenses, selection, verification
 from matchlens.ingest import Ingest
 from matchlens.models import Claim, Event, Frame, SignalReading, Verdict, Verification
-from matchlens.rendering import Card, in_full, render
+from matchlens.rendering import Card, in_full, overlay_packet, render
 from matchlens.selection import ShownCards
 from matchlens.source import MatchSetup, StreamItem, simulate
 from matchlens.spotting import Spotter, SpotterResult
@@ -101,8 +101,10 @@ class Pipeline:
                 ):
                     rendition = render(result.moment, selected, lens, self._names)
                     body_in_full = in_full(result.moment, selected, lens, self._names)
+                    packet = overlay_packet(result.moment, selected, lens, self._names, rendition)
                 renditions.append(rendition)
-                if not rendition.suppressed:  # a suppressed rendition is for Audit, not a viewer
+                # A suppressed rendition is for Audit, not a viewer, and has no packet.
+                if packet is not None:
                     cards.append(
                         Card(
                             rendition=rendition,
@@ -110,6 +112,7 @@ class Pipeline:
                             moment_type=result.moment.type,
                             importance=result.moment.importance,
                             body_in_full=body_in_full,
+                            overlay=packet,
                         )
                     )
             audit.record(result.moment, claims, verifications, renditions)

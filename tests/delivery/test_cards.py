@@ -7,6 +7,7 @@ from matchlens.delivery.router import CardRouter
 from matchlens.delivery.sessions import SessionStore
 from matchlens.models import MomentType, Rendition
 from matchlens.rendering import Card
+from tests.overlays import overlay_for
 
 
 def _card(lens_id: str = "match_casual", clock: int = 1_000) -> Card:
@@ -21,6 +22,7 @@ def _card(lens_id: str = "match_casual", clock: int = 1_000) -> Card:
         moment_type=MomentType.CHANCE,
         importance=0.5,
         body_in_full="b",
+        overlay=overlay_for(rendition, clock),
     )
 
 
