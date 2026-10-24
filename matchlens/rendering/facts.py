@@ -5,6 +5,10 @@ scorer, a shot of quality 0.25 or more is a big chance, a move from winning the 
 in 20 s or less is a quick attack. The rules read only what the claim holds, so the words can
 never say more than the evidence the claim cites. A claim the rules have no form for is not
 spoken.
+
+Told from a focus team, a comparison whose second operand is that team is read the other way
+round, so "Oakhurst lead 2–1" becomes "Redfern trail 1–2" (D31). The claim is not changed: the
+reversed copy is only read here, never stored or passed on.
 """
 
 from collections.abc import Mapping
@@ -14,8 +18,18 @@ from matchlens.models import Claim, ClaimType, Depth, Metric, RefKind
 from matchlens.rendering import templates
 
 
-def sentence(claim: Claim, depth: Depth, language: str, names: Mapping[str, str]) -> str | None:
-    """`claim` as one sentence at `depth`, or None if it is not one this depth speaks."""
+def sentence(
+    claim: Claim,
+    depth: Depth,
+    language: str,
+    names: Mapping[str, str],
+    focus: str | None = None,
+) -> str | None:
+    """`claim` as one sentence at `depth`, or None if it is not one this depth speaks.
+
+    `focus` is the team id a lens follows, if it follows one.
+    """
+    claim = _from(claim, focus)
     read = _read(claim, language)
     if read is None:
         return None
@@ -28,6 +42,16 @@ def sentence(claim: Claim, depth: Depth, language: str, names: Mapping[str, str]
         return None  # e.g. no word for the twelfth: say nothing rather than a number in words
     said = text.format(**filled)
     return said[0].upper() + said[1:]  # a row may open on a label: "possession share ..."
+
+
+def _from(claim: Claim, focus: str | None) -> Claim:
+    """`claim` with the focus team's operand first, if it compares the focus team with another."""
+    if focus is None or len(claim.operands) != 2:
+        return claim
+    first, second = claim.operands
+    if second.subject.id != focus or first.subject.id == focus:
+        return claim
+    return claim.model_copy(update={"operands": (second, first)})
 
 
 def _read(claim: Claim, language: str) -> tuple[str, Mapping[str, str | None]] | None:
