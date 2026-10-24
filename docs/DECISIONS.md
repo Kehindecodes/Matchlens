@@ -652,6 +652,48 @@ A summary of 0→68 for a joiner, and a recap of 0→full-time at the whistle, a
 
 ---
 
+## D35 · The claim path stays deterministic; A2 adds to it rather than replacing it — SETTLED 24 Oct
+
+**L7 remains the claim source. A2 proposes additional claims on top of it.** The ladder's L0 is not "the agents make everything" — it is "the agents add what the rules cannot".
+
+### Why not A2 primary with L7 as the fallback
+
+A claim is the **audit substrate**: what A3 verifies, what the evidence drawer shows, what every number in every card traces back to. If A2 generates the claims, a model failure removes the **evidence**, not just the wording — and the product then needs a working swap plus a trigger to detect when to make it.
+
+Additive instead: A2 contributing nothing means simply fewer claims. Nothing else changes, and there is no swap to get wrong.
+
+### It separates two substitutions the ladder had conflated
+
+| | Rules | Model | Load-bearing |
+|---|---|---|---|
+| **Claims** | **L7** | A2 — **additive** | **yes**, it is the audit substrate |
+| **Prose** | **L3** | A4 — **replaces** | no, same claims with better words |
+
+Replacing L3 with A4 is cheap and safe. Replacing L7 would put a model underneath the verifiability claim, which is the one claim the whole design exists to support.
+
+### What A2 can still add, and why it is bounded
+
+`Metric` is closed at eight (D30) and L7 applies the per-moment-type table exhaustively, so a model **cannot** add a metric — the enum and invariant 5 both stop it. What it can do is choose the telling comparison where D30 permits two (the same team earlier, or the opponent over the same window), choose the window that makes the point, and judge which claims are worth making at all.
+
+Real but modest, and bounded by the vocabulary — which is precisely what makes a model's output verifiable here.
+
+### Consequences
+
+- **A5 shrinks.** No fallback is needed for the claim half. The ladder's model rung is the prose rung (A4 → L3), plus the optional A2 layer going quiet.
+- Every card always carries recomputable claims, model or no model.
+- A2 becomes shippable in pieces: half working still adds value, where a primary A2 must be complete or the demo is swapping paths mid-match.
+- **The multi-agent story is unchanged.** A2 proposes, A3 judges, P3 shows the rejections. The best demo shot becomes **A3 rejecting an A2 claim while L7's claims stand and the card still ships** — disagreement and graceful degradation in a single frame.
+
+### The agent count, stated plainly
+
+**Two LLM agents: A2 (explainer) and A4 (renderer).** The minimum shipping configuration is one, A4.
+
+**A3 is not an LLM agent.** All six checks are recomputations and set comparisons — citation resolves refs, temporal compares clocks, entity reads the log, value recomputes from the record, entailment compares operand evidence against `subject`/`metric`, coverage is a subset test. None needs a model, and a model-based verifier would itself be unverifiable, which is the regress this design exists to avoid. `Verification.model` records the checker's version, as invariant 7 asks for any judgement, rule or model.
+
+So the honest headline is not an agent count. It is: **a model-assisted pipeline in which a deterministic adjudicator can overrule the model and records why.**
+
+---
+
 # OPEN — Kehinde decides
 
 ## O4 · Audit as an Azure Function or in-process
