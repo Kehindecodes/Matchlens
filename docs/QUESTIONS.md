@@ -24,6 +24,23 @@ Newest at the top. Kehinde answers inline and moves the resolved ones to `docs/D
 
 ---
 
+## Q29 · Should the score and clock on the page be delayed by the viewer's offset too?  [ticket: D1]  [blocking: no]
+
+**What I need to know:** Whether `MatchState` goes through the per-session delay as cards do.
+
+D1's brief says the hub is *"unchanged for state; cards go through the queue"*, and D1 builds it that way. The consequence: a viewer at a 45 s offset sees the **scoreline change 45 s before their video shows the goal**, and the page clock runs 45 s ahead of their picture. The cards are held correctly; the score next to them spoils the goal they are being held for. `match_state.py`'s own docstring says the opposite of the brief: *"the per-session release (D1) delays the score exactly as it delays a card."*
+
+**Why I cannot decide it:** it changes what a viewer sees and when (invariant 8 is written about cards, and this is the score), and the brief and the docstring disagree.
+
+**Options as I see them:**
+- A: leave it as the brief says. The page's score and clock are the live match.
+- B: delay each state per session to `clock_ms <= match_clock_now - stream_offset_ms`, sending the latest due state on each tick. The hub keeps only the latest state today, so it would hold a short history (the largest offset's worth, one state per match second). Costs: the seq in a stream id becomes the seq of the state the viewer is at, not the latest; a little memory per match.
+- C: B, and the page shows the viewer's own position as its clock. Costs: a page change.
+
+**What I would do if forced:** B. It is the rule the cards already follow, and without it the offset protects the cards and not the score. I have not done it.
+
+**Answer:**
+
 ## Q27 · S6's "stage spans add up to the end-to-end latency" fails once the stages do real work  [ticket: L7, S6]  [blocking: no, but the suite is red]
 
 **What I need to know:** How S6 should count the time a moment waits behind the other moments fired by the same stream item.

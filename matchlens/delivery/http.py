@@ -14,7 +14,7 @@ from matchlens import lenses
 from matchlens.delivery.hub import MatchStateHub
 from matchlens.delivery.release import ReleaseQueues
 from matchlens.delivery.sessions import LensRefused, SessionStore, UnknownSession
-from matchlens.models import Lens, ViewerSession
+from matchlens.models import ClockMs, Lens, ViewerSession
 
 WEB_DIR = Path(__file__).resolve().parents[2] / "web"
 
@@ -25,6 +25,7 @@ class NewSession(BaseModel):
     lens_id: str | None = None
     language: str | None = None
     focus_team: str | None = None
+    stream_offset_ms: ClockMs = 0  # how far this viewer's video lags the action (D7)
 
 
 class LensSwitch(BaseModel):
@@ -63,7 +64,9 @@ def create_app(
     @app.post("/session", status_code=status.HTTP_201_CREATED)
     def create_session(body: NewSession | None = None) -> ViewerSession:
         body = body or NewSession()
-        return sessions.create(body.lens_id, body.language, body.focus_team)
+        return sessions.create(
+            body.lens_id, body.language, body.focus_team, stream_offset_ms=body.stream_offset_ms
+        )
 
     @app.get("/watch", include_in_schema=False)
     def watch() -> FileResponse:
@@ -87,19 +90,42 @@ def create_app(
         session: Annotated[ViewerSession, Depends(_session)],
         last_event_id: Annotated[str | None, Header()] = None,
     ) -> AsyncIterator[ServerSentEvent]:
-        after = int(last_event_id) if last_event_id and last_event_id.isdigit() else None
-        async for state in hub.follow(after):
-            yield ServerSentEvent(data=state, event="match_state", id=str(state.seq))
+        """States as they arrive, and this session's cards as its video reaches them (D1).
+
+        Every event's id is `<state seq>:<cards released>`, so whichever event a browser saw
+        last, `Last-Event-ID` says both where the clock was and how many cards it had. A
+        reconnect resumes after both; a new connection with no id starts after every card
+        already released, so a rejoin replays nothing.
+        """
+        after_seq, sent = _resume_point(last_event_id)
+        sent = queues.count_released(session.session_id) if sent is None else sent
+        seq = -1 if after_seq is None else after_seq
+        async for tick in hub.ticks(after_seq):
+            if tick.state is not None:
+                seq = tick.state.seq
+                yield ServerSentEvent(data=tick.state, event="match_state", id=f"{seq}:{sent}")
             # Read afresh each tick: a lens switch replaces the session while this stream is open.
             try:
                 current = sessions.get(session.session_id)
             except UnknownSession:
                 return
-            # Cards carry no id: Last-Event-ID tracks the clock, and a released card is gone. A
-            # card held for a lens the session has since left is not this viewer's any more.
-            for card in queues.release_due(current, state.clock_ms):
-                if card.rendition.lens_id == current.lens_id:
-                    yield ServerSentEvent(data=card, event="card")
+            released = queues.release_due(current, tick.clock_ms)
+            if released:
+                sessions.mark_seen(current.session_id, released[-1].display_at_clock)
+            for card in queues.released(current.session_id, sent):
+                sent += 1
+                yield ServerSentEvent(data=card, event="card", id=f"{seq}:{sent}")
 
     app.mount("/static", StaticFiles(directory=web_dir), name="static")
     return app
+
+
+def _resume_point(last_event_id: str | None) -> tuple[int | None, int | None]:
+    """The state seq and card count a `Last-Event-ID` names; None for whatever it does not."""
+    if not last_event_id:
+        return None, None
+    seq, _, sent = last_event_id.partition(":")
+    return (
+        int(seq) if seq.isdigit() else None,
+        int(sent) if sent.isdigit() else None,
+    )

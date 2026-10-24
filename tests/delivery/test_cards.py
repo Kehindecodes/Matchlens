@@ -24,17 +24,17 @@ def test_a_card_reaches_every_session_on_its_lens():
     other = sessions.create(lens_id="team_engaged", focus_team="h")
     card = _card()
     CardRouter(sessions, queues).receive(card)
-    assert queues.release_due(a, 0) == [card]
-    assert queues.release_due(b, 0) == [card]
-    assert queues.release_due(other, 0) == []
+    assert queues.release_due(a, card.display_at_clock) == [card]
+    assert queues.release_due(b, card.display_at_clock) == [card]
+    assert queues.release_due(other, card.display_at_clock) == []
 
 
 def test_a_released_card_is_not_released_again():
     sessions, queues = SessionStore(), ReleaseQueues()
     session = sessions.create()
     CardRouter(sessions, queues).receive(_card())
-    assert len(queues.release_due(session, 0)) == 1
-    assert queues.release_due(session, 0) == []
+    assert len(queues.release_due(session, 1_000)) == 1
+    assert queues.release_due(session, 1_000) == []
 
 
 def test_a_sessions_first_release_asks_catch_up_and_the_session_clock():

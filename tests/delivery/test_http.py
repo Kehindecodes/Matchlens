@@ -170,7 +170,7 @@ def test_the_stream_sends_the_latest_state_with_an_id(live: LiveServer):
     [block] = live.events(session, 1)
     fields = _fields(block)
     assert fields["event"] == "match_state"
-    assert fields["id"] == "7"
+    assert fields["id"] == "7:0"  # the state's seq, and no card released yet
     assert json.loads(fields["data"])["clock_ms"] == 61_000
 
 
@@ -178,12 +178,12 @@ def test_a_reconnect_resumes_from_last_event_id_without_replaying(live: LiveServ
     session = live.session()
     live.publish(_state(seq=7))
     [first] = live.events(session, 1)
-    assert _fields(first)["id"] == "7"
+    assert _fields(first)["id"] == "7:0"
 
     # Reconnect having seen 7: nothing is resent until a newer state arrives.
     threading.Timer(0.3, live.publish, (_state(seq=9),)).start()
-    [resumed] = live.events(session, 1, last_event_id="7")
-    assert _fields(resumed)["id"] == "9"
+    [resumed] = live.events(session, 1, last_event_id="7:0")
+    assert _fields(resumed)["id"] == "9:0"
 
 
 def test_an_idle_stream_gets_a_keepalive(live: LiveServer, monkeypatch: pytest.MonkeyPatch):
@@ -206,7 +206,7 @@ def test_a_released_card_is_streamed_after_the_clock(live: LiveServer, queues: R
     state, card = live.events(session_id, 2)
     assert _fields(state)["event"] == "match_state"
     fields = _fields(card)
-    assert fields["event"] == "card" and "id" not in fields
+    assert fields["event"] == "card" and fields["id"] == "7:1"
     data = json.loads(fields["data"])
     assert data["display_at_clock"] == 4_032_000
     assert data["rendition"]["headline"] == "The walking skeleton"

@@ -29,6 +29,8 @@ class SessionStore:
         lens_id: str | None = None,
         language: str | None = None,
         focus_team: str | None = None,
+        *,
+        stream_offset_ms: int = 0,
     ) -> ViewerSession:
         """A new session. With no lens it gets the default, whole match at casual depth (V1)."""
         session = ViewerSession(
@@ -39,7 +41,7 @@ class SessionStore:
             focus_team=focus_team,
             focus_player=None,
             last_seen_clock=None,
-            stream_offset_ms=0,  # set by D1
+            stream_offset_ms=stream_offset_ms,
         )
         self._sessions[session.session_id] = session
         return session
@@ -68,6 +70,12 @@ class SessionStore:
         )
         self._sessions[session_id] = moved
         return moved
+
+    def mark_seen(self, session_id: str, clock_ms: int) -> ViewerSession:
+        """Record the clock of the last card released to the session, replacing it."""
+        seen = self.get(session_id).model_copy(update={"last_seen_clock": clock_ms})
+        self._sessions[session_id] = seen
+        return seen
 
     def on_lens(self, lens_id: str) -> list[ViewerSession]:
         return [s for s in self._sessions.values() if s.lens_id == lens_id]
