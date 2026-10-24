@@ -77,7 +77,7 @@ class Window(_Record):
 class Operand(_Record):
     """One side of a claim: a measured value for one subject, over its own window and evidence.
 
-    `metric` is one of D29's eight, each recountable from the rows `evidence_ids` cites.
+    `metric` is one of D30's eight, each recountable from the rows `evidence_ids` cites.
     """
 
     subject: Ref  # a team or a player

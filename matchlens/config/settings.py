@@ -36,7 +36,7 @@ class Settings(BaseSettings):
     importance_chance: float = 0.8
     importance_tactical_shift: float = 0.7
 
-    # Claims and the words they allow (D29). Standard values, not tuned per match. The big-chance
+    # Claims and the words they allow (D30). Standard values, not tuned per match. The big-chance
     # bar is `spotter_chance_quality` and plain interpretive wording `spotter_z_threshold`.
     claim_chance_window_ms: int = 600_000  # "big chances in the last ten minutes"
     claim_strong_z: float = 2.0  # |z_match| for strong words: "much harder", "by far"

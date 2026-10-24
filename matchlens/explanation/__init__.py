@@ -18,7 +18,7 @@ def explain(
 ) -> list[Claim]:
     """Claims about `moment`, read only from what had happened by its clock.
 
-    The L1 explainer (L7): D29's claims built by rule from the frozen log and the readings, with
+    The L1 explainer (L7): D30's claims built by rule from the frozen log and the readings, with
     no model. Nothing after `moment.clock_ms` is read, whatever the caller passes (invariant 6),
     and no input can reach a frame (invariant 1). A claim with nothing to cite is not made
     (invariant 5).

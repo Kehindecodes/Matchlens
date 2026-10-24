@@ -149,7 +149,7 @@ def test_every_surviving_claim_is_listed_even_when_detail_does_not_speak_it():
 
 
 def test_a_claim_the_wording_rules_have_no_form_for_says_nothing_extra():
-    # Two big chances in ten minutes is not a run: D29 speaks a run from the third.
+    # Two big chances in ten minutes is not a run: D30 speaks a run from the third.
     quiet = _claim("quiet", value=2, metric=Metric.CHANCES)
     rendition = render(_moment(MomentType.CHANCE), _selected(quiet), ANALYST, NAMES)
     words = templates.lookup("en", MomentType.CHANCE, Depth.ANALYST)

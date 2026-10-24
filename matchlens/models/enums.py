@@ -118,7 +118,7 @@ class MomentType(StrEnum):
 
 
 class Metric(StrEnum):
-    """What a claim's operand measures (D29). Every value is recountable from cited rows."""
+    """What a claim's operand measures (D30). Every value is recountable from cited rows."""
 
     GOALS = "goals"
     SHOT_QUALITY = "shot_quality"

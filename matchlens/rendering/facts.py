@@ -1,4 +1,4 @@
-"""One claim as one sentence: D29's wording rules, read from the claim alone.
+"""One claim as one sentence: D30's wording rules, read from the claim alone.
 
 Each claim is read as a form, the wording its values allow: a goal claim on a player is the
 scorer, a shot of quality 0.25 or more is a big chance, a move from winning the ball to the shot
@@ -23,14 +23,14 @@ def sentence(claim: Claim, depth: Depth, language: str, names: Mapping[str, str]
     text = templates.fact(language, claim.operands[0].metric, form, depth)
     if text is None:
         return None
-    filled = _fields(claim, language, names) | values
+    filled = {**_fields(claim, language, names), **values}
     if any(filled.get(name) is None for name in templates.fields(text)):
         return None  # e.g. no word for the twelfth: say nothing rather than a number in words
     said = text.format(**filled)
     return said[0].upper() + said[1:]  # a row may open on a label: "possession share ..."
 
 
-def _read(claim: Claim, language: str) -> tuple[str, dict[str, str | None]] | None:
+def _read(claim: Claim, language: str) -> tuple[str, Mapping[str, str | None]] | None:
     """The form `claim` reads as, and any words the form brings, or None if it has none."""
     subject, *other = claim.operands
     metric, value = subject.metric, subject.value
@@ -56,7 +56,9 @@ def _read(claim: Claim, language: str) -> tuple[str, dict[str, str | None]] | No
     return None
 
 
-def _signal(claim: Claim, words: templates.SignalWords) -> tuple[str, dict[str, str | None]] | None:
+def _signal(
+    claim: Claim, words: templates.SignalWords
+) -> tuple[str, Mapping[str, str | None]] | None:
     subject, *other = claim.operands
     label = {"label": words.label}
     if claim.claim_type is ClaimType.INTERPRETIVE:

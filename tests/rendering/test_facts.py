@@ -1,4 +1,4 @@
-"""L7: D29's wording rules. Each phrase appears when its rule holds, and only then."""
+"""L7: D30's wording rules. Each phrase appears when its rule holds, and only then."""
 
 import json
 import re
@@ -42,21 +42,29 @@ def _say(claim: Claim, depth: Depth = Depth.ENGAGED) -> str | None:
     return sentence(claim, depth, "en", NAMES)
 
 
+def _said(claim: Claim, depth: Depth = Depth.ENGAGED) -> str:
+    text = _said(claim, depth)
+    assert text is not None, "this claim should be spoken"
+    return text
+
+
 # --- big chance, run of chances -------------------------------------------------------------------
 
 
 def test_a_big_chance_is_the_spotters_chance_bar():
     bar = settings.spotter_chance_quality
-    assert "big chance" in _say(_claim(_operand(Metric.SHOT_QUALITY, bar)))
-    assert "hard chance" in _say(_claim(_operand(Metric.SHOT_QUALITY, bar - 0.01)))
+    assert "big chance" in _said(_claim(_operand(Metric.SHOT_QUALITY, bar)))
+    assert "hard chance" in _said(_claim(_operand(Metric.SHOT_QUALITY, bar - 0.01)))
 
 
 def test_a_run_of_big_chances_is_spoken_from_the_third():
     run = settings.wording_chance_run
-    window = dict(start_ms=0, end_ms=settings.claim_chance_window_ms)
-    assert "third big chance" in _say(_claim(_operand(Metric.CHANCES, run, **window)))
-    assert _say(_claim(_operand(Metric.CHANCES, run - 1, **window))) is None
-    analyst = _say(_claim(_operand(Metric.CHANCES, run, **window)), Depth.ANALYST)
+    end = settings.claim_chance_window_ms
+    assert "third big chance" in _said(
+        _claim(_operand(Metric.CHANCES, run, start_ms=0, end_ms=end))
+    )
+    assert _say(_claim(_operand(Metric.CHANCES, run - 1, start_ms=0, end_ms=end))) is None
+    analyst = _said(_claim(_operand(Metric.CHANCES, run, start_ms=0, end_ms=end)), Depth.ANALYST)
     assert "in the last 10 minutes" in analyst
 
 
@@ -69,13 +77,13 @@ def _move(passes: int, seconds: int) -> Claim:
 
 def test_a_quick_attack_reaches_the_shot_inside_the_limit():
     limit_s = settings.wording_quick_attack_ms // 1000
-    assert "quick attack" in _say(_move(3, limit_s))
+    assert "quick attack" in _said(_move(3, limit_s))
     assert _say(_move(3, limit_s + 1)) is None
 
 
 def test_a_patient_move_has_enough_passes():
     many = settings.wording_patient_passes
-    assert "patient move" in _say(_move(many, 60))
+    assert "patient move" in _said(_move(many, 60))
     assert _say(_move(many - 1, 60)) is None
 
 
@@ -83,8 +91,8 @@ def test_a_patient_move_has_enough_passes():
 
 
 def test_the_scorer_is_named_and_a_second_goal_says_so():
-    first = _say(_claim(_operand(Metric.GOALS, 1, subject=SCORER)))
-    again = _say(_claim(_operand(Metric.GOALS, 2, subject=SCORER)))
+    first = _said(_claim(_operand(Metric.GOALS, 1, subject=SCORER)))
+    again = _said(_claim(_operand(Metric.GOALS, 2, subject=SCORER)))
     assert "Ada Quill" in first and "second" not in first
     assert "Ada Quill" in again and "second" in again
     assert "home-p9" not in first + again
@@ -95,12 +103,12 @@ def test_the_scorer_is_named_and_a_second_goal_says_so():
 )
 def test_the_score_is_said_only_with_both_sides_cited(home, away, word):
     claim = _claim(_operand(Metric.GOALS, home), _operand(Metric.GOALS, away, subject=AWAY))
-    assert word in _say(claim)
+    assert word in _said(claim)
 
 
 def test_a_side_alone_on_goals_never_claims_a_lead():
     # The other side's nought cites nothing, so no claim asserts it (Q26 2a).
-    text = _say(_claim(_operand(Metric.GOALS, 1)), Depth.CASUAL)
+    text = _said(_claim(_operand(Metric.GOALS, 1)), Depth.CASUAL)
     assert "first goal" in text
     assert not re.search(r"\blead|front|behind|square\b", text)
 
@@ -115,7 +123,7 @@ def test_a_side_alone_on_goals_never_claims_a_lead():
 )  # fmt: skip
 def test_the_signed_threshold_decides_the_direction_and_the_strength(threshold, phrase):
     claim = _claim(_operand(Metric.PRESSING_INTENSITY, 9.0), threshold=threshold)
-    text = _say(claim, Depth.CASUAL)
+    text = _said(claim, Depth.CASUAL)
     assert phrase in text
     if abs(threshold) < settings.claim_strong_z:
         assert "much" not in text
@@ -125,8 +133,8 @@ def test_a_comparison_with_earlier_names_the_boundary_and_one_with_the_opponent_
     now = _operand(Metric.POSSESSION_CONTROL, 0.62, start_ms=2_100_000, end_ms=2_400_000)
     before = _operand(Metric.POSSESSION_CONTROL, 0.41, start_ms=1_800_000, end_ms=2_100_000)
     theirs = _operand(Metric.POSSESSION_CONTROL, 0.38, subject=AWAY, end_ms=2_400_000)
-    assert "more of the ball than before 35:00" in _say(_claim(now, before))
-    assert "more of the ball than Ostbridge" in _say(_claim(now, theirs))
+    assert "more of the ball than before 35:00" in _said(_claim(now, before))
+    assert "more of the ball than Ostbridge" in _said(_claim(now, theirs))
 
 
 def test_a_comparison_with_no_difference_says_nothing():

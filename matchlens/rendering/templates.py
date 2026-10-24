@@ -2,7 +2,7 @@
 
 Rows are keyed on language, moment type and depth, never on a lens, so a lens is free to change
 without a template changing (invariant 10). A fact row phrases one claim: it is keyed on the
-claim's metric, the form Rendering reads the claim as (D29's wording rules), and the depth. The
+claim's metric, the form Rendering reads the claim as (D30's wording rules), and the depth. The
 four signal metrics share the `signal` rows and differ by the phrase their `signals` row gives.
 A claim whose form has no row is not spoken, because a number nobody templated is a number
 nobody agreed to say.

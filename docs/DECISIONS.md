@@ -475,7 +475,7 @@ R1 left every empty measurement out of the prior, and U4 kept every one in the m
 
 # OPEN — Kehinde decides
 
-## D29 · The claim metric vocabulary: eight metrics, the scorer named, both comparisons — SETTLED 23 Oct
+## D30 · The claim metric vocabulary: eight metrics, the scorer named, both comparisons — SETTLED 23 Oct
 
 Answers Q25 part 3. Replaces the S4 stub's `triggers`, and closes D21's "a string until U1–U3 define what the verifier can recount": `Operand.metric` becomes a closed `Metric` enum (D14: every closed set is a named enum).
 

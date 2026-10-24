@@ -1,6 +1,6 @@
-"""D29's claims, built by rule from the frozen log and the readings (L7). No model.
+"""D30's claims, built by rule from the frozen log and the readings (L7). No model.
 
-Each moment type gets the claims D29 lists for it, in the order a lens that speaks only some of
+Each moment type gets the claims D30 lists for it, in the order a lens that speaks only some of
 them should hear them:
 
 - goal: the scorer's goals, the score (or the team's goals while the other side has none, Q26
@@ -40,7 +40,7 @@ from matchlens.understanding.shot_value import is_shot, value
 MODEL = "deterministic"
 MODEL_VERSION = "claims-1"  # bump by hand whenever a rule below changes (invariant 7)
 
-# How a possession wins the ball in open play; a restart is not winning it (D29).
+# How a possession wins the ball in open play; a restart is not winning it (D30).
 _BALL_WINNING = frozenset({Action.TACKLE, Action.INTERCEPTION, Action.AERIAL_DUEL})
 
 
@@ -163,7 +163,7 @@ def _build_up(shot: Event, events: Sequence[Event], match: Match) -> Operand | N
     """The passes in the move that ended in `shot`, if the move began by winning the ball.
 
     A move begun by a restart has no claim: "a quick attack" reads the move's duration, which
-    from a corner or a throw-in is not an attack's (D29).
+    from a corner or a throw-in is not an attack's (D30).
     """
     move = next((p for p in from_events(match, events) if shot.event_id in p.event_ids), None)
     if move is None:

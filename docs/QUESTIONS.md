@@ -43,15 +43,15 @@ L7 already makes `Pipeline.process` hand each moment's cards on as soon as that 
 
 **Answer:** A (23 Oct). Done in L7 as a `queued` span from the moment's spotting span ending to its turn. Named `queued`, not `spotting.queued`: the test counts a stage once through its outermost span, so a `spotting.*` child of the root would fold into Spotting and leave the wait uncounted. The test passes 6 of 6 on its own and failed 1 of 2 full-suite runs, against an absolute 5 ms slack.
 
-## Q26 · Three of D29's rules need facts no claim can carry  [ticket: L7]  [blocking: yes]
+## Q26 · Three of D30's rules need facts no claim can carry  [ticket: L7]  [blocking: yes]
 
-**What I need to know:** How to carry three things D29 asks for, given that Rendering only sees a claim's operands (`subject`, `metric`, `window`, `value`, `evidence_ids`), plus `threshold` on an interpretive claim. It never sees the record.
+**What I need to know:** How to carry three things D30 asks for, given that Rendering only sees a claim's operands (`subject`, `metric`, `window`, `value`, `evidence_ids`), plus `threshold` on an interpretive claim. It never sees the record.
 
-1. **"On the break" needs the move's start zone.** D29: *started in the defensive or middle third and reached the shot in ≤ 20 s*. A `build_up_passes` operand carries the passes (`value`) and the duration (`window`), but not where the move started. On seed 1, 23 of the 43 moves that ended in a shot started in the final third, so leaving the zone out would call quick moves after winning the ball high "breaks".
+1. **"On the break" needs the move's start zone.** D30: *started in the defensive or middle third and reached the shot in ≤ 20 s*. A `build_up_passes` operand carries the passes (`value`) and the duration (`window`), but not where the move started. On seed 1, 23 of the 43 moves that ended in a shot started in the final third, so leaving the zone out would call quick moves after winning the ball high "breaks".
 2. **"The score after it" cannot be cited when the other side has not scored.** Every operand needs at least one piece of evidence (invariant 5), and a team on 0 goals has no goal event to cite. So "puts them 1–0 up" asserts something nothing backs. Two of seed 1's three goals are like this.
 3. **An interpretive claim has no direction.** "Pressing much harder" and "pressing much less" both need `|z_match|` ≥ 2.0. The claim's `threshold` says how strong the word is but not which way. The comparative claims carry direction, but casual's `allowed_claim_types` is descriptive and interpretive only, so casual never gets them.
 
-**Why I cannot decide it:** each answer either adds a field to `Claim`/`Operand` or changes a D29 rule, and the `Claim` schema is yours (CLAUDE.md: a change to what an entity means; the `Claim` schema is reserved).
+**Why I cannot decide it:** each answer either adds a field to `Claim`/`Operand` or changes a D30 rule, and the `Claim` schema is yours (CLAUDE.md: a change to what an entity means; the `Claim` schema is reserved).
 
 **Options as I see them:**
 - (1a) Drop the zone from the rule: "on the break" = shot within 20 s of winning the ball, whatever third. Costs: some fast high turnovers called breaks.
@@ -63,7 +63,7 @@ L7 already makes `Pipeline.process` hand each moment's cards on as soon as that 
 
 **What I would do if forced:** 1a, 2a, 3a. No new field, nothing cited that is not there, and the one change of meaning is the smallest. I have not started building.
 
-**Answer:** 1a, 2a, 3a (23 Oct). Recorded in D29.
+**Answer:** 1a, 2a, 3a (23 Oct). Recorded in D30.
 
 ## Q25 · What should a casual viewer know, and where does the "why" come from before A2?  [ticket: L1, L3, A2]  [blocking: no, but the demo video is thin until it is answered]
 
@@ -85,7 +85,7 @@ L7 already makes `Pipeline.process` hand each moment's cards on as soon as that 
 
 **What I would do if forced:** 3a first, since it is what all three lenses lack. Then 2a and 1a, so casual gets an occasional plain-words turning point and stays the quietest panel. I have not done any of it.
 
-**Answer:** Part 3: 3a, settled as D29 (23 Oct): eight metrics, the scorer named, comparisons both ways. Parts 1 and 2 still open.
+**Answer:** Part 3: 3a, settled as D30 (23 Oct): eight metrics, the scorer named, comparisons both ways. Parts 1 and 2 still open.
 
 ## Q24 · Are the three L4 panels fed by three sessions or by one session carrying three lenses?  [ticket: L4]  [blocking: yes]
 
