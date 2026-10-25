@@ -1,5 +1,6 @@
 """A6: every card opens to the claims behind it and the rows they cite (V7)."""
 
+from collections.abc import Iterator
 from pathlib import Path
 
 import pytest
@@ -189,7 +190,7 @@ def test_the_drawer_shows_nothing_that_is_not_evidence(run):
 
 
 @pytest.fixture(scope="module")
-def client(run) -> TestClient:
+def client(run) -> Iterator[TestClient]:
     app = create_app(MatchStateHub(), run.sessions, run.queues)
     with TestClient(app) as test_client:
         yield test_client
