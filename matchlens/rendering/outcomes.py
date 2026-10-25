@@ -1,4 +1,4 @@
-"""What crosses the bus to the producer view, beside `Card` (P1, Q42: 1A).
+"""What crosses the bus to the producer view, beside `Card` (P1, Q43: 1A).
 
 A `Card` is only what a viewer is given, so a lens that said nothing leaves no trace on it.
 These are the other half: for one moment, what each lens did with it, including the suppressed

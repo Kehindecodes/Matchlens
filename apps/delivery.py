@@ -84,7 +84,7 @@ def _reporter(loop: asyncio.AbstractEventLoop, feed: ProducerFeed | None) -> Rep
 
 
 ladder = Ladder()  # A5: the pipeline keeps the rung, the page shows it and switches the models
-# P1, Q42: 4B. The producer view exists only where it is switched on.
+# P1, Q43: 4B. The producer view exists only where it is switched on.
 producer = ProducerFeed(lenses.all_lenses()) if settings.producer_view else None
 
 

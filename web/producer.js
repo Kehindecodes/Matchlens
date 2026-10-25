@@ -1,4 +1,4 @@
-// The producer view (P1, Q42): the demo view's panels, each with what a viewer is never shown.
+// The producer view (P1, Q43): the demo view's panels, each with what a viewer is never shown.
 // The panels, their sessions and the ladder strip are panel.js and app.js, unchanged. This adds
 // the stream of what each lens last did and why, and shows it as it arrives. It works out
 // nothing: the state, the words and the numbers are all the feed's.

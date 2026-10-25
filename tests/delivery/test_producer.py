@@ -1,4 +1,4 @@
-"""P1: the producer view tells a lens that chose silence from a lens that failed (Q42).
+"""P1: the producer view tells a lens that chose silence from a lens that failed (Q43).
 
 Invariant 11 is what makes it buildable: a lens that deliberately says nothing has a suppressed
 rendition and a reason, and a lens that is broken has none. The feed holds what the pipeline

@@ -21,7 +21,7 @@ from the next moment on. While down it is still asked, but not waited for and no
 two good answers in a row bring it back. A moment Rendering fails on is suppressed as
 `degraded` rather than lost.
 
-Beside the cards, each moment reports what every lens did with it (P1, Q42), suppressed
+Beside the cards, each moment reports what every lens did with it (P1, Q43), suppressed
 renditions and the importance and rate-limit count Selection judged included, to `report`. A
 moment that fails outside Rendering is logged and reported failed, so no lens is left looking
 quiet for a moment nobody can see was lost. None of it reaches a viewer.

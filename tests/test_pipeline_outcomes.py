@@ -1,4 +1,4 @@
-"""P1: the pipeline says, for every moment, what each lens did with it (Q42: 1A, 2A).
+"""P1: the pipeline says, for every moment, what each lens did with it (Q43: 1A, 2A).
 
 The producer view needs what a viewer never gets: the suppressed renditions, the importance each
 lens judged and the rate-limit state. None of it changes a card.

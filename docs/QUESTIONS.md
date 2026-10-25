@@ -24,7 +24,7 @@ Newest at the top. Kehinde answers inline and moves the resolved ones to `docs/D
 
 ---
 
-## Q42 · Where the producer view's internals come from, what "broken" means, the rung before A5, and who can reach the page  [ticket: P1]  [blocking: yes]
+## Q43 · Where the producer view's internals come from, what "broken" means, the rung before A5, and who can reach the page  [ticket: P1]  [blocking: yes]
 
 **What I need to know:** four things P1's brief leaves open. Q24 settled how the cards are fed (three sessions, three `EventSource`s); none of what P1 adds on top of that exists on the delivery side today.
 
@@ -61,7 +61,7 @@ Newest at the top. Kehinde answers inline and moves the resolved ones to `docs/D
 
 **Answer:** 1A, 2A, 3A, 4B. Kehinde, 25 Oct.
 
-**After A5 merged (25 Oct), before any code:** `origin/main` already had A5 (Q41 above, which is why this is Q42). It changes two of the premises above, so these are how the answer was applied.
+**After A5 merged (25 Oct), before any code:** `origin/main` already had A5 (Q41 above), and A6 took Q42, which is why this is Q43. It changes two of the premises above, so these are how the answer was applied.
 - **3A (rung).** There is a real rung now, so there is no slot to ship. The producer page shows A5's strip and `ladder` event through `panel.js`, on every rung. Nothing about the rung is held in the producer feed.
 - **2A (broken).** A5 stores a Rendering failure as a suppressed `degraded` rendition, so "no rendition at all" is only a moment that fails outside Rendering. `degraded` is shown as broken too, since it is not a lens's choice, and `verification_failed` as an alarm, since DATA-MODEL calls it one. The mapping is the one dict `STATE_OF_REASON`; reverse it there.
 

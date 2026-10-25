@@ -1,5 +1,5 @@
 """What the producer view shows: the latest thing each lens did, told apart as spoke, quiet or
-broken (P1, Q42).
+broken (P1, Q43).
 
 The feed holds what the pipeline reports and derives nothing from the match. A lens that chose
 silence has a suppressed rendition and a reason (invariant 11); a lens that failed has none, or

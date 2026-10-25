@@ -1,6 +1,6 @@
 """The delivery HTTP surface: the page, viewer sessions, and the SSE stream.
 
-With a `ProducerFeed` it also serves the producer view (P1, Q42: 4B). Without one, the page, its
+With a `ProducerFeed` it also serves the producer view (P1, Q43: 4B). Without one, the page, its
 stream and its files do not exist: a deployment that has not switched it on has nothing to find.
 """
 
