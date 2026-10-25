@@ -694,6 +694,69 @@ So the honest headline is not an agent count. It is: **a model-assisted pipeline
 
 ---
 
+## D36 · The viewer's offset is the model's latency budget; the 25× replay serves pre-computed claims — SETTLED 25 Oct
+
+A2's first wiring measured about **20 seconds per call.** Live output has to feel immediate and the demo runs at 25×, so this needed settling before A2 goes further.
+
+### One: the offset is the budget
+
+A card for a moment at 61:04 is not released until the viewer's clock reaches 61:04 — `stream_offset_ms` after the pipeline saw it (invariant 8, D1). So the release queue is not only a spoiler guard. It is **slack the slow path may spend.**
+
+At 1× with a 45-second offset, A2 has roughly 45 seconds of wall time before the card is due. A 20-second call fits inside that.
+
+**A2 gets a deadline of `stream_offset_ms` minus a safety margin.** Miss it and the card ships on L7's claims, which under D35 is already a complete card. A miss costs extra claims, never the card.
+
+This is what D35 bought. Had A2 been primary, 20 seconds would be a 20-second block on every card; additive makes it a 20-second *opportunity*.
+
+### Two: the demo breaks the budget, so the demo pre-computes
+
+The wall-time budget is `stream_offset_ms / speed`. At the demo's 25×, a 45-second offset passes in **1.8 seconds** — and sixty moments at 20 seconds each, run serially, is twenty minutes against a four-minute replay. **The demo is the hard case, not live play.**
+
+**Settled: the 25× replay serves A2's claims from a cache, pre-computed over the demo seed.**
+
+That is legitimate because the demo match is byte-identical from its seed (invariant 9), so claims computed offline are the claims the live path would produce from the same input. It is also what any production system does for a replay.
+
+**It must be stated, never implied.** X3 and the README say plainly: *the live path calls the model inside the viewer's offset; the 25× replay serves pre-computed claims, because 25× compresses the budget twenty-five-fold.* Unstated, it is the thing a judge finds. Stated, it is obviously the right engineering.
+
+### Three: 20 seconds is a symptom, not a law
+
+In order of expected gain:
+
+1. **Moment-scoped input.** A2 currently receives the whole `frozen_log`, which by minute 80 is ~1,800 events. It needs the moment, its trigger readings and events, L7's existing claims, and the possession around a shot — tens of rows. Invariant 1 keeps frames out of the prompt; the same discipline keeps the irrelevant past out.
+2. **One call, not an agent loop.** If the framework runs multi-turn tool-calling with reflection, collapse it to a single structured-output call with a response schema.
+3. **Warm up at boot.** One throwaway call when the container starts, so the first viewer does not pay model cold start on top of D23's container cold start.
+4. **A smaller model.** Proposing claims over a small structured input is well inside a fast model's range.
+5. **Selective enrichment.** Only high-importance moments get a call — five to ten a match rather than sixty. Helps live and demo alike.
+6. **Concurrency.** Moments are independent, so a bounded pool stops the budget being spent serially.
+
+### Consequence for what can be claimed
+
+If A2 lands and A4 does not, the model's contribution is **which claims get made**, not the words a viewer reads — L3's templates write those. That is still defensible as AI-assisted explanation. Templates over purely rule-built claims is not.
+
+So **A2 with selective enrichment is worth more to the submission than A4**, which inverts their tiers. Tier changes are Kehinde's call.
+
+### Amended 25 Oct · mixed offsets, and why the budget is per moment
+
+The sections above assume one offset. Viewers do not share one, and that exposes something the first version glossed over.
+
+**A2 runs once per moment, upstream of the fan-out.** Selection and Rendering go per lens; Explanation does not go per viewer. So one call serves every viewer of the match, while their offsets differ — 45 s for one, 10 s for another.
+
+Handled naively, the same moment then yields a **richer card for the later viewer**, because A2's claims arrived before their card was due and after the early viewer's. That breaks a property D2 exists to assert: a 45 s-behind viewer and a 5 s-behind viewer get *the same card at the right point in their own stream*. Content varying by stream latency rather than by lens is exactly what that test rules out.
+
+**Settled: one enrichment deadline per moment, and release at `max(viewer's due time, that deadline)`.**
+
+Safe because invariant 8 is one-directional — *delivery delays, never anticipates*. Delaying a card **further** is always legal; only early release is forbidden. So a 10 s-offset viewer's card waits for the deadline and carries the same content as everyone else's.
+
+**The price, stated: the deadline is a freshness floor for low-offset viewers.** A 3-second deadline costs a 10 s viewer nothing, expiring before their card is due. A 20-second deadline means their cards arrive ten seconds later than they could — the product feels laggiest to the viewers with the best stream.
+
+So the uncomfortable conclusion: **the offset budget absorbs a fast call; it does not rescue a slow one.** 45 s made 20 s look survivable, 10 s shows it is not. The target is **single-digit seconds**, and the fix list above is the real answer rather than the budget.
+
+**No retrofit.** A `Rendition` is an append-only record of what was shown, so claims arriving after a card shipped cannot be added to it. The deadline has to be decided before release, not hoped for.
+
+**Scope, honestly:** D1, D2 and A2 all shipped before this was noticed, A2 against a scripted model. The second release gate is therefore **not required until both** a real model with real latency is on the live path **and** viewers with differing offsets coexist. Until then this is a recorded correctness note, not outstanding work — and selective enrichment limits it further, since only enriched moments pay a deadline at all.
+
+---
+
 # OPEN — Kehinde decides
 
 ## O4 · Audit as an Azure Function or in-process

@@ -30,7 +30,7 @@ def _reading_operand(r: dict) -> dict:
     return {
         "subject": _ref("team", r["team"]),
         "metric": r["signal"],
-        "window": {"start_ms": r["clock_ms"] - r["window_ms"], "end_ms": r["clock_ms"]},
+        "window": r["window"],
         "value": r["value"],
         "evidence_ids": [_ref("reading", r["reading_id"])],
     }
@@ -344,79 +344,173 @@ def test_a_model_that_fails_to_answer_gives_no_claims_and_is_logged(honest, capl
     assert any("no answer" in r.message for r in caplog.records)
 
 
-# --- A2 contributing nothing changes nothing -----------------------------------------------------
+# --- on the card path, behind the deadline (D36, Q37) ---------------------------------------------
 
 
 class Held(Proposer):
-    """`model`, but no answer comes until the test lets it: a model slower than the match."""
+    """`model`, but no answer comes until the test lets it: a model slower than the deadline."""
 
     def __init__(self, model: Proposer):
         self.model = model
         self.released = threading.Event()
-        self.asked = 0
-        self.inline = False  # asked on the thread that makes the cards
 
     @override
     def propose(self, instructions: str, prompt: str) -> Answer:
-        self.asked += 1
-        if threading.current_thread() is threading.main_thread():
-            self.inline = True
-            raise AssertionError("the card path asked the model")
-        if not self.released.wait(timeout=60):
-            raise AssertionError("the card path waited for the model")
+        self.released.wait(timeout=60)
         return self.model.propose(instructions, prompt)
 
 
-def _cards(the_pipeline: pipeline.Pipeline) -> list[str]:
-    """Seed 1 through `the_pipeline`: every card, as JSON."""
-    return [
-        c.model_dump_json(exclude={"rendition": {"rendered_at"}})  # wall time, not content
-        for item in simulate(1)
-        for c in the_pipeline.process(item)
-    ]
+class Counting(Proposer):
+    def __init__(self, model: Proposer):
+        self.model = model
+        self.moments: list[str] = []
+        self._lock = threading.Lock()
+
+    @override
+    def propose(self, instructions: str, prompt: str) -> Answer:
+        with self._lock:
+            self.moments.append(json.loads(prompt)["moment"]["moment_id"])
+        return self.model.propose(instructions, prompt)
+
+
+def _card(c) -> str:
+    return c.model_dump_json(exclude={"rendition": {"rendered_at"}})  # wall time, not content
+
+
+def _run(proposer: Proposer | None, monkeypatch=None) -> tuple[list[str], dict[str, Verdict]]:
+    """Seed 1 through the pipeline: every card, as JSON, and every verdict Audit was handed."""
+    verdicts: dict[str, Verdict] = {}
+    if monkeypatch is not None:
+        real = pipeline.audit.record
+
+        def record(moment, claims, verifications, renditions):
+            verdicts.update({v.claim_id: v.verdict for v in verifications})
+            real(moment, claims, verifications, renditions)
+
+        monkeypatch.setattr(pipeline.audit, "record", record)
+    cards: list[str] = []
+    the_pipeline = pipeline.Pipeline(proposer, lambda c: cards.append(_card(c)))
+    try:
+        for item in simulate(1):
+            cards.extend(_card(c) for c in the_pipeline.process(item))
+        the_pipeline.drain()
+    finally:
+        the_pipeline.close()
+    return cards, verdicts
 
 
 @pytest.fixture(scope="module")
 def alone() -> list[str]:
-    return _cards(pipeline.Pipeline())
+    cards, _ = _run(None)
+    assert cards
+    return cards
 
 
-@pytest.mark.parametrize("model", [Fails, Liar])
-def test_no_card_depends_on_a2_or_waits_for_it(model, alone, monkeypatch):
-    # D35 and Q32: A. A model that fails, and one whose every number is wrong, both leave every
-    # card byte-identical to the run with no model. Q34: A. And none of those cards waits for
-    # it: the model gives no answer at all until every card of the match has gone out. Audit is
-    # handed its claims, with their verifications, once it does answer.
-    audited: list[tuple[Claim, ...]] = []
-    verdicts: dict[str, Verdict] = {}
-    real = pipeline.audit.record
+def _moment_types(played: Played) -> dict[str, str]:
+    return {x.moment.moment_id: x.moment.type.value for x in played.explained}
 
-    def record(moment, claims, verifications, renditions):
-        audited.append(tuple(claims))
-        verdicts.update({v.claim_id: v.verdict for v in verifications})
-        real(moment, claims, verifications, renditions)
 
-    monkeypatch.setattr(pipeline.audit, "record", record)
-    held = Held(model())
-    the_pipeline = pipeline.Pipeline(held)
+def test_a_model_whose_numbers_are_wrong_changes_no_card(alone, monkeypatch):
+    # D35's demo shot: A3 rejects every number the liar changed, L7's claims on the same
+    # moments pass, and every card ships exactly as it would have with no model at all.
+    cards, verdicts = _run(Liar(), monkeypatch)
+    proposed = {k: v for k, v in verdicts.items() if ":a" in k}
+    assert proposed
+    assert set(proposed.values()) == {Verdict.FAIL}
+    assert {v for k, v in verdicts.items() if ":c" in k} == {Verdict.PASS}
+    assert cards == alone
+
+
+def test_a_model_that_fails_changes_no_card(alone):
+    cards, _ = _run(Fails())
+    assert cards == alone
+
+
+def test_an_honest_models_claims_reach_the_analyst_card_and_nothing_else_moves(
+    alone, honest, monkeypatch
+):
+    cards, verdicts = _run(Honest(), monkeypatch)
+    proposed = {k for k, v in verdicts.items() if ":a" in k and v is Verdict.PASS}
+    assert proposed
+    shown = [json.loads(c) for c in cards]
+    spoken = {i for c in shown for i in c["rendition"]["surviving_claim_ids"] if ":a" in i}
+    assert spoken and spoken <= proposed
+    # Which moments and which cards exist is L7's and Selection's business, not the model's.
+    before = [json.loads(c) for c in alone]
+    key = [(c["rendition"]["moment_id"], c["rendition"]["lens_id"]) for c in shown]
+    assert key == [(c["rendition"]["moment_id"], c["rendition"]["lens_id"]) for c in before]
+
+    # A casual viewer reads exactly what they did: that lens speaks no claim (A2's are among
+    # the ones Selection kept for it, as L7's are, and unspoken).
+    def seen(cs: list[dict]) -> list[tuple]:
+        return [
+            (c["rendition"]["headline"], c["rendition"]["body"], c["overlay"])
+            for c in cs
+            if c["rendition"]["lens_id"] == "match_casual"
+        ]
+
+    assert seen(shown) == seen(before)
+
+
+def test_only_goals_and_chances_are_put_to_the_model_once_each(honest):
+    played, _ = honest
+    types = _moment_types(played)
+    model = Counting(Honest())
+    _run(model)
+    assert model.moments
+    assert len(model.moments) == len(set(model.moments))  # one round trip per moment
+    assert {types[m] for m in model.moments} <= {"goal", "chance"}
+    assert set(model.moments) == {m for m, t in types.items() if t in ("goal", "chance")}
+
+
+def test_a_model_slower_than_the_deadline_is_not_waited_for(alone, monkeypatch, caplog):
+    monkeypatch.setattr(pipeline.settings, "explainer_deadline_ms", 50)
+    held = Held(Honest())
     try:
-        cards = _cards(the_pipeline)
-        assert not held.inline
-        assert alone
-        assert cards == alone
-        held.released.set()
-        the_pipeline.drain()
+        with caplog.at_level(logging.WARNING, logger=pipeline.__name__):
+            cards, _ = _run(held)
     finally:
         held.released.set()
-        the_pipeline.close()
+    assert cards == alone  # every card shipped on L7's claims
+    missed = [r for r in caplog.records if "missed its 50 ms deadline" in r.message]
+    assert missed  # and every miss is on the record, not silent
 
-    assert held.asked > 1  # every moment was put to the model, one after another
-    proposed = [c for claims in audited for c in claims if c.model == MODEL]
-    if model is Fails:
-        assert not proposed
-    else:
-        assert proposed
-        # A3 judges them where L7's are judged, and rejects every number the liar changed,
-        # while L7's claims on the same moments pass and their cards shipped (D35).
-        assert {verdicts[c.claim_id] for c in proposed} == {Verdict.FAIL}
-        assert {v for k, v in verdicts.items() if ":c" in k} == {Verdict.PASS}
+
+def test_each_moments_card_is_made_once_for_every_viewer(honest):
+    # D2's identical content (D36, amended): one card per moment and lens, fanned out to every
+    # session, never amended, so a viewer further behind cannot be shown a richer one.
+    cards, _ = _run(Honest())
+    shown = [json.loads(c)["rendition"] for c in cards]
+    keys = [(r["moment_id"], r["lens_id"]) for r in shown]
+    assert len(keys) == len(set(keys))
+
+
+# --- the demo cache (D36) ------------------------------------------------------------------------
+
+
+def test_the_cache_serves_exactly_what_the_live_path_is_asked(alone):
+    from matchlens.explanation.cache import Cached, Recording
+
+    recording = Recording(Honest())
+    live, _ = _run(recording)
+    cached = Cached(recording.answers, live=None)
+    served, _ = _run(cached)
+    assert served == live  # the same prompts, so the same answers, so the same cards
+    assert cached.hits == len(recording.answers) > 0
+    # A cache recorded for other prompts answers nothing, and the cards are L7's.
+    stale, _ = _run(Cached({}, live=None))
+    assert stale == alone
+
+
+def test_the_prompt_is_a_slice_of_the_log_not_the_whole_of_it(honest):
+    played, _ = honest
+    x, log = next(
+        (x, log)
+        for x, log in zip(reversed(played.explained), reversed(played.logs), strict=True)
+        if x.moment.type.value in ("goal", "chance")
+    )
+    prompt = agent.digest(x.moment, log, explanation.by_rule(x.claims))
+    shown = [e for e in log.events if f'"{e.event_id}"' in prompt]
+    assert len(log.events) > 1000
+    assert len(shown) < len(log.events) / 10
+    assert f'"{log.events[0].event_id}"' not in prompt

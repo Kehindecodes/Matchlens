@@ -19,6 +19,7 @@ from matchlens.delivery.release import ReleaseQueues
 from matchlens.delivery.router import CardRouter
 from matchlens.delivery.sessions import SessionStore
 from matchlens.explanation import foundry
+from matchlens.rendering import Card
 from matchlens.source.replay import Replay
 from matchlens.understanding.match_state import MatchStateTracker
 
@@ -73,7 +74,15 @@ async def _lifespan(_: FastAPI):
     if settings.appinsights_connection_string:
         configure_azure_monitor(connection_string=settings.appinsights_connection_string)
     replay = Replay.from_seed(settings.match_seed, speed=settings.replay_speed)
-    pipeline = Pipeline(foundry.from_settings())
+    loop = asyncio.get_running_loop()
+    proposer = foundry.from_settings()
+
+    def publish(card: Card) -> None:
+        # A card the editorial thread finishes is handed to the release queues on this loop.
+        loop.call_soon_threadsafe(router.receive, card)
+
+    pipeline = Pipeline(proposer, publish)
+    foundry.warm(proposer)
     feed = asyncio.create_task(run_local_feed(hub, replay, pipeline, router.receive))
     try:
         yield
