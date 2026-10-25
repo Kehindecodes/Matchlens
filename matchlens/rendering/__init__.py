@@ -1,6 +1,6 @@
 """Turns one lens's selected claims into a rendition"""
 
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from datetime import UTC, datetime
 from typing import Any
 
@@ -15,14 +15,27 @@ from matchlens.models import (
     OverlayPacket,
     Rendition,
     SuppressionReason,
+    Verification,
 )
-from matchlens.rendering import overlay, templates, writer
+from matchlens.rendering import evidence, overlay, templates, writer
 from matchlens.rendering.card import Card
+from matchlens.rendering.evidence import ClaimEvidence
 from matchlens.rendering.facts import clock, sentence
 from matchlens.rendering.writer import Written
 from matchlens.selection import Selection
+from matchlens.verification.record import Record
 
-__all__ = ["Card", "Written", "degraded", "in_full", "overlay_packet", "render", "write"]
+__all__ = [
+    "Card",
+    "ClaimEvidence",
+    "Written",
+    "degraded",
+    "drawer",
+    "in_full",
+    "overlay_packet",
+    "render",
+    "write",
+]
 
 # Reasons that outrank `degraded` (DATA-MODEL's evaluation order): a lens that was never a
 # candidate, or was muted, says so even when Rendering failed.
@@ -164,6 +177,21 @@ def overlay_packet(
         return None
     _, _, spoken = _words(moment, selection, lens, names, _CLAIMS_SPOKEN[lens.detail_level])
     return overlay.packet(moment, lens, names, rendition, [claim for claim, _ in spoken])
+
+
+def drawer(
+    moment: Moment,
+    selection: Selection,
+    lens: Lens,
+    names: Mapping[str, str],
+    verifications: Sequence[Verification],
+    record: Record,
+) -> tuple[ClaimEvidence, ...]:
+    """The evidence drawer for this lens's card of `moment` (A6): every claim Selection kept,
+    marked whether the card said it, with the rows each cites and its verification."""
+    _, _, spoken = _words(moment, selection, lens, names, _CLAIMS_SPOKEN[lens.detail_level])
+    spoken_ids = {claim.claim_id for claim, _ in spoken}
+    return evidence.drawer(selection.claims, spoken_ids, verifications, record, names)
 
 
 def _words(
