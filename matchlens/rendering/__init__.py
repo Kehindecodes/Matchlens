@@ -2,17 +2,31 @@
 
 from collections.abc import Mapping
 from datetime import UTC, datetime
+from typing import Any
 
 from matchlens import calltrace
-from matchlens.explanation import Proposer
-from matchlens.models import Claim, DetailLevel, Lens, Metric, Moment, OverlayPacket, Rendition
+from matchlens.explanation import Failure, Proposer
+from matchlens.models import (
+    Claim,
+    DetailLevel,
+    Lens,
+    Metric,
+    Moment,
+    OverlayPacket,
+    Rendition,
+    SuppressionReason,
+)
 from matchlens.rendering import overlay, templates, writer
 from matchlens.rendering.card import Card
 from matchlens.rendering.facts import clock, sentence
 from matchlens.rendering.writer import Written
 from matchlens.selection import Selection
 
-__all__ = ["Card", "Written", "in_full", "overlay_packet", "render", "write"]
+__all__ = ["Card", "Written", "degraded", "in_full", "overlay_packet", "render", "write"]
+
+# Reasons that outrank `degraded` (DATA-MODEL's evaluation order): a lens that was never a
+# candidate, or was muted, says so even when Rendering failed.
+_BEFORE_DEGRADED = (SuppressionReason.OUT_OF_SCOPE, SuppressionReason.MUTED)
 
 # How many selected claims a lens speaks, by how much detail it wants. None is all of them.
 _CLAIMS_SPOKEN = {DetailLevel.MINIMAL: 0, DetailLevel.STANDARD: 1, DetailLevel.FULL: None}
@@ -44,24 +58,8 @@ def render(
     which model wrote it. Without it, the words are L3's alone: the seam A5 falls back on.
     """
     calltrace.entered("Rendering")
-    base = {
-        "rendition_id": f"{moment.moment_id}:{lens.lens_id}",
-        "moment_id": moment.moment_id,
-        "lens_id": lens.lens_id,
-        "language": lens.language,
-        "surviving_claim_ids": tuple(claim.claim_id for claim in selection.claims),
-        "rendered_at": datetime.now(UTC),
-    }
     if selection.suppression_reason is not None:
-        return Rendition(
-            **base,
-            headline=None,
-            body=None,
-            suppressed=True,
-            suppression_reason=selection.suppression_reason,
-            model=templates.MODEL,
-            model_version=templates.MODEL_VERSION,
-        )
+        return _suppressed(moment, lens, selection.suppression_reason)
 
     headline, opening, spoken = _words(
         moment, selection, lens, names, _CLAIMS_SPOKEN[lens.detail_level]
@@ -73,7 +71,7 @@ def render(
         body = f"{opening} {written.text}"
         model, version = written.model, written.model_version
     return Rendition(
-        **base,
+        **_base(moment, lens, tuple(claim.claim_id for claim in selection.claims)),
         headline=headline,
         body=body,
         suppressed=False,
@@ -83,18 +81,52 @@ def render(
     )
 
 
+def degraded(moment: Moment, selection: Selection, lens: Lens) -> Rendition:
+    """The rendition for a lens Rendering failed on: below L1, so suppressed as `degraded`
+    (A5, Q41: 1A). Still a record (invariant 11); like every suppressed rendition it carries
+    no claims, and the claims Selection kept stay on the record through Audit."""
+    reason = selection.suppression_reason
+    if reason is None or reason not in _BEFORE_DEGRADED:
+        reason = SuppressionReason.DEGRADED
+    return _suppressed(moment, lens, reason)
+
+
+def _base(moment: Moment, lens: Lens, claim_ids: tuple[str, ...]) -> dict[str, Any]:
+    return {
+        "rendition_id": f"{moment.moment_id}:{lens.lens_id}",
+        "moment_id": moment.moment_id,
+        "lens_id": lens.lens_id,
+        "language": lens.language,
+        "surviving_claim_ids": claim_ids,
+        "rendered_at": datetime.now(UTC),
+    }
+
+
+def _suppressed(moment: Moment, lens: Lens, reason: SuppressionReason) -> Rendition:
+    return Rendition(
+        **_base(moment, lens, ()),
+        headline=None,
+        body=None,
+        suppressed=True,
+        suppression_reason=reason,
+        model=templates.MODEL,
+        model_version=templates.MODEL_VERSION,
+    )
+
+
 def write(
     moment: Moment,
     selection: Selection,
     lens: Lens,
     names: Mapping[str, str],
     model: Proposer,
-) -> Written | None:
-    """A model's words for the claims `render` would speak for this lens, or None (A4).
+) -> Written | Failure | None:
+    """A model's words for the claims `render` would speak for this lens (A4), or the
+    `Failure` of an answer the writer does not keep.
 
     The model is given those claims' sentences and nothing else, so a claim this lens dropped,
     or would leave unspoken, never reaches it. None, without a call, for a suppressed selection
-    or one that speaks no claim; None too for any answer the writer does not keep.
+    or one that speaks no claim.
     """
     if selection.suppression_reason is not None:
         return None

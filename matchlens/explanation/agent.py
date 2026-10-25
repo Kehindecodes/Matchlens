@@ -47,6 +47,12 @@ class Answer(NamedTuple):
     model_version: str
 
 
+class Failure(NamedTuple):
+    """A model that did not give a usable answer, and why: what the ladder scores (A5)."""
+
+    reason: str
+
+
 class Proposer(Protocol):
     def propose(self, instructions: str, prompt: str) -> Answer:
         """The model's answer to `prompt`. Raises on a failed or timed-out call."""
@@ -193,13 +199,14 @@ def digest(moment: Moment, log: FrozenLog, made: Sequence[Claim]) -> str:
 
 def propose(
     moment: Moment, log: FrozenLog, made: Sequence[Claim], proposer: Proposer
-) -> list[Claim]:
-    """The claims the model adds to `made`, or none if it failed, timed out or did not conform."""
+) -> list[Claim] | Failure:
+    """The claims the model adds to `made`, or a `Failure` if it failed, timed out or did not
+    conform. An empty list is an answer: the model had nothing to add."""
     try:
         answer = proposer.propose(INSTRUCTIONS, digest(moment, log, made))
     except Exception as failure:  # any failure to answer is the same failure: no claims
         logger.warning("explainer: no answer for %s: %r", moment.moment_id, failure)
-        return []
+        return Failure(f"no answer: {failure!r}")
     try:
         response = _Response.model_validate_json(answer.text, strict=True)
         claims = [
@@ -222,7 +229,7 @@ def propose(
             answer.model_version,
             failure,
         )
-        return []
+        return Failure("an answer that does not conform")
     return [c for c in claims if _citable(c, log) and not _restates(c, made)]
 
 

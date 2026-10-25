@@ -13,6 +13,7 @@ from fastapi import FastAPI
 
 from apps.pipeline import Pipeline, Publish
 from matchlens.config.settings import settings
+from matchlens.control.ladder import Ladder
 from matchlens.delivery.http import create_app
 from matchlens.delivery.hub import MatchStateHub
 from matchlens.delivery.release import ReleaseQueues
@@ -67,6 +68,7 @@ queues = ReleaseQueues()
 router = CardRouter(
     sessions, queues
 )  # Delivery's end of the bus: the pipeline publishes to receive
+ladder = Ladder()  # A5: the pipeline keeps the rung, the page shows it and switches the models
 
 
 @asynccontextmanager
@@ -82,7 +84,9 @@ async def _lifespan(_: FastAPI):
         loop.call_soon_threadsafe(router.receive, card)
 
     writer = foundry.from_settings(settings.writer_reasoning_effort)  # A4: same model (Q38)
-    pipeline = Pipeline(proposer, publish, writer=writer)
+    pipeline = Pipeline(
+        proposer, publish, writer=writer, ladder=ladder, queue_limit=settings.ladder_queue_limit
+    )
     foundry.warm(proposer)
     foundry.warm(writer)
     feed = asyncio.create_task(run_local_feed(hub, replay, pipeline, router.receive))
@@ -93,4 +97,4 @@ async def _lifespan(_: FastAPI):
         pipeline.close()
 
 
-app = create_app(hub, sessions, queues, router, lifespan=_lifespan)
+app = create_app(hub, sessions, queues, router, ladder, lifespan=_lifespan)

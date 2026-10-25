@@ -116,6 +116,50 @@ function mountPlayback() {
 
 mountPlayback();
 
+// --- the degradation ladder: which rung the words are on, and the demo's kill (A5, Q41) --------
+
+const RUNG_WORDS = {
+  L0: "Words: the model (L0)",
+  L1: "Words: templates (L1)",
+  L2: "Words: none (below L1), rendering failed",
+};
+
+let ladderStreamed = false; // a change from the stream is newer than the status fetched on load
+
+function showLadder(status) {
+  const bar = document.getElementById("ladder");
+  if (!bar) return; // only the demo view shows the ladder; a viewer is not told about internals
+  const rung = document.createElement("span");
+  rung.className = `rung ${status.rung}`;
+  const why = status.rung === "L1" && status.words.configured && !status.words.up
+    ? `, ${status.models_on ? "the model is not answering" : "models switched off"}`
+    : status.rung === "L1" && !status.words.configured ? ", no model configured" : "";
+  const pending = status.rung === "L0" && !status.models_on ? ", models switched off: drops at the next goal or chance" : "";
+  rung.textContent = RUNG_WORDS[status.rung] + why + pending;
+  const claims = document.createElement("span");
+  claims.className = "claims";
+  claims.textContent = `Extra claims: ${status.claims.up ? "on" : "off"}`;
+  const kill = document.createElement("button");
+  kill.type = "button";
+  kill.textContent = status.models_on ? "Kill the model" : "Bring the model back";
+  kill.addEventListener("click", async () => {
+    const res = await fetch("/ladder", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ models: status.models_on ? "off" : "on" }),
+    });
+    if (res.ok) showLadder(await res.json());
+  });
+  bar.replaceChildren(rung, " · ", claims, kill);
+}
+
+// The stream sends only changes, so the page reads where the ladder is now when it opens.
+if (document.getElementById("ladder")) {
+  fetch("/ladder").then((res) => res.json()).then((status) => {
+    if (!ladderStreamed) showLadder(status);
+  });
+}
+
 // sessionStorage survives a reload but is not shared between tabs, so each tab is its own viewer.
 async function restoreOrCreateSession(key, body) {
   const id = sessionStorage.getItem(key);
@@ -268,6 +312,10 @@ function stream(panel, session, onStatus, reopen) {
   source.addEventListener("card", (e) => panel.addCard(JSON.parse(e.data)));
   source.addEventListener("catch_up", (e) => panel.showCatchUp(JSON.parse(e.data)));
   source.addEventListener("playback", (e) => showSpeed(JSON.parse(e.data).speed));
+  source.addEventListener("ladder", (e) => {
+    ladderStreamed = true;
+    showLadder(JSON.parse(e.data));
+  });
   source.addEventListener("error", () => {
     if (unloading) return; // a reload closes the stream; that is not a lost session
     panel.live = false;
