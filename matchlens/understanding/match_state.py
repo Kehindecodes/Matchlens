@@ -42,9 +42,10 @@ class MatchStateTracker:
         self._last_second = -1
 
     def observe(self, item: Frame | Event) -> MatchState | None:
-        scored = isinstance(item, Event) and item.outcome is Outcome.GOAL and item.team is not None
-        if scored:
+        scored = False
+        if isinstance(item, Event) and item.outcome is Outcome.GOAL and item.team is not None:
             self._goals[item.team] += 1
+            scored = True
         second = item.clock_ms // 1000
         if second <= self._last_second and not scored:
             return None

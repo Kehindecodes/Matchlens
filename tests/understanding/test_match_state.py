@@ -68,7 +68,8 @@ def test_the_scoreboard_ends_on_the_seeded_matchs_final_score():
     setup = items[0]
     assert isinstance(setup, MatchSetup)
     tracker = MatchStateTracker(setup)
-    states = [state for item in items[1:] if (state := tracker.observe(item)) is not None]
+    played = [item for item in items if isinstance(item, Frame | Event)]
+    states = [state for item in played if (state := tracker.observe(item)) is not None]
     goals = [item for item in items if isinstance(item, Event) and item.outcome is Outcome.GOAL]
     assert goals
     final = {team.team_id: team.goals for team in states[-1].score}
