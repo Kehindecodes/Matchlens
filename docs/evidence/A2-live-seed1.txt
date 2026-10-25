@@ -1,0 +1,107 @@
+# A2 over seed 1, live: gpt-5.4-mini 2026-03-17, prompt explainer-1, timeout 20 s, 24 Oct 2026
+
+WARN explainer: no answer for moment-m-1-epoch1-possession_control-m-1-away-1260000: TimeoutError()
+WARN explainer: no answer for moment-m-1-epoch1-pressing_intensity-m-1-home-1740000: TimeoutError()
+WARN explainer: no answer for moment-m-1-e595: TimeoutError()
+WARN explainer: no answer for moment-m-1-epoch1-territory-m-1-home-1980000: TimeoutError()
+WARN explainer: no answer for moment-m-1-epoch1-chance_quality-m-1-away-1980000: TimeoutError()
+WARN explainer: no answer for moment-m-1-e671: TimeoutError()
+WARN explainer: no answer for moment-m-1-epoch1-pressing_intensity-m-1-away-2100000: TimeoutError()
+WARN explainer: no answer for moment-m-1-epoch2-possession_control-m-1-home-2280000: TimeoutError()
+WARN explainer: no answer for moment-m-1-epoch2-possession_control-m-1-away-2280000: TimeoutError()
+WARN explainer: no answer for moment-m-1-epoch3-territory-m-1-home-3180000: TimeoutError()
+WARN explainer: no answer for moment-m-1-e1061: TimeoutError()
+WARN explainer: no answer for moment-m-1-epoch3-possession_control-m-1-home-3600000: TimeoutError()
+WARN explainer: no answer for moment-m-1-epoch3-territory-m-1-home-3660000: TimeoutError()
+WARN explainer: no answer for moment-m-1-epoch3-pressing_intensity-m-1-away-3660000: TimeoutError()
+WARN explainer: no answer for moment-m-1-e1334: TimeoutError()
+WARN explainer: no answer for moment-m-1-epoch4-territory-m-1-away-4140000: TimeoutError()
+WARN explainer: no answer for moment-m-1-epoch4-possession_control-m-1-home-4380000: TimeoutError()
+WARN explainer: no answer for moment-m-1-e1426: TimeoutError()
+WARN explainer: no answer for moment-m-1-epoch5-possession_control-m-1-home-4860000: TimeoutError()
+WARN explainer: non-conforming answer for moment-m-1-epoch5-possession_control-m-1-away-4860000 from gpt-5.4-mini gpt-5.4-mini-2026-03-17: 1 validation error for _Response
+claims.1.operands.0.evidence_ids
+  Tuple should have at least 1 item after validation, not 0 [type=too_short, input_value=[], input_type=list]
+    For further information visit https://errors.pydantic.dev/2.14/v/too_short
+WARN explainer: no answer for moment-m-1-epoch5-territory-m-1-home-4920000: TimeoutError()
+WARN explainer: no answer for moment-m-1-e1596: TimeoutError()
+WARN explainer: no answer for moment-m-1-epoch5-chance_quality-m-1-home-5040000: TimeoutError()
+WARN explainer: no answer for moment-m-1-e1712: TimeoutError()
+WARN explainer: no answer for moment-m-1-e1822: TimeoutError()
+
+52 moments, 72 claims added, 741s
+Counter({'comparative': 32, 'descriptive': 30, 'interpretive': 10})
+moment-m-1-epoch0-territory-m-1-home-180000:a1 comparative [('m-1-home', 'possession_control', 0.645), ('m-1-away', 'possession_control', 0.355)] None recounts
+moment-m-1-epoch0-territory-m-1-home-180000:a2 comparative [('m-1-away', 'pressing_intensity', 11.0), ('m-1-home', 'pressing_intensity', 5.5)] None recounts
+moment-m-1-epoch0-territory-m-1-home-180000:a3 descriptive [('m-1-home', 'chance_quality', 0.181)] None recounts
+moment-m-1-epoch0-territory-m-1-away-180000:a1 descriptive [('m-1-away', 'possession_control', 0.355)] None recounts
+moment-m-1-epoch0-territory-m-1-away-180000:a2 descriptive [('m-1-away', 'pressing_intensity', 11.0)] None recounts
+moment-m-1-epoch0-territory-m-1-away-180000:a3 comparative [('m-1-away', 'pressing_intensity', 11.0), ('m-1-home', 'pressing_intensity', 5.5)] None recounts
+moment-m-1-epoch0-pressing_intensity-m-1-away-180000:a1 descriptive [('m-1-away', 'territory', 0.0)] None recounts
+moment-m-1-epoch0-pressing_intensity-m-1-away-180000:a2 descriptive [('m-1-away', 'possession_control', 0.355)] None recounts
+moment-m-1-epoch0-pressing_intensity-m-1-away-180000:a3 comparative [('m-1-away', 'territory', 0.0), ('m-1-home', 'territory', 1.0)] None recounts
+moment-m-1-epoch0-pressing_intensity-m-1-home-780000:a1 descriptive [('m-1-home', 'chance_quality', 0.148)] None recounts
+moment-m-1-epoch0-pressing_intensity-m-1-home-780000:a2 comparative [('m-1-home', 'territory', 0.875), ('m-1-away', 'territory', 0.125)] None recounts
+moment-m-1-epoch0-pressing_intensity-m-1-home-780000:a3 comparative [('m-1-home', 'possession_control', 0.587), ('m-1-away', 'possession_control', 0.413)] None recounts
+moment-m-1-epoch0-possession_control-m-1-home-840000:a1 interpretive [('m-1-home', 'pressing_intensity', 11.75)] 1.25 recounts
+moment-m-1-epoch0-possession_control-m-1-home-840000:a2 comparative [('m-1-home', 'pressing_intensity', 11.75), ('m-1-away', 'pressing_intensity', 7.0)] None recounts
+moment-m-1-epoch0-possession_control-m-1-home-840000:a3 comparative [('m-1-home', 'territory', 0.857), ('m-1-away', 'territory', 0.143)] None recounts
+moment-m-1-epoch0-possession_control-m-1-away-840000:a1 interpretive [('m-1-home', 'pressing_intensity', 11.75)] 2.0 recounts
+moment-m-1-epoch0-possession_control-m-1-away-840000:a2 comparative [('m-1-home', 'territory', 0.857), ('m-1-away', 'territory', 0.143)] None recounts
+moment-m-1-epoch0-possession_control-m-1-away-840000:a3 comparative [('m-1-home', 'possession_control', 0.32), ('m-1-home', 'possession_control', 0.0)] None WRONG [True, "recount error KeyError('m-1-e104')"]
+moment-m-1-e380:a1 comparative [('m-1-away', 'build_up_passes', 7.0), ('m-1-home', 'build_up_passes', 7.0)] None recounts
+moment-m-1-epoch1-possession_control-m-1-home-1260000:a1 descriptive [('m-1-away', 'chance_quality', 0.022)] None recounts
+moment-m-1-epoch1-possession_control-m-1-home-1260000:a2 comparative [('m-1-away', 'chance_quality', 0.022), ('m-1-home', 'chance_quality', 0.0)] None recounts
+moment-m-1-e631:a1 descriptive [('m-1-away', 'goals', 1.0)] None recounts
+moment-m-1-e631:a2 comparative [('m-1-away', 'chance_quality', 0.507), ('m-1-home', 'chance_quality', 0.0)] None recounts
+moment-m-1-e631:a3 interpretive [('m-1-away', 'pressing_intensity', 4.667)] 1.25 recounts
+moment-m-1-epoch1-territory-m-1-away-1980000:a1 descriptive [('m-1-away', 'chance_quality', 0.847)] None recounts
+moment-m-1-epoch1-territory-m-1-away-1980000:a2 comparative [('m-1-away', 'chance_quality', 0.847), ('m-1-home', 'chance_quality', 0.0)] None recounts
+moment-m-1-epoch1-territory-m-1-away-1980000:a3 interpretive [('m-1-away', 'chance_quality', 0.847)] 2.0 recounts
+moment-m-1-e658:a1 descriptive [('m-1-away', 'goals', 1.0)] None recounts
+moment-m-1-e658:a2 descriptive [('m-1-away', 'build_up_passes', 4.0)] None recounts
+moment-m-1-e658:a3 interpretive [('m-1-away', 'chance_quality', 0.847)] 2.0 recounts
+moment-m-1-e701:a1 comparative [('m-1-away', 'goals', 1.0), ('m-1-home', 'goals', 1.0)] None recounts
+moment-m-1-e701:a2 descriptive [('m-1-away', 'chances', 4.0)] None recounts
+moment-m-1-e701:a3 comparative [('m-1-away', 'chances', 4.0), ('m-1-home', 'chances', 1.0)] None WRONG [True, False]
+moment-m-1-e701:a4 interpretive [('m-1-away', 'chance_quality', 1.423)] 2.0 recounts
+moment-m-1-e701:a5 interpretive [('m-1-home', 'territory', 0.0)] -1.25 recounts
+moment-m-1-epoch2-pressing_intensity-m-1-home-2280000:a1 descriptive [('m-1-home', 'goals', 1.0)] None recounts
+moment-m-1-epoch2-pressing_intensity-m-1-home-2280000:a2 descriptive [('m-1-away', 'goals', 1.0)] None recounts
+moment-m-1-e998:a1 descriptive [('m-1-away', 'goals', 0.0)] None WRONG ['recount error AssertionError()']
+moment-m-1-e998:a2 descriptive [('m-1-away', 'chance_quality', 0.0)] None recounts
+moment-m-1-e998:a3 comparative [('m-1-away', 'possession_control', 0.542), ('m-1-home', 'possession_control', 0.458)] None recounts
+moment-m-1-epoch3-territory-m-1-away-3180000:a1 comparative [('m-1-away', 'possession_control', 0.479), ('m-1-home', 'possession_control', 0.521)] None recounts
+moment-m-1-epoch3-territory-m-1-away-3180000:a2 comparative [('m-1-away', 'chance_quality', 0.539), ('m-1-home', 'chance_quality', 0.0)] None recounts
+moment-m-1-epoch3-territory-m-1-away-3180000:a3 comparative [('m-1-away', 'pressing_intensity', 6.25), ('m-1-home', 'pressing_intensity', 1.8)] None recounts
+moment-m-1-e1158:a1 descriptive [('m-1-home', 'possession_control', 0.534)] None recounts
+moment-m-1-e1158:a2 descriptive [('m-1-away', 'chance_quality', 0.421)] None recounts
+moment-m-1-e1158:a3 comparative [('m-1-home', 'territory', 0.571), ('m-1-away', 'territory', 0.429)] None recounts
+moment-m-1-epoch3-possession_control-m-1-away-3600000:a1 comparative [('m-1-away', 'chance_quality', 0.0), ('m-1-home', 'chance_quality', 0.649)] None recounts
+moment-m-1-epoch3-territory-m-1-away-3660000:a1 descriptive [('m-1-away', 'possession_control', 0.31)] None recounts
+moment-m-1-epoch3-territory-m-1-away-3660000:a2 comparative [('m-1-away', 'possession_control', 0.31), ('m-1-away', 'possession_control', 0.371)] None recounts
+moment-m-1-epoch3-territory-m-1-away-3660000:a3 comparative [('m-1-away', 'pressing_intensity', 13.0), ('m-1-away', 'pressing_intensity', 5.5)] None recounts
+moment-m-1-e1211:a1 descriptive [('m-1-home', 'chance_quality', 0.649)] None recounts
+moment-m-1-epoch4-territory-m-1-home-4140000:a1 descriptive [('m-1-home', 'chance_quality', 0.335)] None recounts
+moment-m-1-epoch4-territory-m-1-home-4140000:a2 comparative [('m-1-home', 'chance_quality', 0.335), ('m-1-away', 'chance_quality', 0.0)] None recounts
+moment-m-1-epoch4-territory-m-1-home-4140000:a3 comparative [('m-1-home', 'pressing_intensity', 5.5), ('m-1-home', 'pressing_intensity', 4.0)] None recounts
+moment-m-1-epoch4-territory-m-1-home-4140000:a4 descriptive [('m-1-away', 'pressing_intensity', 0.5)] None recounts
+moment-m-1-e1358:a1 interpretive [('m-1-home', 'chance_quality', 0.335)] 1.25 recounts
+moment-m-1-e1358:a2 comparative [('m-1-home', 'possession_control', 0.56), ('m-1-away', 'possession_control', 0.44)] None recounts
+moment-m-1-epoch4-possession_control-m-1-away-4380000:a1 comparative [('m-1-away', 'pressing_intensity', 8.0), ('m-1-away', 'pressing_intensity', 4.0)] None recounts
+moment-m-1-epoch4-possession_control-m-1-away-4380000:a2 comparative [('m-1-home', 'chance_quality', 0.589), ('m-1-home', 'chance_quality', 0.399)] None recounts
+moment-m-1-epoch4-possession_control-m-1-away-4380000:a3 descriptive [('m-1-home', 'goals', 0.0)] None WRONG ['recount error AssertionError()']
+moment-m-1-e1535:a1 descriptive [('m-1-home', 'chances', 4.0)] None recounts
+moment-m-1-e1535:a2 descriptive [('m-1-away', 'chances', 6.0)] None WRONG [False]
+moment-m-1-e1535:a3 comparative [('m-1-home', 'possession_control', 0.797), ('m-1-away', 'possession_control', 0.203)] None recounts
+moment-m-1-e1535:a4 interpretive [('m-1-home', 'possession_control', 0.797)] 1.25 recounts
+moment-m-1-e1630:a1 descriptive [('m-1-home', 'goals', 1.0)] None recounts
+moment-m-1-e1630:a2 descriptive [('m-1-home', 'goals', 1.0)] None recounts
+moment-m-1-e1630:a3 comparative [('m-1-home', 'chance_quality', 0.652), ('m-1-home', 'chance_quality', 0.536)] None recounts
+moment-m-1-e1678:a1 descriptive [('m-1-home', 'build_up_passes', 15.0)] None recounts
+moment-m-1-e1731:a1 descriptive [('m-1-home', 'build_up_passes', 10.0)] None recounts
+moment-m-1-e1731:a2 descriptive [('m-1-home', 'chance_quality', 1.817)] None recounts
+moment-m-1-e1731:a3 comparative [('m-1-home', 'possession_control', 0.887), ('m-1-away', 'possession_control', 0.113)] None recounts
+moment-m-1-e1731:a4 interpretive [('m-1-home', 'territory', 1.0)] 1.25 recounts
+
+5 of 72 claims do not recount from their evidence

@@ -4,15 +4,21 @@ Each stream item goes Ingest → Understanding → Spotting. When Spotting fires
 Explanation → Verification → Selection → Rendering for every lens, and each rendition leaves as a
 `Card` through `publish`, which stands in for Service Bus until S5. Audit records the trail.
 
+A model's claims (A2) are off that path (Q34: A). A moment's cards go out with L7's claims, and
+the model is asked afterwards, on a thread of its own; what it adds is verified and audited when
+it answers, and reaches no card (Q32: A).
+
 `run()` drives a whole seeded match as fast as it generates. The delivery app drives the same
 `Pipeline` from its paced replay, so a card is published at its moment in match time.
 """
 
 from collections.abc import Callable, Iterator, Sequence
+from concurrent.futures import Future, ThreadPoolExecutor
 
 from opentelemetry import context, trace
 
 from matchlens import audit, explanation, lenses, selection, verification
+from matchlens.explanation import Proposer, foundry
 from matchlens.ingest import FrozenLog, Ingest
 from matchlens.models import Claim, Event, Frame, SignalReading, Verdict, Verification
 from matchlens.rendering import Card, in_full, overlay_packet, render
@@ -27,13 +33,18 @@ tracer = trace.get_tracer(__name__)
 
 
 class Pipeline:
-    def __init__(self) -> None:
+    def __init__(self, proposer: Proposer | None = None) -> None:
+        """`proposer` is A2's model; with none, the claims are L7's alone (D35)."""
         self._ingest = Ingest()
         self._understanding = Understanding(self._ingest.record)
         self._spotter = Spotter(self._ingest.record, self._understanding.epoch_at)
         self._shown = ShownCards()  # Selection's rate-limit state: one pipeline is one match
         self._names: dict[str, str] = {}  # team and player ids to names, from the match setup
         self._readings: list[SignalReading] = []  # derived, append-only: what the explainer reads
+        self._proposer = proposer
+        # One thread, so moments are put to the model in the order they fired.
+        self._model = ThreadPoolExecutor(1, "explainer") if proposer is not None else None
+        self._asked: list[Future[None]] = []  # moments handed to the model, not yet drained
 
     def process(self, item: StreamItem) -> Iterator[Card]:
         """Run one stream item through the stages; the cards it produces, if any.
@@ -109,9 +120,42 @@ class Pipeline:
                         )
                     )
             audit.record(result.moment, claims, verifications, renditions)
+            if self._model is not None:
+                self._asked.append(self._model.submit(self._propose, result, log, claims))
             return cards
         finally:
             context.detach(token)
+
+    def _propose(self, result: SpotterResult, log: FrozenLog, made: list[Claim]) -> None:
+        """A2 for one moment, after its cards have gone: the model's claims, verified and audited.
+
+        `log` is the moment's frozen log, which no later append can reach, so asking late reads
+        exactly what asking at once would have.
+        """
+        assert self._proposer is not None
+        parent = trace.set_span_in_context(trace.NonRecordingSpan(result.span_context))
+        token = context.attach(parent)
+        try:
+            with tracer.start_as_current_span(
+                "explanation.model", attributes={"moment_id": result.moment.moment_id}
+            ):
+                claims = explanation.propose(result.moment, log, made, self._proposer)
+            if claims:
+                verifications = [verification.verify(claim, log.events) for claim in claims]
+                audit.record(result.moment, claims, verifications, ())
+        finally:
+            context.detach(token)
+
+    def drain(self) -> None:
+        """Wait until every moment handed to the model so far has been verified and audited."""
+        asked, self._asked = self._asked, []
+        for future in asked:
+            future.result()
+
+    def close(self) -> None:
+        """Stop asking the model: what is still queued is dropped, and nothing waits for it."""
+        if self._model is not None:
+            self._model.shutdown(wait=False, cancel_futures=True)
 
 
 def _passing(claims: list[Claim], verifications: list[Verification]) -> list[Claim]:
@@ -125,7 +169,8 @@ def _passing(claims: list[Claim], verifications: list[Verification]) -> list[Cla
 
 def run(seed: int, publish: Publish) -> None:
     """Drive one seeded match through the pipeline, publishing every card."""
-    pipeline = Pipeline()
+    pipeline = Pipeline(foundry.from_settings())
     for item in simulate(seed):
         for card in pipeline.process(item):
             publish(card)
+    pipeline.drain()
