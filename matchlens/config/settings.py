@@ -65,8 +65,13 @@ class Settings(BaseSettings):
     # Models
     model_name: str = ""
     foundry_endpoint: str = ""
-    explainer_timeout_s: float = 20.0  # A2: a slower answer is no answer, and L7's claims stand
-    explainer_recent_ms: int = 600_000  # A2: how far back the possessions shown to the model go
+    explainer_timeout_s: float = 20.0  # A2: the call itself gives up after this
+    explainer_recent_ms: int = 60_000  # A2: how far back the moves shown to the model go
+    explainer_deadline_ms: int = 5_000  # Q37: a moment's cards wait this long for A2, from firing
+    explainer_moment_types: tuple[str, ...] = ("goal", "chance")  # Q37: only these call A2
+    explainer_concurrency: int = 4  # model calls in flight at once; moments are independent
+    explainer_reasoning_effort: str = "low"  # D36: what a reasoning model spends per call
+    explainer_cache_path: str = "matchlens/explanation/claims-cache.json"  # D36, empty: no cache
 
     # Infrastructure
     service_bus_connection: str = ""

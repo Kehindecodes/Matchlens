@@ -24,6 +24,17 @@ Newest at the top. Kehinde answers inline and moves the resolved ones to `docs/D
 
 ---
 
+## Q37 · Putting A2's claims on cards (D36): the deadline, which moments, and the earlier answers it replaces  [ticket: A2]  [blocking: yes]
+
+**What I needed to know:** Kehinde chose to put A2's claims on cards behind D36's per-moment deadline (option B, 25 Oct), which replaces Q32: A (held out until A3; A3 is in) and Q34: A (off the card path). D36 leaves two things open: the deadline's value, and whether only some moments are enriched.
+
+**Answer:** Kehinde, 25 Oct:
+- **Deadline: 5 s** from when the moment fired. Past it, the moment's cards ship on L7's claims and the miss is recorded.
+- **Selective enrichment: goals and chances only.** Tactical shifts, and any other moment type, get no model call.
+- His D36 and ticket edits are committed first on the branch that implements this.
+
+---
+
 ## Q36 · `entity` says "on the pitch across the window", but a scorer's `goals` window starts at kickoff  [ticket: A3]  [blocking: yes]
 
 **What I need to know:** What `entity` checks for a player subject.
