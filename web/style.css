@@ -69,3 +69,13 @@ header { position: sticky; top: 0; z-index: 1; background: var(--bg); border-bot
 .playback button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .playback .jump { border-color: var(--accent); }
 .playback .note { flex-basis: 100%; text-align: center; color: var(--faint); }
+
+/* The degradation ladder: the rung the words are on, and the demo's kill (A5). */
+.ladder { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px;
+  font-size: 0.8rem; color: var(--muted); margin-top: 8px; }
+.ladder:empty { display: none; }
+.ladder .rung { color: var(--fg); font-weight: 700; }
+.ladder .rung.L1, .ladder .rung.L2 { color: var(--accent); }
+.ladder button { font: inherit; color: var(--fg); background: var(--card); border: 1px solid var(--line);
+  border-radius: 4px; padding: 2px 8px; cursor: pointer; }
+.ladder button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }

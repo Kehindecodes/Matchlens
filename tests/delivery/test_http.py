@@ -16,6 +16,7 @@ from fastapi.testclient import TestClient
 
 from apps.delivery import run_local_feed
 from apps.pipeline import Pipeline
+from matchlens.control.ladder import Ladder
 from matchlens.delivery.http import create_app
 from matchlens.delivery.hub import MatchStateHub
 from matchlens.delivery.release import ReleaseQueues
@@ -53,6 +54,7 @@ class LiveServer:
     def __init__(self, hub: MatchStateHub, queues: ReleaseQueues):
         self.hub = hub
         self.sessions = SessionStore()
+        self.ladder = Ladder()
         self.loop: asyncio.AbstractEventLoop | None = None
 
         @asynccontextmanager
@@ -61,7 +63,7 @@ class LiveServer:
             yield
 
         config = uvicorn.Config(
-            create_app(hub, self.sessions, queues, lifespan=lifespan),
+            create_app(hub, self.sessions, queues, ladder=self.ladder, lifespan=lifespan),
             host="127.0.0.1", port=0, log_level="warning", timeout_graceful_shutdown=1,
         )  # fmt: skip
         self.server = uvicorn.Server(config)
@@ -180,6 +182,18 @@ def test_the_stream_sends_the_latest_state_with_an_id(live: LiveServer):
     assert fields["event"] == "match_state"
     assert fields["id"] == "7:0"  # the state's seq, and no card released yet
     assert json.loads(fields["data"])["clock_ms"] == 61_000
+
+
+def test_a_ladder_change_is_streamed_live_and_the_status_is_not_sent_unchanged(live: LiveServer):
+    # A5: the page reads `/ladder` on load, so the stream sends only what changed after.
+    session = live.session()
+    live.publish(_state(seq=7))
+    threading.Timer(0.3, live.ladder.switch, (False,)).start()
+    threading.Timer(0.4, live.publish, (_state(seq=8),)).start()  # a tick, to carry it
+    blocks = live.events(session, 3)
+    kinds = [_fields(block)["event"] for block in blocks]
+    assert kinds == ["match_state", "ladder", "match_state"]
+    assert json.loads(_fields(blocks[1])["data"])["models_on"] is False
 
 
 def test_a_reconnect_resumes_from_last_event_id_without_replaying(live: LiveServer):

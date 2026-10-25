@@ -9,7 +9,8 @@ What it answers is checked before it can reach a card (Q38: 2A), because nothing
 (D22): every number, every number word and every name it writes must already be in the sentences
 it was given, it never names shot quality by its abbreviation (invariant 12), and it never
 speaks as a side, "we" or "our" (D31). An answer that fails any of these, or does not parse,
-or never comes, gives no text, and the card keeps L3's words.
+or never comes, gives no text, and the card keeps L3's words. It is also a failure the
+ladder scores (A5): one takes the writer down until it answers well twice in a row.
 
 What the check cannot see, stated: an assertion with no number and no name in it ("their best
 spell of the half" is caught by "half"; "a dominant display" is not), and a name the roster does
@@ -24,7 +25,7 @@ from typing import NamedTuple
 
 from pydantic import BaseModel, ConfigDict, ValidationError
 
-from matchlens.explanation import Answer, Proposer
+from matchlens.explanation import Answer, Failure, Proposer
 from matchlens.models import Depth, Lens
 from matchlens.rendering import templates
 
@@ -133,10 +134,11 @@ def prompt(sentences: Sequence[str], lens: Lens) -> str:
 
 def write(
     sentences: Sequence[str], lens: Lens, names: Mapping[str, str], model: Proposer
-) -> Written | None:
-    """The model's words for `sentences` at `lens`'s register, or None if it gave none we keep.
+) -> Written | Failure | None:
+    """The model's words for `sentences` at `lens`'s register, or a `Failure` if it gave none
+    we keep: no answer, one that does not parse, or one the check drops.
 
-    None for no sentences, without asking: there is nothing to word.
+    None for no sentences, without asking: there is nothing to word, and nothing to score.
     """
     if not sentences:
         return None
@@ -144,18 +146,18 @@ def write(
         answer: Answer = model.propose(instructions(lens.depth), prompt(sentences, lens))
     except Exception as failure:  # any failure to answer is the same failure: L3's words
         logger.warning("writer: no answer for %s: %r", lens.lens_id, failure)
-        return None
+        return Failure(f"no answer: {failure!r}")
     try:
         text = _Response.model_validate_json(answer.text, strict=True).text.strip()
     except ValidationError as failure:
         logger.warning("writer: non-conforming answer for %s: %s", lens.lens_id, failure)
-        return None
+        return Failure("an answer that does not parse")
     untraced = untraceable(text, sentences, names, lens.language)
     if untraced is not None:
         logger.warning(
             "writer: dropped %s's text from %s: %s", lens.lens_id, answer.model, untraced
         )
-        return None
+        return Failure(f"text that does not trace: {untraced}")
     return Written(text, answer.model, f"{answer.model_version}+{PROMPT_VERSION}")
 
 

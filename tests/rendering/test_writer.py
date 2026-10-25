@@ -15,7 +15,7 @@ import pytest
 from apps import pipeline
 from matchlens import lenses
 from matchlens.config import settings
-from matchlens.explanation import Answer, Proposer
+from matchlens.explanation import Answer, Failure, Proposer
 from matchlens.explanation.cache import Cached
 from matchlens.models import (
     Claim,
@@ -31,7 +31,7 @@ from matchlens.models import (
     SuppressionReason,
     Window,
 )
-from matchlens.rendering import render, templates, write, writer
+from matchlens.rendering import Written, render, templates, write, writer
 from matchlens.selection import Selection
 from matchlens.source import MatchSetup, simulate
 
@@ -165,7 +165,7 @@ def test_each_depth_has_its_own_register():
 def test_the_model_words_follow_the_templates_opening_and_say_who_wrote_them():
     selected = _selected(SCORED, SCORE, QUICK)
     written = write(_moment(), selected, ANALYST, NAMES, Echo())
-    assert written is not None
+    assert isinstance(written, Written)
     rendition = render(_moment(), selected, ANALYST, NAMES, written)
     l3 = render(_moment(), selected, ANALYST, NAMES)
     assert rendition.headline == l3.headline
@@ -189,7 +189,8 @@ def test_the_model_words_follow_the_templates_opening_and_say_who_wrote_them():
 )
 def test_a_model_that_gives_nothing_keepable_leaves_l3s_words(model):
     selected = _selected(SCORED, SCORE, QUICK)
-    assert write(_moment(), selected, ANALYST, NAMES, model) is None
+    # A failure, not a quiet None: the ladder scores it (A5).
+    assert isinstance(write(_moment(), selected, ANALYST, NAMES, model), Failure)
     assert render(_moment(), selected, ANALYST, NAMES, None).model == templates.MODEL
 
 

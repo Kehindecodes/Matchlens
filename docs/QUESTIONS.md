@@ -24,6 +24,38 @@ Newest at the top. Kehinde answers inline and moves the resolved ones to `docs/D
 
 ---
 
+## Q41 · A5: what can push the ladder below L1, whether A2 shares the rung, the drop and climb rule, and where the rung shows  [ticket: A5]  [blocking: yes]
+
+**What is there today:** A4 already falls back card by card. A timeout, a failed call or an answer the guard rejects gives that one rendition L3's words (Q38). Nothing holds state across cards, so the next goal asks the model again and waits its 10 s. A5 adds that state: one rung for the match, a rule for dropping and a rule for climbing back. The brief leaves four things open.
+
+**1. What can push the ladder below L1.** Under D35, a model failure cannot. L7 and L3 use no model, and "kill the model and the product still works" requires model failures to stop at L1. That leaves only non-model failures.
+- A: **Model failures and queue pressure stop at L1.** The ladder goes below L1 only when Rendering itself raises on a moment. That moment's renditions are then stored `suppressed=true, suppression_reason=degraded`, and the viewer keeps the score and clock (L3). Today that same exception kills the moment silently. Costs: L2 is never a separate rung at runtime; below L1 is one state, "could not render".
+- B: Also drop L1 → L2 under queue pressure, so cards go blank to catch up. Costs: cards blank under load, which the brief's "do not blank a card, ever" rules out.
+- The title's "L0→L4" I read as L0→L3. The build ladder has four rungs, and L4 is the UI ticket.
+
+**2. Is A2 on the same rung as A4?** L0 is A2's extra claims plus A4's words.
+- A: **Each model gets its own up/down state, under the same rule.** The rung is the prose rung, L0 or L1, which is A4's state, as D35 says. A2's state shows next to it, "extra claims: on/off". A model that is down is neither waited for nor put on cards, so a goal's card stops waiting 15 s for a dead A2. Costs: while A2 is down, a goal's card ships up to 15 s sooner than it would have, which changes when a viewer sees it. It ships earlier, never before its due time.
+- B: One shared state: an A2 failure also drops the prose to L1. Costs: good model words are lost because the other model failed.
+- C: A2 is only observed. It goes on being waited for while down. Costs: a dead A2 adds 15 s to every goal card.
+
+**3. The drop and climb rule.** A moment counts as a failure for a model when: its call times out, raises, or returns output that does not parse; A4's guard rejects any lens's text; for A2, more than half of the claims it proposed fail A3 (the brief's "verification failure rate above a bar"); or more than 2 moments are waiting for the editor (queue pressure).
+- A: **One failed moment drops the rung. Two good moments in a row climb it back.** While a model is down it is still asked on every goal and chance, but its answer is only scored, never put on a card or waited for. Climbing therefore needs no extra calls, and one good answer between two bad ones does not flip the rung.
+- B: Two failures in a row drop it, three good in a row climb it. Costs: the brief says one timeout drops a rung.
+- C: Climb on a timer, retrying after 60 s of match time. Costs: a timer at 25× and at 1× means very different things.
+
+**4. Where the rung shows, and how the demo kills the model.** P1 (the producer view) is not built.
+- A: **On the three-panel page, which is the producer and judge view P1 will grow from.** A strip reads, for example, "Words: templates (L1), the model is not answering · Extra claims: off". It comes over the stream as a live `ladder` event: a system status, not held back to the viewer's clock. A `ladder.rung` attribute goes on each moment's rendering span. `POST /ladder` with `{"models": "off" | "on"}` makes both models fail as if unreachable, the cache included. A button on the three-panel page calls it. The viewer page `/watch` is unchanged.
+- B: Also on `/watch`. Costs: the viewer is told about internals.
+- C: No button; the kill is by configuration only. Costs: the forced degradation cannot be shown mid-match in the demo.
+
+**Why I cannot decide it:** (1) chooses when a rendition is suppressed; (2) and (3) change what a viewer sees and when; (4) changes what the deployed page shows.
+
+**What I would do if forced:** 1A, 2A, 3A, 4A. Not done.
+
+**Answer:** Kehinde, 25 Oct: **1A, 2A, 3A, 4A.**
+
+---
+
 ## Q40 · No calibrated value on any card; the analyst card says what an analyst can picture  [ticket: A4]  [blocking: yes]
 
 **What I needed to know:** the analyst card printed calibrated values: "shot quality 0.13", "territory share 1", "pressing intensity 10.67", "1.25 or more standard deviations". None of them is readable without a key, and a bare 0–1 shot value invites being read as xG (invariant 12).

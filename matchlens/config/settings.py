@@ -76,6 +76,7 @@ class Settings(BaseSettings):
     writer_moment_types: tuple[str, ...] = ("goal", "chance")  # Q38: only these call A4
     writer_concurrency: int = 3  # A4 calls in flight at once: one per lens of a moment
     writer_reasoning_effort: str = "medium"  # A4: at "low" the model copied the sentences out
+    ladder_queue_limit: int = 2  # Q41: 3A, moments waiting for the editor before models are shed
 
     # Infrastructure
     service_bus_connection: str = ""

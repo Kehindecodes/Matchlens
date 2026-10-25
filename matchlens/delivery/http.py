@@ -2,7 +2,7 @@
 
 from collections.abc import AsyncIterator
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, Literal
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Query, status
 from fastapi.responses import FileResponse
@@ -13,6 +13,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from matchlens import lenses
 from matchlens.catchup import CatchUp
 from matchlens.config.settings import settings
+from matchlens.control.ladder import Ladder, LadderStatus
 from matchlens.delivery.hub import MatchStateHub
 from matchlens.delivery.release import ReleaseQueues
 from matchlens.delivery.router import CardRouter
@@ -45,6 +46,12 @@ class Playback(BaseModel):
     max_speed: float
 
 
+class ModelSwitch(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    models: Literal["off", "on"]
+
+
 class LensSwitch(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -57,6 +64,7 @@ def create_app(
     sessions: SessionStore,
     queues: ReleaseQueues | None = None,
     router: CardRouter | None = None,
+    ladder: Ladder | None = None,
     *,
     web_dir: Path = WEB_DIR,
     lifespan=None,
@@ -64,6 +72,7 @@ def create_app(
     app = FastAPI(title="MatchLens delivery", lifespan=lifespan)
     queues = ReleaseQueues() if queues is None else queues
     router = CardRouter(sessions, queues) if router is None else router
+    ladder = Ladder() if ladder is None else ladder
 
     def _session(session_id: str) -> ViewerSession:
         try:
@@ -103,6 +112,20 @@ def create_app(
         """Change the speed of the one match every viewer shares (D33)."""
         await hub.set_speed(body.speed)
         return get_playback()
+
+    @app.get("/ladder")
+    def get_ladder() -> LadderStatus:
+        """Which rung the match is on, and whether each model is up (A5)."""
+        return ladder.status()
+
+    @app.post("/ladder")
+    def set_ladder(body: ModelSwitch) -> LadderStatus:
+        """Switch the models off or on, as if unreachable: the demo's kill (Q41: 4A).
+
+        The ladder sees an ordinary failure and drops a rung; on again, it climbs by its rule.
+        """
+        ladder.switch(body.models == "on")
+        return ladder.status()
 
     @app.get("/delay", include_in_schema=False)
     def delay() -> FileResponse:
@@ -153,10 +176,14 @@ def create_app(
         sent = queues.count_released(session.session_id) if sent is None else sent
         seq = -1 if after_seq is None else after_seq
         speed = None
+        rung_version = ladder.version  # the page reads `/ladder` on load; this sends changes
         async for clock_ms in hub.ticks():
             if hub.speed != speed:  # the speed is live, not delayed: it is how the match runs
                 speed = hub.speed
                 yield ServerSentEvent(data={"speed": speed}, event="playback")
+            if ladder.version != rung_version:  # live too: a system status, not a card (Q41)
+                rung_version = ladder.version
+                yield ServerSentEvent(data=ladder.status(), event="ladder")
             # Read afresh each tick: a lens switch replaces the session while this stream is open.
             try:
                 current = sessions.get(session.session_id)

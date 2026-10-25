@@ -4,12 +4,12 @@ from collections.abc import Sequence
 
 from matchlens import calltrace
 from matchlens.explanation import agent
-from matchlens.explanation.agent import Answer, Proposer
+from matchlens.explanation.agent import Answer, Failure, Proposer
 from matchlens.explanation.builder import MODEL, explain_moment
 from matchlens.ingest import FrozenLog
 from matchlens.models import Claim, Moment
 
-__all__ = ["Answer", "Proposer", "by_rule", "explain", "propose"]
+__all__ = ["Answer", "Failure", "Proposer", "by_rule", "explain", "propose"]
 
 
 def explain(moment: Moment, log: FrozenLog, proposer: Proposer | None = None) -> list[Claim]:
@@ -30,17 +30,20 @@ def explain(moment: Moment, log: FrozenLog, proposer: Proposer | None = None) ->
         )
     claims = explain_moment(moment, log.events, log.readings, log.epochs, log.match, log.players)
     if proposer is not None:
-        claims += agent.propose(moment, log, claims, proposer)
+        proposed = agent.propose(moment, log, claims, proposer)
+        if not isinstance(proposed, agent.Failure):
+            claims += proposed
     return claims
 
 
 def propose(
     moment: Moment, log: FrozenLog, made: Sequence[Claim], proposer: Proposer
-) -> list[Claim]:
-    """Only the claims the model adds to `made`, L7's claims for `moment` (A2).
+) -> list[Claim] | Failure:
+    """Only the claims the model adds to `made`, L7's claims for `moment` (A2), or why it gave
+    none it could keep.
 
     The same as the tail `explain` adds with a proposer, for a caller that has sent `made` on
-    already and asks the model afterwards (Q34: A).
+    already and asks the model afterwards (Q34: A), and that scores the model (A5).
     """
     return agent.propose(moment, log, made, proposer)
 
