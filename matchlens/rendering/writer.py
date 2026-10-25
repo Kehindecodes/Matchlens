@@ -30,7 +30,7 @@ from matchlens.rendering import templates
 
 logger = logging.getLogger(__name__)
 
-PROMPT_VERSION = "writer-1"  # bump by hand whenever the instructions or the prompt change
+PROMPT_VERSION = "writer-2"  # bump by hand whenever the instructions or the prompt change
 
 # The abbreviation invariant 12 bans, spelt so that no file here contains it: the model has to
 # be told the word it may not use, and the check has to look for it.
@@ -76,6 +76,9 @@ Answer with one JSON object and nothing else: {{"text": "<your passage>"}}.
 Rules. A passage that breaks one is thrown away and the viewer gets the sentences as they are.
 - Use only the facts in the sentences. Add no fact, cause, comparison, history, emphasis or
   judgement of your own: if a sentence does not say it, you do not say it.
+- Change no word that decides what a fact means. Keep every "his", "a", "the", "first",
+  "again", "so far", "before", "than" and "or more" as given: "his first of the match" is a
+  player's first goal, not the match's first goal, and the two are different facts.
 - Every number you write must appear in the sentences, written the same way. Never write a
   number, a count, an ordinal or a time in words unless that word is in the sentences.
 - Name only the teams and players the sentences name.
@@ -83,6 +86,10 @@ Rules. A passage that breaks one is thrown away and the viewer gets the sentence
 - Third person always. Never "we", "us", "our" or "ours": you are not on either side. Where a
   sentence is told from one side, keep that side first.
 - Write in the language given. Keep it at most as long as the sentences together.
+
+Do more than join the sentences: write it the way the register below would say it, with the
+facts in the order that tells the moment best. Keep each label ("shot quality", "possession
+share") next to its number.
 
 Register:
 """

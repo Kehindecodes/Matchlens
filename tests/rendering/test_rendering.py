@@ -179,6 +179,19 @@ def test_the_team_lens_speaks_where_the_moment_leaves_its_side_first():
     assert "Ashworth 2" not in _text(render(goal, _selected(first, score), match, NAMES))
 
 
+def test_a_comparison_between_the_sides_that_is_not_the_score_keeps_its_place():
+    """Q39: only the score jumps the explainer's order, so a goal still names its scorer."""
+    first = _claim("first", value=2, metric=Metric.GOALS)
+    ours = _claim("t", value=0.7, metric=Metric.TERRITORY).operands[0]
+    theirs = ours.model_copy(update={"subject": OPPONENT, "value": 0.3})
+    territory = _claim("t", metric=Metric.TERRITORY).model_copy(
+        update={"claim_type": ClaimType.COMPARATIVE, "operands": (ours, theirs)}
+    )
+    team = render(_moment(MomentType.GOAL), _selected(first, territory), TEAM, NAMES)
+    assert "goal for Larkfield" in _text(team)
+    assert team.surviving_claim_ids == ("first", "t")
+
+
 def test_a_comparison_with_the_sides_own_earlier_self_keeps_its_place():
     earlier = _claim("earlier", value=0.6, metric=Metric.POSSESSION_CONTROL)
     earlier = earlier.model_copy(

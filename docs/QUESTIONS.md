@@ -24,6 +24,18 @@ Newest at the top. Kehinde answers inline and moves the resolved ones to `docs/D
 
 ---
 
+## Q39 · A4's first cached run: a misread scorer line, and a goal card that lost its scorer  [ticket: A4]  [blocking: yes]
+
+**What I needed to know:** two things from the first live A4 cache over seed 1.
+1. The model turned "Scorer: Finn Norham, a first of the match" into "Finn Norham scored the first of the match", on the third goal. Every number and name traced, so the guard could not see it.
+2. The team lens's card for the first goal dropped the scorer. An A2 territory comparison counted as "a comparison between the two sides", which Q28: B speaks first.
+
+**Answer:** Kehinde, 25 Oct:
+1. **Both fixes.** The template now reads "his first of the match" (`templates-2`), and the writer's instructions require it to keep the words that decide a fact's meaning (`writer-2`).
+2. **Only the score jumps the order.** Q28: B and D31 meant the score. Any other comparison between the sides keeps the explainer's order, so a goal names its scorer unless there is a score to give.
+
+---
+
 ## Q38 · A4: what the model is given beyond claims, whether the trace check runs live, and which moments wait for it  [ticket: A4]  [blocking: yes]
 
 **What I need to know:**

@@ -130,7 +130,7 @@ def test_each_lens_is_shown_only_the_sentences_it_would_speak():
         "depth": "analyst",
         "language": "en",
         "sentences": [
-            "Scorer: Tom Brack, a first of the match.",
+            "Scorer: Tom Brack, his first of the match.",
             "Ashworth 2, Larkfield 1.",
             "A quick attack: 7 passes in 18 s from winning the ball.",
         ],
@@ -172,7 +172,7 @@ def test_the_model_words_follow_the_templates_opening_and_say_who_wrote_them():
     opening = "Larkfield scored, at 34:12."
     assert l3.body is not None and l3.body.startswith(opening)
     assert rendition.body == f"{opening} {written.text}"
-    assert (rendition.model, rendition.model_version) == ("scripted", "s1+writer-1")
+    assert (rendition.model, rendition.model_version) == ("scripted", "s1+writer-2")
     assert (l3.model, l3.model_version) == (templates.MODEL, templates.MODEL_VERSION)
     assert rendition.surviving_claim_ids == l3.surviving_claim_ids
 
@@ -196,7 +196,7 @@ def test_a_model_that_gives_nothing_keepable_leaves_l3s_words(model):
 # --- the check: every number and name traces to a spoken claim ----------------------------------
 
 GIVEN = [
-    "Scorer: Tom Brack, a first of the match.",
+    "Scorer: Tom Brack, his first of the match.",
     "Larkfield trail 1–2.",
     "A quick attack: 7 passes in 18 s from winning the ball.",
 ]
@@ -211,7 +211,7 @@ def _untraceable(text: str) -> str | None:
     [
         "Tom Brack's first of the match, after 7 passes in 18 s, still leaves Larkfield 1–2 down.",
         "Brack finishes a quick attack: 7 passes in 18 s. Larkfield trail 1–2.",
-        "A first of the match for Tom Brack. Larkfield trail 1–2.",
+        "His first of the match for Tom Brack. Larkfield trail 1–2.",
     ],
 )
 def test_text_that_says_only_what_it_was_given_traces(text):

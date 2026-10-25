@@ -64,7 +64,7 @@
   "facts": [
     {"language": "en", "metric": "goals", "form": "scorer_first", "depth": "casual", "text": "{name} scores!"},
     {"language": "en", "metric": "goals", "form": "scorer_first", "depth": "engaged", "text": "{name} with the goal."},
-    {"language": "en", "metric": "goals", "form": "scorer_first", "depth": "analyst", "text": "Scorer: {name}, a first of the match."},
+    {"language": "en", "metric": "goals", "form": "scorer_first", "depth": "analyst", "text": "Scorer: {name}, his first of the match."},
     {"language": "en", "metric": "goals", "form": "scorer_again", "depth": "casual", "text": "{name} scores again!"},
     {"language": "en", "metric": "goals", "form": "scorer_again", "depth": "engaged", "text": "{name} with the goal, the {ordinal} for {name} today."},
     {"language": "en", "metric": "goals", "form": "scorer_again", "depth": "analyst", "text": "Scorer: {name}, {value} goals this match."},

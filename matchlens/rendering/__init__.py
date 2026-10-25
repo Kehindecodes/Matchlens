@@ -5,7 +5,7 @@ from datetime import UTC, datetime
 
 from matchlens import calltrace
 from matchlens.explanation import Proposer
-from matchlens.models import Claim, DetailLevel, Lens, Moment, OverlayPacket, Rendition
+from matchlens.models import Claim, DetailLevel, Lens, Metric, Moment, OverlayPacket, Rendition
 from matchlens.rendering import overlay, templates, writer
 from matchlens.rendering.card import Card
 from matchlens.rendering.facts import clock, sentence
@@ -34,9 +34,10 @@ def render(
     carrying Selection's reason (invariant 11). `names` maps a team or player id to what a
     viewer calls it.
 
-    A lens with a `focus_team` is told the moment as for or against that side, and hears a
-    comparison between the two sides from that side and before any other claim, because that is
-    where the moment leaves the side (D31, Q28: B). The claims are the same ones.
+    A lens with a `focus_team` is told the moment as for or against that side, and hears the
+    score from that side and before any other claim, because that is where the moment leaves the
+    side (D31, Q28: B). Any other comparison keeps the explainer's order (Q39). The claims are
+    the same ones.
 
     `written` is what `write` got from a model for this selection (A4). It takes the place of
     the spoken claims' sentences, after the template's opening line, and the rendition says
@@ -150,7 +151,7 @@ def _words(
     fields = {"team": names[moment.subject.id], "window": f"at {clock(moment.clock_ms)}"}
     if focus is not None:
         fields["focus"] = names[focus]
-    claims = selection.claims if focus is None else _sides_first(selection.claims)
+    claims = selection.claims if focus is None else _score_first(selection.claims)
     spoken = [
         (claim, text)
         for claim in claims
@@ -159,10 +160,13 @@ def _words(
     return words.headline.format(**fields), words.body.format(**fields), spoken
 
 
-def _sides_first(claims: tuple[Claim, ...]) -> list[Claim]:
-    """`claims` with the comparisons between two sides first, otherwise in the explainer's order."""
-    return sorted(claims, key=lambda c: not _between_sides(c))  # sorted is stable
+def _score_first(claims: tuple[Claim, ...]) -> list[Claim]:
+    """`claims` with the score first, otherwise in the explainer's order."""
+    return sorted(claims, key=lambda c: not _is_score(c))  # sorted is stable
 
 
-def _between_sides(claim: Claim) -> bool:
-    return len(claim.operands) == 2 and claim.operands[0].subject != claim.operands[1].subject
+def _is_score(claim: Claim) -> bool:
+    """A goals comparison between the two sides: the score, and nothing else between them."""
+    if len(claim.operands) != 2 or claim.operands[0].metric is not Metric.GOALS:
+        return False
+    return claim.operands[0].subject != claim.operands[1].subject
