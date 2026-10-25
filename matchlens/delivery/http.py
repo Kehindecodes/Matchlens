@@ -20,7 +20,7 @@ from matchlens.delivery.router import CardRouter
 from matchlens.delivery.session_clock import viewer_position
 from matchlens.delivery.sessions import LensRefused, SessionStore, UnknownSession
 from matchlens.models import ClockMs, Lens, OverlayPacket, ViewerSession
-from matchlens.rendering import Card
+from matchlens.rendering import Card, ClaimEvidence
 
 WEB_DIR = Path(__file__).resolve().parents[2] / "web"
 
@@ -149,6 +149,22 @@ def create_app(
         cards = [e for e in queues.released(session_id) if isinstance(e, Card)]
         return [card.overlay for card in cards[after:]]
 
+    @app.get("/session/{session_id}/evidence/{rendition_id}")
+    def evidence(session_id: str, rendition_id: str) -> list[ClaimEvidence]:
+        """The evidence drawer of a card this session has had released (A6, V7).
+
+        Each claim behind the card, with the events and readings it cites and its
+        verification. Only for a released card, so a drawer never opens on something the
+        viewer's video has not shown (invariant 8), nor on a lens that stayed silent: a
+        suppressed rendition is never a card. For the demo page only (Q42: 1A); the stream
+        does not carry it.
+        """
+        _session(session_id)
+        for entry in queues.released(session_id):
+            if isinstance(entry, Card) and entry.rendition.rendition_id == rendition_id:
+                return list(entry.evidence)
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "no such card released to this session")
+
     @app.post("/session/{session_id}/lens")
     def switch_lens(session_id: str, body: LensSwitch) -> ViewerSession:
         """Change the session's lens. The open stream carries on and uses it from the next card."""
@@ -200,8 +216,11 @@ def create_app(
                 sessions.mark_seen(current.session_id, released[-1].display_at_clock)
             for entry in queues.released(current.session_id, sent):
                 sent += 1
-                event = "catch_up" if isinstance(entry, CatchUp) else "card"
-                yield ServerSentEvent(data=entry, event=event, id=f"{seq}:{sent}")
+                if isinstance(entry, CatchUp):
+                    yield ServerSentEvent(data=entry, event="catch_up", id=f"{seq}:{sent}")
+                else:  # the evidence is asked for, by the demo page only (Q42: 1A)
+                    card = entry.model_dump(mode="json", exclude={"evidence"})
+                    yield ServerSentEvent(data=card, event="card", id=f"{seq}:{sent}")
 
     app.mount("/static", StaticFiles(directory=web_dir), name="static")
     return app

@@ -41,7 +41,16 @@ from matchlens.control.ladder import Breaker, Ladder, Rung
 from matchlens.explanation import Failure, Proposer, foundry
 from matchlens.ingest import FrozenLog, Ingest
 from matchlens.models import Claim, Lens, Moment, SignalReading, Verdict, Verification
-from matchlens.rendering import Card, Written, degraded, in_full, overlay_packet, render, write
+from matchlens.rendering import (
+    Card,
+    Written,
+    degraded,
+    drawer,
+    in_full,
+    overlay_packet,
+    render,
+    write,
+)
 from matchlens.selection import Selection, ShownCards
 from matchlens.source import MatchSetup, StreamItem, simulate
 from matchlens.spotting import Spotter, SpotterResult
@@ -230,6 +239,14 @@ class Pipeline:
                         rendition = render(moment, selected, lens, self._names, words)
                         body_in_full = in_full(moment, selected, lens, self._names)
                         packet = overlay_packet(moment, selected, lens, self._names, rendition)
+                        evidence = drawer(
+                            moment,
+                            selected,
+                            lens,
+                            self._names,
+                            verifications,
+                            explained.record,
+                        )
                         rung = Rung.L1 if words is None else Rung.L0
                     except Exception:
                         # Below L1 (Q41: 1A): no words at all, so the rendition is suppressed
@@ -241,6 +258,7 @@ class Pipeline:
                         )
                         rendition, packet, rung = degraded(moment, selected, lens), None, Rung.L2
                         body_in_full = ""
+                        evidence = ()
                         unrendered = True
                     span.set_attribute("rendition.rung", rung.value)
                     span.set_attribute("ladder.rung", self.ladder.rung_for(unrendered).value)
@@ -256,6 +274,7 @@ class Pipeline:
                             importance=moment.importance,
                             body_in_full=body_in_full,
                             overlay=packet,
+                            evidence=evidence,
                         )
                     )
             self.ladder.rendered(unrendered)

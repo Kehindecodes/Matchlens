@@ -130,7 +130,7 @@ Update the **Status** column when a ticket moves. Statuses: `todo`, `wip`, `done
 | 📝 A3 | Verifier: six checks, value recomputation, fails closed | 2 | A2 | T1 | done | ✅ |
 | A4 | Lens-aware generation from each lens's surviving claim set | 1 | A3, L3 | T2 | done | ✅ |
 | 📝 A5 | Degradation ladder with automatic fallback L0→L4 | 0.5 | A4, L3 | T1 | done: one breaker per model, rung on the three-panel page with a kill button (Q41) | ✅ |
-| A6 | Evidence drawer in the UI | 0.5 | A3, L4 | T2 | todo | ✅ |
+| A6 | Evidence drawer in the UI | 0.5 | A3, L4 | T2 | done: demo page only, raw values, every kept claim marked said or not (Q42) | ✅ |
 
 **A1** — a test proves the explainer cannot see the future (V2).
 **A2** — claims carry type, metric, value, window and `evidence_ids`. A claim with no citable evidence is dropped at source.

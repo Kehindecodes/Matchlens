@@ -181,9 +181,122 @@ async function restoreOrCreateSession(key, body) {
   return session;
 }
 
+// --- the evidence drawer: each claim behind a card, and the rows it cites (A6, V7) -------------
+// Only the demo view opens it (Q42: 1A). It prints what the server sends and works nothing out:
+// a drawer that computed its own number could agree with itself while the pipeline was wrong.
+
+const CHECK_WORDS = { passed: "passed", failed: "failed", not_applicable: "nothing to check" };
+
+function figure(value) {
+  return String(Number(value.toFixed(2))); // to two places, as sent: 0.31, not 0.3137
+}
+
+function signed(value) {
+  return `${value >= 0 ? "+" : "−"}${figure(Math.abs(value))}`;
+}
+
+function line(className, ...parts) {
+  const el = document.createElement("li");
+  el.className = className;
+  el.append(...parts);
+  return el;
+}
+
+function citedRow(row) {
+  const id = document.createElement("code");
+  if (row.kind === "event") {
+    id.textContent = row.event_id;
+    const who = [row.player, row.team && `(${row.team})`].filter(Boolean).join(" ");
+    const what = [row.action, who, row.outcome].filter(Boolean).join(" · ");
+    return line("cited event", `${mmss(row.clock_ms)} · ${what} · `, id);
+  }
+  id.textContent = row.reading_id;
+  const side = row.z_match >= 0 ? "above" : "below";
+  return line(
+    "cited reading",
+    `${mmss(row.clock_ms)} · ${row.signal} · ${row.team} · ${figure(row.value)} over the last ` +
+      `${mmss(row.window_ms)}, baseline ${figure(row.baseline)} · z_match ${signed(row.z_match)}σ, ` +
+      `${side} this match's baseline · `,
+    id,
+  );
+}
+
+function claimBlock(claim) {
+  const section = document.createElement("section");
+  section.className = "claim";
+  const head = document.createElement("p");
+  head.className = "claim-head";
+  const said = claim.spoken ? "said on this card" : "kept for this lens, not said on this card";
+  head.textContent = `${claim.claim_type} claim · ${said} · by ${claim.model} ${claim.model_version}`;
+  section.append(head);
+  for (const operand of claim.operands) {
+    const paragraph = document.createElement("p");
+    paragraph.className = "operand";
+    const strong = document.createElement("strong");
+    strong.textContent = operand.subject;
+    const { start_ms, end_ms } = operand.window;
+    paragraph.append(strong, ` · ${operand.metric} ${figure(operand.value)} · ${mmss(start_ms)}–${mmss(end_ms)}`);
+    const ul = document.createElement("ul");
+    ul.className = "rows";
+    ul.append(...operand.cited.map(citedRow));
+    section.append(paragraph, ul);
+  }
+  if (claim.backing) {
+    const paragraph = document.createElement("p");
+    paragraph.className = "operand";
+    paragraph.textContent = `Backed by this reading, its wording implying z_match ${signed(claim.threshold)}σ or beyond`;
+    const ul = document.createElement("ul");
+    ul.className = "rows";
+    ul.append(citedRow(claim.backing));
+    section.append(paragraph, ul);
+  }
+  const checks = document.createElement("ul");
+  checks.className = "checks";
+  for (const check of claim.checks) {
+    const recount = check.check === "value" && claim.recounted.length
+      ? ` · recounted ${claim.recounted.map(figure).join(" and ")}` : "";
+    const reason = check.reason ? ` · ${check.reason}` : "";
+    checks.append(line(check.status, `${check.check}: ${CHECK_WORDS[check.status]}${recount}${reason}`));
+  }
+  const verdict = document.createElement("p");
+  verdict.className = `verdict ${claim.verdict}`;
+  verdict.textContent = `Verification: ${claim.verdict}`;
+  section.append(verdict, checks);
+  return section;
+}
+
+// Asked for once, on first open, and only for a card already released to this session.
+function evidenceDrawer(sessionId, renditionId) {
+  const details = document.createElement("details");
+  details.className = "evidence";
+  const summary = document.createElement("summary");
+  summary.textContent = "Evidence";
+  const box = document.createElement("div");
+  box.className = "drawer";
+  details.append(summary, box);
+  let asked = false;
+  details.addEventListener("toggle", async () => {
+    if (!details.open || asked) return;
+    asked = true;
+    box.textContent = "Fetching the evidence";
+    const url = `/session/${encodeURIComponent(sessionId)}/evidence/${encodeURIComponent(renditionId)}`;
+    const res = await fetch(url);
+    if (!res.ok) {
+      asked = false;
+      box.textContent = "The server could not find this card's evidence. Close and open to ask again.";
+      return;
+    }
+    box.replaceChildren(...(await res.json()).map(claimBlock));
+  });
+  return details;
+}
+
 class Panel {
-  constructor(lens) {
+  // `drawer`: whether its cards open to their evidence, which only the demo view does (Q42: 1A)
+  constructor(lens, { drawer = false } = {}) {
     this.lens = lens;
+    this.drawer = drawer;
+    this.sessionId = null; // the session whose stream fills this panel, once it opens
     this.live = null; // null until the stream first opens, false once it has been lost
     this.count = 0;
     this.lastSpoke = null; // match clock of the newest card
@@ -247,6 +360,7 @@ class Panel {
     const p = document.createElement("p");
     p.textContent = card.rendition.body;
     li.append(time, h3, p);
+    if (this.drawer) li.append(evidenceDrawer(this.sessionId, card.rendition.rendition_id));
     this.cards.prepend(li); // newest first
     this.count += 1;
     this.lastSpoke = card.display_at_clock;
@@ -299,6 +413,7 @@ window.addEventListener("pagehide", () => { unloading = true; });
 function stream(panel, session, onStatus, reopen) {
   // EventSource reconnects by itself and sends Last-Event-ID, so the server resumes from there.
   const source = new EventSource(`/stream?session_id=${encodeURIComponent(session.session_id)}`);
+  panel.sessionId = session.session_id;
   source.addEventListener("open", () => {
     panel.live = true;
     panel.render();

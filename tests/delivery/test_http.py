@@ -21,8 +21,9 @@ from matchlens.delivery.http import create_app
 from matchlens.delivery.hub import MatchStateHub
 from matchlens.delivery.release import ReleaseQueues
 from matchlens.delivery.sessions import SessionStore
-from matchlens.models import Frame, MomentType, Phase, Rendition
-from matchlens.rendering import Card
+from matchlens.models import ClaimType, Frame, Metric, MomentType, Phase, Rendition, Verdict, Window
+from matchlens.rendering import Card, ClaimEvidence
+from matchlens.rendering.evidence import CitedEvent, OperandEvidence
 from matchlens.source import MatchSetup, simulate
 from matchlens.source.replay import Replay
 from matchlens.understanding.match_state import MatchState, TeamScore
@@ -243,6 +244,46 @@ def test_a_released_card_is_streamed_after_the_clock(live: LiveServer, queues: R
     data = json.loads(fields["data"])
     assert data["display_at_clock"] == 4_032_000
     assert data["rendition"]["headline"] == "The walking skeleton"
+
+
+def test_a_streamed_card_carries_no_evidence(live: LiveServer, queues: ReleaseQueues):
+    # The drawer is the demo page's, asked for by card (Q42: 1A); a viewer's stream never has it.
+    session_id = live.session()
+    session = live.sessions.get(session_id)
+    rendition = Rendition(
+        rendition_id="m:l", moment_id="m", lens_id=session.lens_id, language="en",
+        headline="h", body="b", surviving_claim_ids=("c",), suppressed=False,
+        suppression_reason=None, rendered_at=datetime.now(UTC), model="templates",
+        model_version="t",
+    )  # fmt: skip
+    evidence = ClaimEvidence(
+        claim_id="c", claim_type=ClaimType.DESCRIPTIVE, spoken=False,
+        operands=(OperandEvidence(
+            subject="Oakhurst", metric=Metric.SHOT_QUALITY, value=0.31,
+            window=Window(start_ms=1_000, end_ms=1_000),
+            cited=(CitedEvent(event_id="e", clock_ms=1_000, period=1, action="shot",
+                              team="Oakhurst", player="A. Player", outcome="goal"),),
+        ),),
+        backing=None, threshold=None, verdict=Verdict.PASS, checks=(), recounted=(0.31,),
+        model="rules", model_version="1",
+    )  # fmt: skip
+    queues.enqueue(
+        Card(
+            rendition=rendition,
+            display_at_clock=1_000,
+            moment_type=MomentType.GOAL,
+            importance=0.9,
+            body_in_full="b",
+            overlay=overlay_for(rendition, 1_000),
+            evidence=(evidence,),
+        ),
+        session,
+    )
+    live.publish(_state(seq=3, clock_ms=2_000))
+    _, card = live.events(session_id, 2)
+    data = json.loads(_fields(card)["data"])
+    assert data["rendition"]["rendition_id"] == "m:l"
+    assert "evidence" not in data and "0.31" not in _fields(card)["data"]
 
 
 # --- the local feed -------------------------------------------------------------------------------

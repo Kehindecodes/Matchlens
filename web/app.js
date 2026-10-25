@@ -19,7 +19,7 @@ async function connect(panel, panels) {
 
 async function start() {
   const lenses = await (await fetch("/lenses")).json();
-  const panels = lenses.map((lens) => new Panel(lens));
+  const panels = lenses.map((lens) => new Panel(lens, { drawer: true }));
   document.getElementById("panels").append(...panels.map((p) => p.root));
   setStatus(panels);
   panels.forEach((p) => connect(p, panels));

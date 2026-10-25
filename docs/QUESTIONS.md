@@ -24,6 +24,27 @@ Newest at the top. Kehinde answers inline and moves the resolved ones to `docs/D
 
 ---
 
+## Q42 · A6: the drawer's numbers contradict Q40, and which claims it lists  [ticket: A6]  [blocking: yes]
+
+**What I need to know:** two things.
+
+**1. Calibrated values in the drawer.** A6's third criterion is "a reading shows its signal, value and `z_match`, so '2.4σ above this match's baseline' is visible", and its definition of done wants a goal card's shot quality visible. Q40 (25 Oct, after A6's brief was written) says **no calibrated value reaches a viewer, anywhere**: no shot quality, no chance quality, no standard deviation. The drawer is on the panel, and the panel is shared by the demo page (`/`) and the viewer page (`/watch`).
+- A: **The drawer is the audit view, not a card, and is on the demo page only**, like the ladder ("a viewer is not told about internals"). There it shows the record as it is: `shot_quality 0.31`, a reading's value, baseline and `z_match`. `/watch` gets no drawer. Costs: Q40's "anywhere" gets an exception, scoped to the page a judge uses, not a viewer.
+- B: **Q40 holds in the drawer too.** Events in full; calibrated values and z-scores are not printed, readings show signal, direction and window. Costs: fails criterion 3 as written, and the drawer can no longer show the number came from somewhere for the very values most likely to be doubted.
+- C: Numbers on both pages. Costs: overrides Q40 for viewers.
+
+**2. Which claims a card's drawer lists.** A rendition's `surviving_claim_ids` are every claim Selection kept for the lens. The card speaks only some: a casual lens's card speaks none, a standard lens's one (`_CLAIMS_SPOKEN`).
+- A: **All kept claims, each marked whether the card said it.** It is what the rendition cites and what A4 verifies against. Costs: a casual card's drawer holds claims its card never said.
+- B: Only the spoken claims. Costs: a casual goal card opens to nothing; criterion 1 ("every card opens") becomes empty for it.
+
+**Why I cannot decide it:** 1 contradicts a settled decision and changes what a viewer sees; 2 changes what a viewer sees.
+
+**What I would do if forced:** 1A and 2A.
+
+**Answer:** Kehinde, 25 Oct: **1A and 2A.** Done in A6: the drawer is built in Rendering and held on the card, the stream sends cards without it, and only the demo page asks for it (`GET /session/{id}/evidence/{rendition_id}`, released cards only). It lists every kept claim, marked "said on this card" or "kept for this lens, not said on this card".
+
+---
+
 ## Q41 · A5: what can push the ladder below L1, whether A2 shares the rung, the drop and climb rule, and where the rung shows  [ticket: A5]  [blocking: yes]
 
 **What is there today:** A4 already falls back card by card. A timeout, a failed call or an answer the guard rejects gives that one rendition L3's words (Q38). Nothing holds state across cards, so the next goal asks the model again and waits its 10 s. A5 adds that state: one rung for the match, a rule for dropping and a rule for climbing back. The brief leaves four things open.

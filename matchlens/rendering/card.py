@@ -10,11 +10,15 @@ claim Selection kept (D4). The page reads none of these.
 
 And it carries the card's overlay packet (D5), which Rendering writes and Delivery releases with
 the card, never ahead of it.
+
+And its evidence drawer (A6): each claim behind the card with the rows it cites. Delivery holds
+it for the demo page to ask for, and never streams it, so a viewer's page is not sent it.
 """
 
 from pydantic import BaseModel, ConfigDict
 
 from matchlens.models import ClockMs, MomentType, OverlayPacket, Rendition
+from matchlens.rendering.evidence import ClaimEvidence
 
 
 class Card(BaseModel):
@@ -26,3 +30,4 @@ class Card(BaseModel):
     importance: float
     body_in_full: str  # `rendering.in_full`: the body with every selected claim spoken
     overlay: OverlayPacket
+    evidence: tuple[ClaimEvidence, ...] = ()

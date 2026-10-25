@@ -79,3 +79,21 @@ header { position: sticky; top: 0; z-index: 1; background: var(--bg); border-bot
 .ladder button { font: inherit; color: var(--fg); background: var(--card); border: 1px solid var(--line);
   border-radius: 4px; padding: 2px 8px; cursor: pointer; }
 .ladder button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* The evidence drawer: each claim behind a card, and the rows it cites (A6). Demo view only. */
+.evidence { margin-top: 8px; font-size: 0.8rem; color: var(--muted); }
+.evidence summary { cursor: pointer; color: var(--fg); width: fit-content; }
+.evidence summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.drawer { display: grid; gap: 10px; margin-top: 8px; }
+.claim { border-top: 1px solid var(--line); padding-top: 8px; overflow-wrap: anywhere; }
+.claim p { margin: 4px 0; font-size: 0.8rem; }
+.claim .claim-head { color: var(--faint); }
+.claim .operand { color: var(--fg); }
+.claim ul { list-style: none; padding: 0 0 0 10px; margin: 2px 0; display: grid; gap: 2px;
+  font-variant-numeric: tabular-nums; }
+.claim code { color: var(--faint); font-size: 0.75rem; }
+.claim .verdict.pass { color: var(--accent); }
+.claim .verdict.fail, .claim .checks .failed { color: var(--warn); }
+.claim .checks .passed::before { content: "✓ "; color: var(--accent); }
+.claim .checks .failed::before { content: "✗ "; }
+.claim .checks .not_applicable::before { content: "– "; }
