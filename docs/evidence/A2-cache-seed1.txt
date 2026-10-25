@@ -1,0 +1,26 @@
+# A2 demo cache over seed 1: gpt-5.4-mini 2026-03-17, reasoning effort low, 25 Oct 2026
+
+Goals and chances only (Q37): 20 of seed 1's 52 moments are put to the model.
+
+## explainer-2 (reading windows left for the model to work out)
+
+First build, 4 calls at a time: 10 of 20 answered; the rest hit the 20 s timeout queued behind
+the deployment's token rate limit (HTTP 429, capacity 10). Rebuilt one call at a time.
+Served from the cache through the pipeline, no model configured:
+  A2 claims verified 49: pass 21, fail 28
+  failed checks: value 28, entailment 28, temporal 2
+  cause: nearly every rejection is a signal operand whose window the model wrote itself
+  ([clock, clock], or from the epoch's start) instead of the reading's own
+  [clock - window_ms, clock]; two invented a window ending after the moment.
+
+## explainer-3 (each reading's window written out in the digest)
+
+20 answers, one call at a time: per call median 12.0 s, slowest 16.6 s
+Served from the cache through the pipeline, no model configured, twice:
+  cache hits 20; cards 70; identical across runs: True
+  A2 claims verified 51: pass 48, fail 3
+  failed:
+    moment-m-1-e998:a3   entailment: the reading's z_match is -0.47, which does not clear the threshold -1.25
+    moment-m-1-e1061:a2  entailment: chances cites m-1-e935, which is not one of m-1-home's big chances in the window
+    moment-m-1-e1334:a1  value: m-1-home's chances is 1 in the record, not 3; entailment: cites events that are not big chances
+  A2 claims surviving onto cards, by lens: match_analyst 44, team_engaged 44, match_casual 7 (kept by Selection, not spoken)

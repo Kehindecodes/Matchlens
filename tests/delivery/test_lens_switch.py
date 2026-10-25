@@ -93,7 +93,8 @@ def _card(lens_id: str, moment_id: str, clock_ms: int) -> Card:
     rendition = Rendition(
         rendition_id=f"{moment_id}:{lens_id}", moment_id=moment_id, lens_id=lens_id,
         language="en", headline=moment_id, body="b", surviving_claim_ids=(), suppressed=False,
-        suppression_reason=None, rendered_at=datetime.now(UTC),
+        suppression_reason=None, rendered_at=datetime.now(UTC), model="templates",
+        model_version="t",
     )  # fmt: skip
     return Card(
         rendition=rendition,

@@ -24,6 +24,71 @@ Newest at the top. Kehinde answers inline and moves the resolved ones to `docs/D
 
 ---
 
+## Q40 · No calibrated value on any card; the analyst card says what an analyst can picture  [ticket: A4]  [blocking: yes]
+
+**What I needed to know:** the analyst card printed calibrated values: "shot quality 0.13", "territory share 1", "pressing intensity 10.67", "1.25 or more standard deviations". None of them is readable without a key, and a bare 0–1 shot value invites being read as xG (invariant 12).
+
+**Answer:** Kehinde, 25 Oct, after a brainstorm:
+- **No calibrated value reaches a viewer, anywhere.** Shot quality, chance quality and standard deviations are said in words only: "a hard chance, below a big one", "creating better chances than", "pressing much harder than their norm this match". `facts.shown` returns no value for the calibrated metrics, so a row that tried to print one would not be spoken.
+- **Plain ratios stay, readably.** A share is a percentage ("58% of the passes", "attacks reaching a final third: 100%"). Pressing is shown as "opponent passes allowed per defensive action", to one decimal place. The overlay stat bar shows the same strings the card said.
+- **Unchanged:** goals, scores, passes, seconds, minutes, counts of big chances, the clock. Claims, verification, selection, A2 and the data model are untouched. Templates are now `templates-3`.
+- **Bug found and fixed along the way:** pressing intensity is PPDA, which rises when a side presses *less*, but its phrases read the rise as "pressing harder". Every pressing card said the opposite of the record. The phrases now follow the value's direction.
+- **Roadmap, not built:** how a goal came about (the giveaway, the finish), what changed after a sub or a red ("since", never "because"), then shape and style. These are written in the README as what MatchLens explains next.
+
+---
+
+## Q39 · A4's first cached run: a misread scorer line, and a goal card that lost its scorer  [ticket: A4]  [blocking: yes]
+
+**What I needed to know:** two things from the first live A4 cache over seed 1.
+1. The model turned "Scorer: Finn Norham, a first of the match" into "Finn Norham scored the first of the match", on the third goal. Every number and name traced, so the guard could not see it.
+2. The team lens's card for the first goal dropped the scorer. An A2 territory comparison counted as "a comparison between the two sides", which Q28: B speaks first.
+
+**Answer:** Kehinde, 25 Oct:
+1. **Both fixes.** The template now reads "his first of the match" (`templates-2`), and the writer's instructions require it to keep the words that decide a fact's meaning (`writer-2`).
+2. **Only the score jumps the order.** Q28: B and D31 meant the score. Any other comparison between the sides keeps the explainer's order, so a goal names its scorer unless there is a score to give.
+3. **Looser analyst prose, asked for afterwards.** Loosening the instructions alone (`writer-3`, then `writer-4` with a worked example) made the model paste fragments at low reasoning effort. The writer now has its own `writer_reasoning_effort = "medium"` over the same deployment, with `writer-4`'s instructions. Cost: calls are slower live (median 2.5 s, slowest 28.5 s in the rebuild), so more of them miss the 10 s deadline and fall back to L3. The demo is served from the cache and is unaffected.
+
+---
+
+## Q38 · A4: what the model is given beyond claims, whether the trace check runs live, and which moments wait for it  [ticket: A4]  [blocking: yes]
+
+**What I need to know:**
+
+1. **The card's frame is not a claim.** L3's headline and opening line ("Redfern United scored, at 18:54") come from the moment's type, subject and clock. The brief says the prompt gets the surviving claims and nothing else. Also, the casual lens is `detail_level: minimal` and speaks **zero** claims, so under that rule it would have nothing to send.
+   - A: **The template keeps the headline and opening line. The model writes only the sentences for the claims L3 would speak.** Casual never calls the model and reads exactly as at L1. Costs: casual has no L0 at all, and on the other two lenses the model rewrites only the claim sentences.
+   - B: **The model writes the whole card and is also given a frame: moment type, subject name, clock.** No importance and no triggers. Costs: amends the brief's "nothing else", and the clock becomes a number the model may use that no claim backs.
+2. **The trace check: a test only, or also at runtime?** Tests never call a live model, so a test can only exercise whatever check exists, plus the cached demo answers. D22 says a text-side check after Rendering "is a new decision".
+   - A: **Runtime guard.** If a number, a name or "xG" in the model's text does not trace to a spoken claim (or to the frame), that rendition falls back to L3's text, and the fallback is logged. A test also covers every cached answer.
+   - B: **Test only**, over the cached demo answers. Live text goes out unchecked.
+3. **Which moments wait for A4, and for how long.** A4 is one call per lens, made after A2's 15 s deadline, so every enriched card ships later.
+   - Which moments: goals and chances only (as with Q37), or every moment.
+   - Deadline: past it, L3's text ships. Like A2, the 25× replay serves pre-computed renditions from a cache keyed on the prompt (D36 extended to A4).
+
+**Why I cannot decide it:** (1) amends the brief and changes what a viewer sees; (2) is the check D22 left as a new decision; (3) changes when a viewer sees a card.
+
+**What I would do if forced:** 1A, 2A, 3 goals and chances with a 10 s deadline. Not done.
+
+**Implementation I am taking without asking:** `model` and `model_version` go on `Rendition`, as the brief's provenance criterion asks. L3 renditions carry `model="templates"`.
+
+**Answer:** Kehinde, 25 Oct: **1A, 2A, goals and chances, 10 s.**
+- The template keeps the headline and opening line. The model words only the sentences L3 would speak for the lens, so casual (minimal, no claim spoken) is never asked.
+- Runtime guard. Any number, number word or name not in those sentences, the banned abbreviation, or "we/us/our" drops the text to L3's.
+- Only goals and chances call A4. The deadline is 10 s from when Rendering starts on the moment, and every lens of the moment is asked at once.
+
+---
+
+## Q37 · Putting A2's claims on cards (D36): the deadline, which moments, and the earlier answers it replaces  [ticket: A2]  [blocking: yes]
+
+**What I needed to know:** Kehinde chose to put A2's claims on cards behind D36's per-moment deadline (option B, 25 Oct), which replaces Q32: A (held out until A3; A3 is in) and Q34: A (off the card path). D36 leaves two things open: the deadline's value, and whether only some moments are enriched.
+
+**Answer:** Kehinde, 25 Oct:
+- **Deadline: 5 s** from when the moment fired. Past it, the moment's cards ship on L7's claims and the miss is recorded.
+- **Amended, 25 Oct: 15 s for v1 and the demo.** The live model's median is 12 s, so at 5 s every live call missed. 15 s lets most land. Production latency is to be handled properly later, not by this number.
+- **Selective enrichment: goals and chances only.** Tactical shifts, and any other moment type, get no model call.
+- His D36 and ticket edits are committed first on the branch that implements this.
+
+---
+
 ## Q36 · `entity` says "on the pitch across the window", but a scorer's `goals` window starts at kickoff  [ticket: A3]  [blocking: yes]
 
 **What I need to know:** What `entity` checks for a player subject.

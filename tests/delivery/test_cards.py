@@ -14,7 +14,7 @@ def _card(lens_id: str = "match_casual", clock: int = 1_000) -> Card:
     rendition = Rendition(
         rendition_id="m:l", moment_id="m", lens_id=lens_id, language="en", headline="h",
         body="b", surviving_claim_ids=(), suppressed=False, suppression_reason=None,
-        rendered_at=datetime.now(UTC),
+        rendered_at=datetime.now(UTC), model="templates", model_version="t",
     )  # fmt: skip
     return Card(
         rendition=rendition,

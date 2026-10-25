@@ -37,7 +37,8 @@ def _card(clock: int, lens_id: str = settings.default_lens_id, moment_id: str = 
     rendition = Rendition(
         rendition_id=f"{moment_id}:{lens_id}", moment_id=moment_id, lens_id=lens_id,
         language="en", headline="h", body="b", surviving_claim_ids=(), suppressed=False,
-        suppression_reason=None, rendered_at=datetime.now(UTC),
+        suppression_reason=None, rendered_at=datetime.now(UTC), model="templates",
+        model_version="t",
     )  # fmt: skip
     return Card(
         rendition=rendition,

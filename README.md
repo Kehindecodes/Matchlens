@@ -14,7 +14,19 @@ Built for the viewer, sold to streaming platforms. Solo entry to the Microsoft P
 
 One container on Azure Container Apps (UK South), playing the seeded demo match at 25× speed: the full match runs in about four minutes, and the walking-skeleton card appears at 67:19 of match time.
 
+**The model's claims in the demo are pre-computed.** On the live path, the explainer agent (A2) calls the model once for each goal and chance, and a card waits up to 15 seconds for its answer, inside the viewer's stream delay. The 25× replay squeezes that delay 25-fold, so it serves the model's answers for the demo match from a cache built offline over the same seed (`matchlens/explanation/claims-cache.json`). The match is byte-identical from its seed, so each cached answer was given to exactly the prompt the live path would send. Every cached claim still goes through the verifier, which rejects 3 of the 51 (D36).
+
 **The first load can take 15–30 seconds.** The app scales to zero when nobody is watching, so the first visit after a quiet spell starts the container and generates the match from kickoff. After that it is instant.
+
+## What MatchLens explains next
+
+A viewer can see a goal. What they cannot easily see is what caused it, and what changed in the game around it. That is what MatchLens is for, at every depth. v1 explains moments from four team-level signals. Next, in order:
+
+1. **How a goal came about.** Who gave the ball away and where, how fast it was punished, where the shot came from and how it was finished: "Pell gave it away on halfway; 3 passes and 9 seconds later Norham finished first time from 16 m." Every fact is countable from the event log, so it stays verifiable. It needs claims that can carry categories (a body part, a side of the box) as well as numbers.
+2. **What changed after a substitution or a red card.** "Since Norham came on at 58', Riverside have pressed higher." That means comparing the stretch before a sub with the stretch after it, which v1's signal windows, bounded by goals, red cards and half time, do not do yet. MatchLens will say *since*, never *because*: a timing it can check, not a cause it cannot.
+3. **Shape and style.** Crossing, width, a team's attacking pattern, and a change when a particular player comes on. This needs players with styles in the simulated match, plus measures for them, and it comes after the two above.
+
+Throughout, a viewer is never shown a calibrated value: no shot rating, no standard deviations. Cards say "a hard chance" and "pressing much harder than their norm", and show only counts, percentages and metres.
 
 ## This repo is a handover pack, not yet a codebase
 

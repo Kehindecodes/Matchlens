@@ -21,18 +21,22 @@ from matchlens.ingest import FrozenLog
 from matchlens.models import (
     Claim,
     ClaimType,
+    Event,
+    Match,
     Metric,
     Moment,
     Operand,
+    Outcome,
     Ref,
     RefKind,
+    SignalReading,
 )
 from matchlens.understanding.possession import from_events
 from matchlens.understanding.shot_value import is_shot, value
 
 logger = logging.getLogger(__name__)
 
-PROMPT_VERSION = "explainer-1"  # bump by hand whenever the instructions or the digest change
+PROMPT_VERSION = "explainer-3"  # bump by hand whenever the instructions or the digest change
 
 
 class Answer(NamedTuple):
@@ -100,46 +104,55 @@ Rules. A claim that breaks one is worthless, and an answer that breaks one is th
   goals counts goal events; chances counts shots with shot_quality of at least
   {settings.spotter_chance_quality}; shot_quality is one shot's shot_quality; build_up_passes
   counts the passes in one possession; territory, possession_control, pressing_intensity and
-  chance_quality are the value of the one reading cited.
+  chance_quality are the value of the one reading cited, over that reading's own "window",
+  copied exactly. Never write a window of your own for a reading.
 - Cite only ids that appear in the JSON. Do not repeat a claim already in existing_claims.
 """
 
 
+def _shot(e: Event, match: Match) -> dict[str, object]:
+    return {
+        "event_id": e.event_id,
+        "clock_ms": e.clock_ms,
+        "team": e.team,
+        "player": e.player,
+        "outcome": e.outcome.value if e.outcome is not None else None,
+        "shot_quality": value(e, match).value,
+    }
+
+
 def digest(moment: Moment, log: FrozenLog, made: Sequence[Claim]) -> str:
-    """What the model is shown: built from `log` alone, so nothing after its clock is in it."""
+    """What the model is shown: a slice of `log` around the moment, never the whole of it.
+
+    Built from `log` alone, so nothing after its clock is in it. It holds what D30's metrics
+    can cite for this moment, and nothing else (D36): every goal so far, since a goals count
+    runs from kickoff; the shots of the chances window; the moves of the last minute, for the
+    build-up; the latest reading of each series in this epoch and the one before, and the
+    moment's own triggers.
+    """
     match = log.match
-    recent = moment.clock_ms - settings.explainer_recent_ms
-    latest: dict[tuple[str, str, str], dict[str, object]] = {}
-    for r in log.readings:  # the last reading of each series in each epoch
-        latest[(r.signal.value, r.team, r.epoch_id)] = {
-            "reading_id": r.reading_id,
-            "signal": r.signal.value,
-            "team": r.team,
-            "clock_ms": r.clock_ms,
-            "window_ms": r.window_ms,
-            "value": r.value,
-            "z_match": r.z_match,
-            "epoch_id": r.epoch_id,
-        }
+    chances_from = moment.clock_ms - settings.claim_chance_window_ms
+    moves_from = moment.clock_ms - settings.explainer_recent_ms
+    epochs = [e.epoch_id for e in log.epochs][-2:]  # this one and the one before
+    triggers = {*moment.trigger_event_ids, *moment.trigger_reading_ids}
+    latest: dict[tuple[str, str, str], SignalReading] = {}
+    for r in log.readings:
+        if r.epoch_id in epochs or r.reading_id in triggers:
+            latest[(r.signal.value, r.team, r.epoch_id)] = r
+    for r in log.readings:  # a trigger stays in even when a later reading of its series came
+        if r.reading_id in triggers:
+            latest[(r.signal.value, r.team, r.reading_id)] = r
     return json.dumps(
         {
             "moment": moment.model_dump(
                 mode="json", include={"moment_id", "clock_ms", "type", "subject", "epoch_id"}
             )
-            | {"triggers": [*moment.trigger_event_ids, *moment.trigger_reading_ids]},
+            | {"triggers": sorted(triggers)},
             "teams": [{"team_id": t.team_id, "name": t.name} for t in match.teams],
-            "epochs": [e.model_dump(mode="json") for e in log.epochs],
+            "epochs": [e.model_dump(mode="json") for e in log.epochs if e.epoch_id in epochs],
+            "goals": [_shot(e, match) for e in log.events if e.outcome is Outcome.GOAL],
             "shots": [
-                {
-                    "event_id": e.event_id,
-                    "clock_ms": e.clock_ms,
-                    "team": e.team,
-                    "player": e.player,
-                    "outcome": e.outcome.value if e.outcome is not None else None,
-                    "shot_quality": value(e, match).value,
-                }
-                for e in log.events
-                if is_shot(e)
+                _shot(e, match) for e in log.events if is_shot(e) and e.clock_ms > chances_from
             ],
             "possessions": [
                 {
@@ -150,9 +163,26 @@ def digest(moment: Moment, log: FrozenLog, made: Sequence[Claim]) -> str:
                     "event_ids": list(p.event_ids),
                 }
                 for p in from_events(match, log.events)
-                if p.end_clock_ms >= recent
+                if p.end_clock_ms >= moves_from
             ],
-            "readings": list(latest.values()),
+            "readings": [
+                r.model_dump(
+                    mode="json",
+                    include={
+                        "reading_id",
+                        "signal",
+                        "team",
+                        "clock_ms",
+                        "value",
+                        "z_match",
+                        "epoch_id",
+                    },
+                )  # fmt: skip
+                # The window written out, not left to arithmetic: the live model got it wrong
+                # more often than right under explainer-2 (A3's value check).
+                | {"window": {"start_ms": r.clock_ms - r.window_ms, "end_ms": r.clock_ms}}
+                for r in dict.fromkeys(latest.values())
+            ],
             "existing_claims": [
                 c.model_dump(mode="json", exclude={"claim_id", "moment_id", "model"}) for c in made
             ],

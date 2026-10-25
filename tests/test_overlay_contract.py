@@ -13,7 +13,7 @@ TEMPLATES = {"lower_third", "stat_bar", "team_card"}
 NEEDS = {
     "lower_third": {"body": str},
     "team_card": {"team": str, "body": str},
-    "stat_bar": {"label": str, "team": str, "value": float, "other": str, "other_value": float},
+    "stat_bar": {"label": str, "team": str, "value": str, "other": str, "other_value": str},
 }
 
 

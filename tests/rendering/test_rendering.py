@@ -179,6 +179,19 @@ def test_the_team_lens_speaks_where_the_moment_leaves_its_side_first():
     assert "Ashworth 2" not in _text(render(goal, _selected(first, score), match, NAMES))
 
 
+def test_a_comparison_between_the_sides_that_is_not_the_score_keeps_its_place():
+    """Q39: only the score jumps the explainer's order, so a goal still names its scorer."""
+    first = _claim("first", value=2, metric=Metric.GOALS)
+    ours = _claim("t", value=0.7, metric=Metric.TERRITORY).operands[0]
+    theirs = ours.model_copy(update={"subject": OPPONENT, "value": 0.3})
+    territory = _claim("t", metric=Metric.TERRITORY).model_copy(
+        update={"claim_type": ClaimType.COMPARATIVE, "operands": (ours, theirs)}
+    )
+    team = render(_moment(MomentType.GOAL), _selected(first, territory), TEAM, NAMES)
+    assert "goal for Larkfield" in _text(team)
+    assert team.surviving_claim_ids == ("first", "t")
+
+
 def test_a_comparison_with_the_sides_own_earlier_self_keeps_its_place():
     earlier = _claim("earlier", value=0.6, metric=Metric.POSSESSION_CONTROL)
     earlier = earlier.model_copy(
@@ -210,8 +223,10 @@ def test_templates_are_keyed_on_depth_not_on_the_lens():
 
 
 def test_a_claim_selection_filtered_out_is_not_in_the_text():
-    kept = _claim("kept", value=11)
-    filtered = _claim("filtered", value=777, claim_type=ClaimType.INTERPRETIVE)
+    kept = _claim("kept", value=11, metric=Metric.BUILD_UP_PASSES)
+    filtered = _claim(
+        "filtered", value=777, metric=Metric.BUILD_UP_PASSES, claim_type=ClaimType.INTERPRETIVE
+    )
     lens = ANALYST.model_copy(update={"allowed_claim_types": (ClaimType.DESCRIPTIVE,)})
     chosen = select(_moment(), [kept, filtered], lens, ShownCards())
     rendition = render(_moment(), chosen, lens, NAMES)
@@ -221,7 +236,10 @@ def test_a_claim_selection_filtered_out_is_not_in_the_text():
 
 
 def test_detail_level_decides_how_many_selected_claims_are_spoken():
-    claims = (_claim("a", value=11), _claim("b", value=22))
+    claims = (
+        _claim("a", value=11, metric=Metric.BUILD_UP_PASSES),
+        _claim("b", value=22, metric=Metric.BUILD_UP_PASSES),
+    )
 
     def spoken(level: DetailLevel) -> str:
         lens = ANALYST.model_copy(update={"detail_level": level})
@@ -257,7 +275,8 @@ def test_every_number_in_the_text_comes_from_a_claim():
 
 
 def test_a_value_is_written_as_the_claim_holds_it():
-    text = _text(render(_moment(), _selected(_claim(value=2.5)), ANALYST, NAMES))
+    claim = _claim(value=2.5, metric=Metric.BUILD_UP_PASSES)
+    text = _text(render(_moment(), _selected(claim), ANALYST, NAMES))
     assert "2.5" in text
 
 

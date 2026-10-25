@@ -205,6 +205,7 @@ One moment as one lens presents it. **The most important entity for the whole pr
 | `suppressed` | True when this lens deliberately shows nothing. **A populated record of silence** — this is what proves the lenses are independent |
 | `suppression_reason` | `SuppressionReason`. **Required iff `suppressed` is true, null otherwise.** Exactly one value, resolved by the evaluation order below |
 | `rendered_at` | For latency measurement |
+| `model`, `model_version` | What wrote the words: `templates` and the template version at L1, or the model and its version plus the prompt version at L0 (A4) |
 
 #### Why `suppression_reason` exists
 

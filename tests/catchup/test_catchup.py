@@ -228,7 +228,8 @@ def _held(lens_id: str) -> CatchUp:
     rendition = Rendition(
         rendition_id=f"g:{lens_id}", moment_id="g", lens_id=lens_id, language="en",
         headline="Goal!", body="b", surviving_claim_ids=("g:c1",), suppressed=False,
-        suppression_reason=None, rendered_at=datetime.now(UTC),
+        suppression_reason=None, rendered_at=datetime.now(UTC), model="templates",
+        model_version="t",
     )  # fmt: skip
     card = Card(
         rendition=rendition, display_at_clock=MINUTE, moment_type=MomentType.GOAL,

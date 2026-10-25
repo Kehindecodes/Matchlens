@@ -207,7 +207,8 @@ def test_a_released_card_is_streamed_after_the_clock(live: LiveServer, queues: R
     rendition = Rendition(
         rendition_id="m:l", moment_id="m", lens_id=session.lens_id, language="en",
         headline="The walking skeleton", body="b", surviving_claim_ids=(), suppressed=False,
-        suppression_reason=None, rendered_at=datetime.now(UTC),
+        suppression_reason=None, rendered_at=datetime.now(UTC), model="templates",
+        model_version="t",
     )  # fmt: skip
     queues.enqueue(
         Card(
