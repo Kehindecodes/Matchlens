@@ -24,6 +24,9 @@ param image string = ''
 @description('Match clock seconds per wall clock second (MATCHLENS_REPLAY_SPEED).')
 param replaySpeed string = '25'
 
+@description('Serve the producer view at /producer (MATCHLENS_PRODUCER_VIEW). Off, it is not there at all.')
+param producerView string = 'true'
+
 var bootstrap = empty(image)
 var placeholderImage = 'mcr.microsoft.com/k8se/quickstart:latest' // listens on 80, not 8000
 var acrPullRoleId = '7f951dda-4ed3-4680-a7ca-43fe172d538d'
@@ -148,6 +151,10 @@ resource app 'Microsoft.App/containerApps@2024-03-01' = {
             {
               name: 'MATCHLENS_REPLAY_SPEED'
               value: replaySpeed
+            }
+            {
+              name: 'MATCHLENS_PRODUCER_VIEW'
+              value: producerView
             }
             {
               name: 'APPLICATIONINSIGHTS_CONNECTION_STRING' // read by configure_azure_monitor()

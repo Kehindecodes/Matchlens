@@ -1,0 +1,32 @@
+/* The producer view (P1): what a lens did with the latest moment, and why.
+   A lens that chose silence and a lens that failed must not look alike, so the five states differ
+   in more than colour: the glyph before the label, the border, and the tint. */
+:root { --broken: #f28b82; --broken-tint: #2a1a1b; --alarm-tint: #2a2314; }
+
+/* The panel's own idle line says "quiet by choice", which is untrue of a lens that failed, so the
+   producer view hides it then. `style.css` sets its display, which would otherwise win. */
+.quiet[hidden] { display: none; }
+
+.internals { display: grid; gap: 6px; padding: 10px 12px; font-size: 0.85rem; border-radius: 8px;
+             background: var(--card); border: 1px solid var(--line); border-left-width: 4px; }
+.internals .headline { font-size: 0.95rem; }
+.internals .headline::before { margin-right: 6px; }
+.internals .why { margin: 0; color: var(--muted); line-height: 1.4; }
+.internals .figures { display: grid; grid-template-columns: auto 1fr; gap: 2px 12px; margin: 0;
+                      color: var(--muted); font-variant-numeric: tabular-nums; }
+.internals .figures dt { color: var(--faint); }
+.internals .figures dd { margin: 0; }
+
+.internals.state-listening { border-left-color: var(--faint); }
+.internals.state-listening .headline::before { content: "○"; }
+.internals.state-spoke { border-left-color: var(--accent); }
+.internals.state-spoke .headline::before { content: "◆"; color: var(--accent); }
+.internals.state-quiet { border-left-color: var(--accent); border-left-style: dashed; }
+.internals.state-quiet .headline::before { content: "●"; color: var(--accent); }
+.internals.state-alarm { border-color: var(--warn); background: var(--alarm-tint); }
+.internals.state-alarm .headline { color: var(--warn); }
+.internals.state-alarm .headline::before { content: "▲"; }
+.internals.state-broken { border-color: var(--broken); background: var(--broken-tint); }
+.internals.state-broken .headline { color: var(--broken); font-weight: 700; }
+.internals.state-broken .headline::before { content: "✕"; }
+.internals.state-broken .why { color: var(--fg); }

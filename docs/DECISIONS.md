@@ -757,6 +757,28 @@ So the uncomfortable conclusion: **the offset budget absorbs a fast call; it doe
 
 ---
 
+## D37 · The product is renamed Parallax; the package keeps its old name — SETTLED 25 Oct
+
+"MatchLens" turned out to be a common choice among hackathon submissions. It is a **predictable construction** — domain noun plus optical metaphor — so several entrants given the same brief reached it independently.
+
+**The product is now Parallax.** The same object appears to shift depending on where you are standing, which is the thesis in one word: one match, a different apparent shape per viewer. It also carries the pitch line — *"the same match, from where you're sitting."*
+
+### Scope: the submission is renamed, the code is not
+
+Two days from submission, renaming the `matchlens/` package, its imports, the container app, the `MATCHLENS_` env prefix and the Bicep resource names is half a day of risk for **zero judging benefit**. Judges read the materials and the deployed page.
+
+**Renamed:** `README.md`, `CLAUDE.md`'s title, the `<title>` and visible name on every served page, the video, the deck and the pitch.
+
+**Left alone, deliberately:** the Python package, the env prefix, the Azure resources, and every mention inside `docs/DECISIONS.md` and the ticket briefs — those are a dated record of what was decided when, and rewriting history to match a new name would make the record less trustworthy, not more.
+
+The README says in one line that the package name is historical. That is cheaper than a rename and more honest than a silent mismatch.
+
+### Naming, for the record
+
+Avoided on purpose: `Match*`, `*Lens`, `*Vision`, `*IQ`, `Pitch*`, `Smart*`, `*AI`. Those are the crowded patterns, and the collision came from following one of them. The alternatives considered were Refract, Cadence, Facet and Aspect; **Vantage was dropped** because Vantage Sports was an NBA analytics company, a collision in exactly this domain.
+
+---
+
 # OPEN — Kehinde decides
 
 ## O4 · Audit as an Azure Function or in-process

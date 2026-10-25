@@ -24,6 +24,49 @@ Newest at the top. Kehinde answers inline and moves the resolved ones to `docs/D
 
 ---
 
+## Q43 · Where the producer view's internals come from, what "broken" means, the rung before A5, and who can reach the page  [ticket: P1]  [blocking: yes]
+
+**What I need to know:** four things P1's brief leaves open. Q24 settled how the cards are fed (three sessions, three `EventSource`s); none of what P1 adds on top of that exists on the delivery side today.
+
+**What exists today:**
+- A suppressed rendition never leaves `Pipeline._editorial`: with no overlay packet there is no `Card`, and `audit.record` is a stub that keeps nothing. So Delivery holds no suppression reason, no lens-judged importance (`Card.importance` is the moment's raw one; `Selection.importance` is after the lens's reweight) and no rate-limit count (`ShownCards` is private to the pipeline).
+- Every lens's rendition is built in one loop inside one `_editorial` call. A lens can lack a rendition only if that call raised, and then all three lack one. With a model the call runs on the editorial thread, and the one place its exception is re-raised is `Pipeline.drain()`, which `apps/delivery.py` never calls. A failed moment today vanishes silently, which is the "looks identical to quiet" state P1 exists to tell apart.
+- No rung exists anywhere in the code. A5 is todo, and its brief says it is the "one place that knows the current rung".
+- There is no authentication (scope guard), so any route on the deployed URL is reachable by anyone who has the path.
+
+**Why I cannot decide it:** (1) is a new message across the Rendering→Delivery boundary and a new HTTP surface, which is architecture. (2) defines what the ticket's "only real requirement" means, and (2B) would change what viewers get when a lens fails. (3) would drop or defer a criterion. (4) is a product and security call. All of these are Kehinde's (CLAUDE.md: stop and ask).
+
+**Options as I see them:**
+
+*(1) How the internals reach the page*
+- 1A: **A producer-only message beside `Card`.** The pipeline publishes, per moment and lens, the rendition (suppressed or not), the importance the lens judged, the cards shown in its last ten minutes and its `max_cards_per_10min`. Delivery keeps them in memory and serves `GET /producer/stream` (SSE). The producer page is `web/producer.html`, reusing `Panel` from `panel.js` with an extra internals block, plus one fourth `EventSource`. Nothing is stored and Audit stays a stub. Costs: a second publish path out of the pipeline.
+- 1B: **Make Audit real and read it.** One source of truth, also useful to P5. Costs: far more than P1's day, and it reaches into a ticket that is not this one.
+
+*(2) What "broken" means, since that is the ticket's whole requirement*
+- 2A: **Opened and never closed with an outcome.** The pipeline announces a moment with the lenses it expects, then each lens's outcome as it is rendered. `_published` catches an exception, logs it and sends a "failed" close, so nothing vanishes silently. A lens with an opened moment and no outcome is `broken`; one with a suppressed outcome is `quiet`. Viewer behaviour is unchanged: a failed moment still gives no cards.
+- 2B: **2A plus per-lens isolation.** A lens whose render raises is recorded broken and the other two lenses' cards still go out. This is closer to "one lens broken, two fine", but it changes what viewers see when something fails.
+- 2C: **A timeout.** Broken if no outcome arrives within N seconds of the moment opening. Needs a number I would be inventing, and a slow model reads as broken (D36 already bounds that wait).
+
+*(3) The degradation rung, with A5 unbuilt*
+- 3A: **Ship the slot, defer the live value to A5.** The producer snapshot carries a `rung` that is L0 until A5 sets it, and the page shows it only below L0. I would test the display with a constructed snapshot. Costs: the criterion cannot be seen end to end until A5 lands.
+- 3B: **Hold the criterion until A5.** Same as 3A without the slot.
+- 3C: **P1 keeps its own rung state.** Pre-empts A5.
+
+*(4) Who can reach the producer page and its stream*
+- 4A: **Unlinked and open.** No link from `index`, `watch` or `delay`; the URL goes in the submission materials. Anyone who guesses `/producer` sees it. Read-only, and it shows reasons and scores, not claims or ids.
+- 4B: **Behind a setting** (`MATCHLENS_PRODUCER_VIEW`), routes not mounted when off. Off by default, on in the deployed demo, so for judges it is 4A with a switch.
+- 4C: **A shared key in the URL.** Judges need it handed to them.
+
+**What I would do if forced:** 1A, 2A, 3A, 4B. I have not started and have not created the branch.
+
+**Answer:** 1A, 2A, 3A, 4B. Kehinde, 25 Oct.
+
+**After A5 merged (25 Oct), before any code:** `origin/main` already had A5 (Q41 above), and A6 took Q42, which is why this is Q43. It changes two of the premises above, so these are how the answer was applied.
+- **3A (rung).** There is a real rung now, so there is no slot to ship. The producer page shows A5's strip and `ladder` event through `panel.js`, on every rung. Nothing about the rung is held in the producer feed.
+- **2A (broken).** A5 stores a Rendering failure as a suppressed `degraded` rendition, so "no rendition at all" is only a moment that fails outside Rendering. `degraded` is shown as broken too, since it is not a lens's choice, and `verification_failed` as an alarm, since DATA-MODEL calls it one. The mapping is the one dict `STATE_OF_REASON`; reverse it there.
+
+---
+
 ## Q41 · A5: what can push the ladder below L1, whether A2 shares the rung, the drop and climb rule, and where the rung shows  [ticket: A5]  [blocking: yes]
 
 **What is there today:** A4 already falls back card by card. A timeout, a failed call or an answer the guard rejects gives that one rendition L3's words (Q38). Nothing holds state across cards, so the next goal asks the model again and waits its 10 s. A5 adds that state: one rung for the match, a rule for dropping and a rule for climbing back. The brief leaves four things open.

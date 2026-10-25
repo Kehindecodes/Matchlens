@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Parallax · producer</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <link rel="stylesheet" href="/static/producer.css">
+</head>
+<body>
+  <header>
+    <div class="score">
+      <span id="home-name">HOME</span><span class="goals" id="home-goals">0</span>–<span class="goals" id="away-goals">0</span><span id="away-name">AWAY</span>
+    </div>
+    <div class="clock"><span id="clock">00:00</span> · <span id="period">waiting for kickoff</span></div>
+    <div class="status" id="status">connecting…</div>
+    <div class="status" id="feed-status">producer feed: connecting…</div>
+    <div class="playback" id="playback"></div>
+    <div class="ladder" id="ladder" role="status"></div>
+    <div class="views">Producer view: every lens, and what a viewer is never shown</div>
+  </header>
+  <main class="panels" id="panels"></main>
+
+  <template id="panel-template">
+    <section class="panel">
+      <div class="panel-head"><h2></h2><span class="count"></span></div>
+      <p class="audience"></p>
+      <div class="quiet" role="status"></div>
+      <ol class="cards" aria-live="polite"></ol>
+    </section>
+  </template>
+  <script src="/static/panel.js"></script>
+  <script src="/static/app.js"></script>
+  <script src="/static/producer.js"></script>
+</body>
+</html>
