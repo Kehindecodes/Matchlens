@@ -99,8 +99,8 @@ class Pipeline:
         """
         self._ingest.accept(item)
         if isinstance(item, MatchSetup):
-            self._names = {t.team_id: t.name for t in item.match.teams}
-            self._names |= {p.player_id: p.name for p in item.players}
+            self._names = {team.team_id: team.name for team in item.match.teams}
+            self._names |= {player.player_id: player.name for player in item.players}
             return iter(())
         readings = self._understanding.observe(item)
         self._readings.extend(readings)
@@ -301,8 +301,8 @@ def _passing(claims: list[Claim], verifications: list[Verification]) -> list[Cla
 
 def run(seed: int, publish: Publish) -> None:
     """Drive one seeded match through the pipeline, publishing every card."""
-    model = foundry.from_settings()
-    pipeline = Pipeline(model, publish, writer=model)
+    writer = foundry.from_settings(settings.writer_reasoning_effort)
+    pipeline = Pipeline(foundry.from_settings(), publish, writer=writer)
     try:
         for item in simulate(seed):
             for card in pipeline.process(item):

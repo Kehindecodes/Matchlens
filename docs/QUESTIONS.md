@@ -33,6 +33,7 @@ Newest at the top. Kehinde answers inline and moves the resolved ones to `docs/D
 **Answer:** Kehinde, 25 Oct:
 1. **Both fixes.** The template now reads "his first of the match" (`templates-2`), and the writer's instructions require it to keep the words that decide a fact's meaning (`writer-2`).
 2. **Only the score jumps the order.** Q28: B and D31 meant the score. Any other comparison between the sides keeps the explainer's order, so a goal names its scorer unless there is a score to give.
+3. **Looser analyst prose, asked for afterwards.** Loosening the instructions alone (`writer-3`, then `writer-4` with a worked example) made the model paste fragments at low reasoning effort. The writer now has its own `writer_reasoning_effort = "medium"` over the same deployment, with `writer-4`'s instructions. Cost: calls are slower live (median 2.5 s, slowest 28.5 s in the rebuild), so more of them miss the 10 s deadline and fall back to L3. The demo is served from the cache and is unaffected.
 
 ---
 

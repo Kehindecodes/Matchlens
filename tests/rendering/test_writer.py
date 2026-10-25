@@ -172,7 +172,7 @@ def test_the_model_words_follow_the_templates_opening_and_say_who_wrote_them():
     opening = "Larkfield scored, at 34:12."
     assert l3.body is not None and l3.body.startswith(opening)
     assert rendition.body == f"{opening} {written.text}"
-    assert (rendition.model, rendition.model_version) == ("scripted", "s1+writer-2")
+    assert (rendition.model, rendition.model_version) == ("scripted", "s1+writer-4")
     assert (l3.model, l3.model_version) == (templates.MODEL, templates.MODEL_VERSION)
     assert rendition.surviving_claim_ids == l3.surviving_claim_ids
 
@@ -288,16 +288,19 @@ def test_only_goals_and_chances_are_worded_by_the_model_and_only_where_claims_ar
         by_model.setdefault(card.rendition.model, set()).add(key)
     worded = by_model["scripted"]
     assert worded
-    assert {t for t, _ in worded} <= set(settings.writer_moment_types)
+    assert {moment_type for moment_type, _ in worded} <= set(settings.writer_moment_types)
     casual = next(lens.lens_id for lens in lenses.all_lenses() if lens.depth is Depth.CASUAL)
     assert casual not in {lens_id for _, lens_id in worded}  # minimal detail speaks no claim
     # The same cards as with no model, in the same order, bar the words and who wrote them;
     # the overlay draws the same words as the card.
     strip = {"rendition": {"rendered_at", "body", "model", "model_version"}, "overlay": True}
-    assert [c.model_dump_json(exclude=strip) for c in cards] == [
-        c.model_dump_json(exclude=strip) for c in alone
+    assert [card.model_dump_json(exclude=strip) for card in cards] == [
+        card.model_dump_json(exclude=strip) for card in alone
     ]
-    assert all(c.overlay.payload.get("body", c.rendition.body) == c.rendition.body for c in cards)
+    assert all(
+        card.overlay.payload.get("body", card.rendition.body) == card.rendition.body
+        for card in cards
+    )
 
 
 def test_a_writer_past_its_deadline_leaves_every_card_as_l3_wrote_it(alone, monkeypatch):
@@ -307,7 +310,7 @@ def test_a_writer_past_its_deadline_leaves_every_card_as_l3_wrote_it(alone, monk
         cards = _run(held)
     finally:
         held.released.set()
-    assert [_content(c) for c in cards] == [_content(c) for c in alone]
+    assert [_content(card) for card in cards] == [_content(card) for card in alone]
 
 
 class Served(Proposer):
@@ -344,5 +347,5 @@ def test_every_cached_writer_answer_traces():
 def _names_of_seed_1() -> dict[str, str]:
     setup = next(iter(simulate(1)))
     assert isinstance(setup, MatchSetup)  # the stream opens on the setup (D16)
-    names = {t.team_id: t.name for t in setup.match.teams}
-    return names | {p.player_id: p.name for p in setup.players}
+    names = {team.team_id: team.name for team in setup.match.teams}
+    return names | {player.player_id: player.name for player in setup.players}

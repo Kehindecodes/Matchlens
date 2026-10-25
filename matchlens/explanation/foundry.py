@@ -3,6 +3,9 @@
 Nothing builds it unless both `foundry_endpoint` and `model_name` are set. One call per moment:
 the agent has no tools, so a run is a single structured round trip, never a loop (D36).
 
+A4's writer is the same deployment asked at its own reasoning effort, so it is a second
+proposer over the same model rather than the explainer's.
+
 The pipeline is synchronous and the agent is not, so the agent runs on an event loop of its
 own, on its own thread, and a call waits for it up to `explainer_timeout_s`.
 """
@@ -21,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 
 class FoundryProposer(Proposer):
-    def __init__(self, endpoint: str, model: str, timeout_s: float):
+    def __init__(self, endpoint: str, model: str, timeout_s: float, reasoning_effort: str):
         # Imported here so that the runtime image, which leaves the agents group out, never
         # needs them until an endpoint is configured.
         from agent_framework import Agent
@@ -34,6 +37,7 @@ class FoundryProposer(Proposer):
         )
         self._model = model
         self._timeout_s = timeout_s
+        self._reasoning_effort = reasoning_effort
         self._loop = asyncio.new_event_loop()
         threading.Thread(target=self._loop.run_forever, daemon=True).start()
 
@@ -55,18 +59,24 @@ class FoundryProposer(Proposer):
 
     async def _run(self, instructions: str, prompt: str) -> Answer:
         agent: Any = self._agent_type(client=self._client, instructions=instructions)
-        effort = {"reasoning": {"effort": settings.explainer_reasoning_effort}}
+        effort = {"reasoning": {"effort": self._reasoning_effort}}
         response = await agent.run(prompt, options=effort)
         served = getattr(response.raw_representation, "model", None) or self._model
         return Answer(text=response.text, model=self._model, model_version=served)
 
 
-def live() -> FoundryProposer | None:
-    """The configured model, or None when none is configured."""
+def live(reasoning_effort: str | None = None) -> FoundryProposer | None:
+    """The configured model, or None when none is configured.
+
+    Asked at `reasoning_effort`, the explainer's unless another is given.
+    """
     if not (settings.foundry_endpoint and settings.model_name):
         return None
     return FoundryProposer(
-        settings.foundry_endpoint, settings.model_name, settings.explainer_timeout_s
+        settings.foundry_endpoint,
+        settings.model_name,
+        settings.explainer_timeout_s,
+        reasoning_effort or settings.explainer_reasoning_effort,
     )
 
 
@@ -77,12 +87,13 @@ def warm(proposer: Proposer | None) -> None:
         threading.Thread(target=model.warm, name="explainer-warm", daemon=True).start()
 
 
-def from_settings() -> Proposer | None:
+def from_settings(reasoning_effort: str | None = None) -> Proposer | None:
     """The demo cache in front of the configured model; either alone; or None (D35: L7 alone).
 
     With a cache and no model, a prompt the cache holds is answered and any other is not.
+    `reasoning_effort` is passed to `live`.
     """
-    model = live()
+    model = live(reasoning_effort)
     path = settings.explainer_cache_path
     if path and Path(path).exists():
         return Cached.load(path, model)

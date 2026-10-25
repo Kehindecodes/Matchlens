@@ -43,7 +43,7 @@ class Cached(Proposer):
     @classmethod
     def load(cls, path: str, live: Proposer | None) -> "Cached":
         entries = json.loads(Path(path).read_text())
-        return cls({k: Answer(**v) for k, v in entries.items()}, live)
+        return cls({key: Answer(**answer) for key, answer in entries.items()}, live)
 
     @override
     def propose(self, instructions: str, prompt: str) -> Answer:
@@ -75,8 +75,12 @@ class Recording(Proposer):
         return answer
 
 
-def build(seed: int) -> Recording:
-    """Every enriched moment of `seed` put to the configured model, waiting as long as it takes."""
+def build(seed: int) -> list[Recording]:
+    """Every enriched moment of `seed` put to the configured model, waiting as long as it takes.
+
+    One recording for A2's explainer and one for A4's writer, which asks the same model at its
+    own reasoning effort.
+    """
     from apps.pipeline import Pipeline
     from matchlens.config import settings
     from matchlens.explanation import foundry
@@ -89,31 +93,37 @@ def build(seed: int) -> Recording:
     settings.explainer_concurrency = 1
     settings.writer_deadline_ms = 10**9
     settings.writer_concurrency = 1
-    live = foundry.live()
-    if live is None:
+    explainer = foundry.live()
+    writer = foundry.live(settings.writer_reasoning_effort)
+    if explainer is None or writer is None:
         raise SystemExit("no model configured: set MATCHLENS_FOUNDRY_ENDPOINT and _MODEL_NAME")
     path = Path(settings.explainer_cache_path)
-    # A rebuild asks again only what is not cached yet: the prompts that are, are answered.
-    recording = Recording(Cached.load(str(path), live) if path.exists() else live)
-    pipeline = Pipeline(recording, publish=lambda card: None, writer=recording)
+
+    def recorded(model: Proposer) -> Recording:
+        # A rebuild asks again only what is not cached yet: the prompts that are, are answered.
+        return Recording(Cached.load(str(path), model) if path.exists() else model)
+
+    explaining, writing = recorded(explainer), recorded(writer)
+    pipeline = Pipeline(explaining, publish=lambda card: None, writer=writing)
     for item in simulate(seed):
         for _ in pipeline.process(item):
             pass
     pipeline.drain()
     pipeline.close()
-    return recording
+    return [explaining, writing]
 
 
 if __name__ == "__main__":
     from matchlens.config import settings
 
     logging.basicConfig(level=logging.WARNING, format="%(message)s")
-    recording = build(int(sys.argv[1]) if len(sys.argv) > 1 else settings.match_seed)
-    answers = recording.answers
+    recordings = build(int(sys.argv[1]) if len(sys.argv) > 1 else settings.match_seed)
+    answers = {key: answer for recording in recordings for key, answer in recording.answers.items()}
     Path(settings.explainer_cache_path).write_text(
-        json.dumps({k: a._asdict() for k, a in sorted(answers.items())}, indent=1) + "\n"
+        json.dumps({key: answer._asdict() for key, answer in sorted(answers.items())}, indent=1)
+        + "\n"
     )
-    took = sorted(recording.seconds)
+    took = sorted(seconds for recording in recordings for seconds in recording.seconds)
     print(f"{len(answers)} answers written to {settings.explainer_cache_path}")
     if took:
         print(f"per call: median {took[len(took) // 2]:.1f} s, slowest {took[-1]:.1f} s")

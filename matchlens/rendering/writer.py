@@ -30,7 +30,7 @@ from matchlens.rendering import templates
 
 logger = logging.getLogger(__name__)
 
-PROMPT_VERSION = "writer-2"  # bump by hand whenever the instructions or the prompt change
+PROMPT_VERSION = "writer-4"  # bump by hand whenever the instructions or the prompt change
 
 # The abbreviation invariant 12 bans, spelt so that no file here contains it: the model has to
 # be told the word it may not use, and the check has to look for it.
@@ -57,12 +57,15 @@ _REGISTERS = {
         "statistics vocabulary. Never a number, as digits or in words."
     ),
     Depth.ENGAGED: (
-        "Engaged: a viewer who follows the game closely. Natural match-commentary prose that "
-        "keeps every number it is given, with no jargon beyond the sentences' own."
+        "Engaged: a viewer who follows the game closely. Sounds like a commentator's line, "
+        "not a list: one or two flowing sentences, every number kept, no jargon beyond the "
+        "sentences' own."
     ),
     Depth.ANALYST: (
-        "Analyst: a viewer who wants the mechanism and the numbers. Precise and compact; lead "
-        "with how it happened, keep every number exactly as given, and keep the labels."
+        "Analyst: a viewer who wants the mechanism and the numbers. Reads like a sharp "
+        "analyst's note, not a stat sheet: say how the goal or chance came about, then who and "
+        "the score, then the context, grouping related numbers into one sentence where they "
+        "belong together. Every number exactly as given, each with its label."
     ),
 }
 
@@ -87,9 +90,29 @@ Rules. A passage that breaks one is thrown away and the viewer gets the sentence
   sentence is told from one side, keep that side first.
 - Write in the language given. Keep it at most as long as the sentences together.
 
-Do more than join the sentences: write it the way the register below would say it, with the
-facts in the order that tells the moment best. Keep each label ("shot quality", "possession
-share") next to its number.
+How to write it. These are freedoms, and the rules above still bind every one of them.
+- Do not just join the sentences. Rewrite them as connected prose in the register below.
+- Merge facts into fewer sentences, reorder them so the moment reads best, and link them with
+  plain connectives: "and", "after", "with", "as", "while", a colon or a dash.
+- Drop the sentences' scaffolding where the prose already carries it: "Scorer: X, his first of
+  the match" can become "X's first of the match", and "X goals so far: 1" can join the score.
+- Once a player is named, "he" and "his" may refer back to him; once a team is named, "they".
+- Keep each label ("shot quality", "possession share", "pressing intensity") beside its
+  number, so a reader always knows what a number measures.
+- Still no adjective or verb that judges: not "dominant", "clinical", "lucky", "deserved",
+  "against the run of play". Say what happened, not how good it was.
+- Every sentence you write must be grammatical English on its own. Never paste a fragment
+  such as "goals so far: 1" into the middle of a sentence; say it as prose instead.
+
+An example, with invented teams, players and numbers that are not this match's:
+  sentences: ["Scorer: Ana Velt, his first of the match.", "Ostby 2, Calder 1.",
+              "A quick attack: 5 passes in 12 s from winning the ball.",
+              "Shot quality 0.31.", "Possession share: Ostby 0.61, Calder 0.39."]
+  analyst: "A quick attack, 5 passes in 12 s from winning the ball, ended with a shot of
+  quality 0.31 and Ana Velt's first of the match, making it Ostby 2, Calder 1. Ostby have the
+  larger possession share, 0.61 to Calder's 0.39."
+  engaged, from ["Calder trail 1–2."]: "Calder now trail 1–2."
+The example shows the kind of rewriting wanted; its words are not to be reused.
 
 Register:
 """
@@ -156,21 +179,21 @@ def untraceable(
     numbers = set(_NUMBER.findall(text)) - set(_NUMBER.findall(given))
     if numbers:
         return f"numbers {sorted(numbers)}"
-    words = [w.lower() for w in _WORD.findall(text)]
+    words = [word.lower() for word in _WORD.findall(text)]
     if _BANNED.lower() in words:
         return _BANNED
     if voice := _SIDE_VOICE.intersection(words):
         return f"a side's voice {sorted(voice)}"
-    given_words = {w.lower() for w in _WORD.findall(given)}
+    given_words = {word.lower() for word in _WORD.findall(given)}
     number_words = templates.number_words(language) or frozenset()
     if invented := number_words.intersection(words) - given_words:
         return f"number words {sorted(invented)}"
-    named = {n for n in names.values() if n in given}
-    allowed = {part for n in named for part in _WORD.findall(n)}
-    unnamed = {part for n in names.values() if n not in named for part in _WORD.findall(n)}
+    named = {name for name in names.values() if name in given}
+    allowed = {part for name in named for part in _WORD.findall(name)}
+    unnamed = {part for name in names.values() if name not in named for part in _WORD.findall(name)}
     if others := (unnamed - allowed).intersection(_WORD.findall(text)):
         return f"names {sorted(others)}"  # a surname alone is still a name
-    capitals = {w for w in _WORD.findall(given) if w[0].isupper()}
+    capitals = {word for word in _WORD.findall(given) if word[0].isupper()}
     for match in _WORD.finditer(text):
         word = match.group()
         if not word[0].isupper() or word in allowed or word in capitals:

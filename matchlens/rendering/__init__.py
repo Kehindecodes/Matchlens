@@ -49,7 +49,7 @@ def render(
         "moment_id": moment.moment_id,
         "lens_id": lens.lens_id,
         "language": lens.language,
-        "surviving_claim_ids": tuple(c.claim_id for c in selection.claims),
+        "surviving_claim_ids": tuple(claim.claim_id for claim in selection.claims),
         "rendered_at": datetime.now(UTC),
     }
     if selection.suppression_reason is not None:
@@ -162,7 +162,7 @@ def _words(
 
 def _score_first(claims: tuple[Claim, ...]) -> list[Claim]:
     """`claims` with the score first, otherwise in the explainer's order."""
-    return sorted(claims, key=lambda c: not _is_score(c))  # sorted is stable
+    return sorted(claims, key=lambda claim: not _is_score(claim))  # sorted is stable
 
 
 def _is_score(claim: Claim) -> bool:

@@ -9,18 +9,23 @@
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },
+ "0ab598827bb8f8678267774c36f43460517d4cc7779d4cfa494b9960cb318de8": {
+  "text": "{\"text\":\"Riverside Athletic have the fifth big chance in ten minutes.\"}",
+  "model": "gpt-5.4-mini",
+  "model_version": "gpt-5.4-mini-2026-03-17"
+ },
  "0bae0b3cbb9a21fa45b99ca52b6afca29e7dc95c2bc169c8e7e7b1d478b9932d": {
   "text": "{\"claims\":[{\"claim_type\":\"descriptive\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"build_up_passes\",\"window\":{\"start_ms\":4994035,\"end_ms\":5014535},\"value\":7,\"evidence_ids\":[{\"kind\":\"event\",\"id\":\"m-1-e1620\"},{\"kind\":\"event\",\"id\":\"m-1-e1621\"},{\"kind\":\"event\",\"id\":\"m-1-e1622\"},{\"kind\":\"event\",\"id\":\"m-1-e1623\"},{\"kind\":\"event\",\"id\":\"m-1-e1624\"},{\"kind\":\"event\",\"id\":\"m-1-e1625\"},{\"kind\":\"event\",\"id\":\"m-1-e1626\"},{\"kind\":\"event\",\"id\":\"m-1-e1627\"},{\"kind\":\"event\",\"id\":\"m-1-e1628\"},{\"kind\":\"event\",\"id\":\"m-1-e1629\"},{\"kind\":\"event\",\"id\":\"m-1-e1630\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":4685035,\"end_ms\":4980000},\"value\":0.8444444444444444,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch5-possession_control-m-1-home-4980000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":4380000,\"end_ms\":4680000},\"value\":0.796875,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch4-possession_control-m-1-home-4680000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"interpretive\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"chance_quality\",\"window\":{\"start_ms\":4685035,\"end_ms\":4980000},\"value\":0.6515304828399999,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch5-chance_quality-m-1-home-4980000\"}]}],\"backing_reading\":{\"kind\":\"reading\",\"id\":\"m-1-epoch5-chance_quality-m-1-home-4980000\"},\"threshold\":2.0}]}",
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },
- "0cd6b7b4702dea393c1797a14fed8724f3321e081820eb5bea689f581ef68562": {
-  "text": "{\"text\":\"A quick attack: 7 passes in 20 s from winning the ball. Shot quality 0.12, below a big chance. Scorer: Gideon Corlan, his first of the match. Redfern United goals so far: 1. Territory share: Riverside Athletic 1, Redfern United 0. Possession share: Riverside Athletic 0.58, Redfern United 0.42. Pressing intensity: Riverside Athletic 10.67, Redfern United 8. Chance quality: Riverside Athletic 0.04, Redfern United 0.\"}",
+ "10adc7f46211c25f80fccbb4eb62b016fda32ba6b4fbd6a9283e77375b718584": {
+  "text": "{\"text\":\"Riverside Athletic have 5 big chances in the last 10 minutes, with shot quality 0.56. They are creating far better chances: chance quality 1.82, 2 or more standard deviations from their norm this match, and possession share 0.89 now, against 0.8 before 78:00.\"}",
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },
- "166ef320d8fb8e58b5830e98ee770235977a4f35a45a2640bd4978178a82f66e": {
-  "text": "{\"text\":\"A quick attack: 7 passes in 18 s from winning the ball. Shot quality 0.26. Chance quality: Redfern United 0.24, Riverside Athletic 0.\"}",
+ "1797b4b2e1dda4ff851fbd1c2fcee3f169e0be413dc6e18dc9ac29f87cefaee1": {
+  "text": "{\"text\":\"Redfern United's fourth big chance in ten minutes.\"}",
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },
@@ -29,23 +34,18 @@
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },
- "29eb3ec97c930125885124a58bdad990f8852462c09d60b010a0ec1ebe0671d7": {
-  "text": "{\"text\":\"The fourth big chance for Redfern United in ten minutes.\"}",
+ "23b4e249ea8b4195b662c78a58ac8d344f42d710b74a40fe83129f623682a66e": {
+  "text": "{\"text\":\"Shot quality 0.69, and possession share 0.84 now, against 0.8 before 78:00. Riverside Athletic are creating far better chances, with chance quality 0.65, 2 or more standard deviations from their norm this match.\"}",
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },
- "317835ad05362a426b3984b3bf936a3a6afc6ebb8389c5cd14c8a029e2cf4f0a": {
-  "text": "{\"text\":\"Riverside Athletic had 5 big chances in the last 10 minutes. Shot quality 0.63. Possession share: Riverside Athletic 0.79, Redfern United 0.21. Pressing intensity 2.75 now, against 2.6 before 78:00. Riverside Athletic are playing further up the pitch: territory share 1, 1.25 or more standard deviations from their norm this match.\"}",
+ "3024f22802f30f2da4cc0fd864cb64968d85bf8f0cdb84983a87f28cc2745d5e": {
+  "text": "{\"text\":\"Riverside Athletic have had 3 big chances in the last 10 minutes, with shot quality 0.54 and possession share 0.85 now against 0.8 before 78:00. Riverside Athletic are creating far better chances: chance quality 1.42, 2 or more standard deviations from their norm this match.\"}",
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },
- "3333f7eb04dac59836c3eae5e854a4877b07f06e1af3d4bc15c44e568cc5525d": {
-  "text": "{\"text\":\"Level at 1\u20131.\"}",
-  "model": "gpt-5.4-mini",
-  "model_version": "gpt-5.4-mini-2026-03-17"
- },
- "41d02b3687ae173b45da511791abd62e143ea8a184577a387514cd802f1c3595": {
-  "text": "{\"text\":\"Riverside Athletic are creating far better chances: chance quality 1.82, 2 or more standard deviations from their norm this match, with 5 big chances in the last 10 minutes and shot quality 0.56. Possession share 0.89 now, against 0.8 before 78:00.\"}",
+ "37e98e22a82075af9cf06a2d13073c17b7b7ec11e72b5d003fedb21b4596eae2": {
+  "text": "{\"text\":\"Riverside Athletic lead 2\u20131.\"}",
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },
@@ -59,16 +59,6 @@
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },
- "4727201502caba778bf14e3bad4cd175da8fd53c91524cc63bb6065423ed5e21": {
-  "text": "{\"text\":\"Riverside Athletic are creating far better chances: chance quality 1.42, 2 or more standard deviations from their norm this match, with 3 big chances in the last 10 minutes. Shot quality 0.54. Possession share 0.85 now, against 0.8 before 78:00.\"}",
-  "model": "gpt-5.4-mini",
-  "model_version": "gpt-5.4-mini-2026-03-17"
- },
- "4792afe0c3ed7892afc7dd5a2edbe5b27d56e7358ce01467b61359fee3629d75": {
-  "text": "{\"text\":\"A patient move: 11 passes over 34 s. Shot quality 0.6. Possession share: Riverside Athletic 0.53, Redfern United 0.47. Pressing intensity: Redfern United 8, Riverside Athletic 5.33.\"}",
-  "model": "gpt-5.4-mini",
-  "model_version": "gpt-5.4-mini-2026-03-17"
- },
  "598fec63f181948ac020dc84bdebaf0d6fee75af4e2b027ba095d25913cb4f29": {
   "text": "{\"claims\":[{\"claim_type\":\"descriptive\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"build_up_passes\",\"window\":{\"start_ms\":3527035,\"end_ms\":3560535},\"value\":11,\"evidence_ids\":[{\"kind\":\"event\",\"id\":\"m-1-e1141\"},{\"kind\":\"event\",\"id\":\"m-1-e1142\"},{\"kind\":\"event\",\"id\":\"m-1-e1143\"},{\"kind\":\"event\",\"id\":\"m-1-e1144\"},{\"kind\":\"event\",\"id\":\"m-1-e1145\"},{\"kind\":\"event\",\"id\":\"m-1-e1146\"},{\"kind\":\"event\",\"id\":\"m-1-e1147\"},{\"kind\":\"event\",\"id\":\"m-1-e1148\"},{\"kind\":\"event\",\"id\":\"m-1-e1149\"},{\"kind\":\"event\",\"id\":\"m-1-e1150\"},{\"kind\":\"event\",\"id\":\"m-1-e1151\"},{\"kind\":\"event\",\"id\":\"m-1-e1152\"},{\"kind\":\"event\",\"id\":\"m-1-e1153\"},{\"kind\":\"event\",\"id\":\"m-1-e1154\"},{\"kind\":\"event\",\"id\":\"m-1-e1155\"},{\"kind\":\"event\",\"id\":\"m-1-e1156\"},{\"kind\":\"event\",\"id\":\"m-1-e1157\"},{\"kind\":\"event\",\"id\":\"m-1-e1158\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":3240000,\"end_ms\":3540000},\"value\":0.5344827586206896,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch3-possession_control-m-1-home-3540000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":3240000,\"end_ms\":3540000},\"value\":0.46551724137931033,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch3-possession_control-m-1-away-3540000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"pressing_intensity\",\"window\":{\"start_ms\":3240000,\"end_ms\":3540000},\"value\":8,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch3-pressing_intensity-m-1-away-3540000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"pressing_intensity\",\"window\":{\"start_ms\":3240000,\"end_ms\":3540000},\"value\":5.333333333333333,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch3-pressing_intensity-m-1-home-3540000\"}]}],\"backing_reading\":null,\"threshold\":null}]}",
   "model": "gpt-5.4-mini",
@@ -79,33 +69,18 @@
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },
- "6468dd2e15104ef917731718b1672b3f2c38f4a8b901ba2464567085dcd2ab78": {
-  "text": "{\"text\":\"In the last 10 minutes, Riverside Athletic had 3 big chances, with shot quality 0.37. A quick attack: 3 passes in 14 s from winning the ball. Possession share: Riverside Athletic 0.72, Redfern United 0.28. Riverside Athletic are creating better chances: chance quality 0.59, 1.25 or more standard deviations from their norm this match.\"}",
-  "model": "gpt-5.4-mini",
-  "model_version": "gpt-5.4-mini-2026-03-17"
- },
- "6717ed9e81e462bcbd656d25d4680fad3adbaaf46bcb9268f1dd4c975ba00692": {
-  "text": "{\"text\":\"3 big chances for Riverside Athletic in the last 10 minutes. Shot quality 0.32. Chance quality: Riverside Athletic 0.34, Redfern United 0.\"}",
-  "model": "gpt-5.4-mini",
-  "model_version": "gpt-5.4-mini-2026-03-17"
- },
  "6e794f5b4812f92c90395a661181a00acc2c25cbdc9e2a5139d796b63d928de2": {
   "text": "{\"claims\":[{\"claim_type\":\"descriptive\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"chance_quality\",\"window\":{\"start_ms\":4380000,\"end_ms\":4680000},\"value\":0.536006729982,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch4-chance_quality-m-1-home-4680000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":4380000,\"end_ms\":4680000},\"value\":0.796875,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch4-possession_control-m-1-home-4680000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":4380000,\"end_ms\":4680000},\"value\":0.203125,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch4-possession_control-m-1-away-4680000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"interpretive\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"territory\",\"window\":{\"start_ms\":4380000,\"end_ms\":4680000},\"value\":1.0,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch4-territory-m-1-home-4680000\"}]}],\"backing_reading\":{\"kind\":\"reading\",\"id\":\"m-1-epoch4-territory-m-1-home-4680000\"},\"threshold\":1.25}]}",
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },
- "6fed3fb39e20816f51e7cfd918d64ef6dcf168dc28beb3a4f1606b6f681b53ed": {
-  "text": "{\"text\":\"Shot quality 0.34. Territory share: Redfern United 0.86, Riverside Athletic 0.14. Pressing intensity: Redfern United 4.67, Riverside Athletic 13.\"}",
+ "76595799d0ba2f339d1351d080305bcd06d7a576f011726463a9b676c3778541": {
+  "text": "{\"text\":\"A quick attack, 7 passes in 18 s from winning the ball, had shot quality 0.26, and chance quality was Redfern United 0.24 and Riverside Athletic 0.\"}",
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },
- "785d9ef3588f8227e55f5f0442f505c9ad4185f8fa85b893b8532c75b29f0fc2": {
-  "text": "{\"text\":\"The fifth big chance for Riverside Athletic in ten minutes.\"}",
-  "model": "gpt-5.4-mini",
-  "model_version": "gpt-5.4-mini-2026-03-17"
- },
- "78ccfdf2ab04c54fd71c2732559fc1e7e28bbaccd5a48f0fb7951ee966326871": {
-  "text": "{\"text\":\"A patient move: 10 passes over 30 s. Shot quality 0.42.\"}",
+ "7809762afae9d7cfacede8a9de90a9578ece76a55a560624c54fc414b47f62dd": {
+  "text": "{\"text\":\"Riverside Athletic had 3 big chances in the last 10 minutes, with shot quality 0.32 and chance quality: Riverside Athletic 0.34, Redfern United 0.\"}",
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },
@@ -124,43 +99,23 @@
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },
- "84da44f4b17f5ba2ae0978828b395d1e60ce43aedfec3ff9e1472ef99b9ecb01": {
-  "text": "{\"text\":\"A quick attack: 7 passes in 18 s from winning the ball. Scorer: Idris Gorstow, his first of the match. Riverside Athletic 1, Redfern United 1. Shot quality 0.12, below a big chance. Chance quality: Redfern United 1.42, Riverside Athletic 0. Redfern United are pressing much harder: pressing intensity 11, 2 or more standard deviations from their norm this match.\"}",
+ "89793a91241c826687bf933087fe17b94ea297d4e7c3b5687936251f785edf10": {
+  "text": "{\"text\":\"Riverside Athletic have 5 big chances in the last 10 minutes, with shot quality 0.63. They have possession share 0.79 to Redfern United's 0.21, pressing intensity 2.75 now against 2.6 before 78:00, and they are playing further up the pitch: territory share 1, 1.25 or more standard deviations from their norm this match.\"}",
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },
- "87fcf73bc49eaa97684c4252ce95328aab45380ba6ac1b694ace86ca57e838f1": {
-  "text": "{\"text\":\"The third big chance for Riverside Athletic in ten minutes.\"}",
+ "9279e1df7a29e9e0235a0ba9a59d905043fed8d8dddd20ba00f117a03e69a4f9": {
+  "text": "{\"text\":\"Riverside Athletic's fourth big chance in ten minutes.\"}",
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },
- "88f9f1b4fed27cecb2a532364f1633f8c29b9e5ba838ad592be3950caecdd5a1": {
-  "text": "{\"text\":\"Finn Norham scored his first of the match. Riverside Athletic 2, Redfern United 1. Shot quality 0.13, below a big chance. Possession share: Riverside Athletic 0.8, Redfern United 0.2. Riverside Athletic are playing further up the pitch: territory share 1, 1.25 or more standard deviations from their norm this match.\"}",
+ "953347d6abd384c273b725ef037d74f857cb6546643fba1840f92289fd699bfd": {
+  "text": "{\"text\":\"Shot quality 0.4, and chance quality is Riverside Athletic 0.65 and Redfern United 0. Riverside Athletic are creating chances with chance quality 0.65, 2 or more standard deviations from their norm this match.\"}",
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },
- "8d191eaa73ec5557cfd606cfd374a9141e8d3e1c3b97b1c472cdae54845266c9": {
-  "text": "{\"text\":\"Riverside Athletic lead 2\u20131.\"}",
-  "model": "gpt-5.4-mini",
-  "model_version": "gpt-5.4-mini-2026-03-17"
- },
- "937c6051d3ccf5d60825126e8a9cdf6818352ae0f880b8c903ab22d5e9069124": {
-  "text": "{\"text\":\"Shot quality 0.54, territory share: Redfern United 0.6, Riverside Athletic 0.4, possession share 0.54 now, against 0.37 before 46:00.\"}",
-  "model": "gpt-5.4-mini",
-  "model_version": "gpt-5.4-mini-2026-03-17"
- },
- "9420dc4883ac00fb218965f0d7a5c83c1689d4c6d6ac131d33e30c4cb5018144": {
-  "text": "{\"text\":\"The fourth big chance for Riverside Athletic in ten minutes.\"}",
-  "model": "gpt-5.4-mini",
-  "model_version": "gpt-5.4-mini-2026-03-17"
- },
- "98654216ffe0b6a1ac6a0e31014938372963291700e9da6f4781b351632c04cf": {
-  "text": "{\"text\":\"Shot quality 0.69. Possession share 0.84 now, against 0.8 before 78:00. Riverside Athletic are creating far better chances: chance quality 0.65, 2 or more standard deviations from their norm this match.\"}",
-  "model": "gpt-5.4-mini",
-  "model_version": "gpt-5.4-mini-2026-03-17"
- },
- "9f4b0ce7ca51206392961726609ae8467fbea464ae80db313766f93446008141": {
-  "text": "{\"text\":\"Shot quality 0.4; chance quality: Riverside Athletic 0.65, Redfern United 0; Riverside Athletic are creating far better chances: chance quality 0.65, 2 or more standard deviations from their norm this match.\"}",
+ "9abb3f560ab4fa274708cbb29474a189f4162f4ebeb38ffa4cdcbfd591bb60c3": {
+  "text": "{\"text\":\"A patient move featured 10 passes over 30 s, and shot quality was 0.42.\"}",
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },
@@ -169,13 +124,33 @@
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },
- "bddfb73fc9944c258e14b21867d36c77a9195633f02e5e831a8b5da67a71bf6c": {
-  "text": "{\"text\":\"4 big chances for Redfern United in the last 10 minutes. Shot quality 0.49. Redfern United goals so far: 1. Possession share: Redfern United 0.61, Riverside Athletic 0.39. Redfern United are creating far better chances: chance quality 1.18, 2 or more standard deviations from their norm this match.\"}",
+ "b5fcb19ea3cd619780f6d2674cfadab6cc3995f5a86558c590a0135e59b87305": {
+  "text": "{\"text\":\"Gideon Corlan with the goal.\"}",
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },
- "c6379ff4b4b593d84e0a1994f1284705a99df413798e910c4c9b244225fd9f3a": {
-  "text": "{\"text\":\"Redfern United are creating far better chances: chance quality 0.85, 2 or more standard deviations from their norm this match. Shot quality 0.33. A quick attack: 4 passes in 11 s from winning the ball. Possession share: Redfern United 0.63, Riverside Athletic 0.37. 3 big chances for Redfern United in the last 10 minutes.\"}",
+ "b7e5f307146598153b03c0ef752083d0c259e6a2c21a6933c021bb1144ff5fff": {
+  "text": "{\"text\":\"It is level at 1\u20131.\"}",
+  "model": "gpt-5.4-mini",
+  "model_version": "gpt-5.4-mini-2026-03-17"
+ },
+ "b874f1ad6be056a05da3421dae1d399590bbc0d74c044f16bfbcb41f5cf7c242": {
+  "text": "{\"text\":\"Redfern United have 4 big chances in the last 10 minutes, shot quality 0.49, and goals so far: 1. Possession share: Redfern United 0.61, Riverside Athletic 0.39, and Redfern United are creating far better chances: chance quality 1.18, 2 or more standard deviations from their norm this match.\"}",
+  "model": "gpt-5.4-mini",
+  "model_version": "gpt-5.4-mini-2026-03-17"
+ },
+ "c404df5a647881ac3a9965c0118d6488289af78ce14e05361c92800f3972e7f5": {
+  "text": "{\"text\":\"After winning the ball, a quick attack took 7 passes in 20 s and ended with shot quality 0.12, below a big chance, and Gideon Corlan's first of the match, making Redfern United's goals so far 1. Riverside Athletic have territory share 1 to Redfern United 0, possession share 0.58 to 0.42, pressing intensity 10.67 to 8, and chance quality 0.04 to 0.\"}",
+  "model": "gpt-5.4-mini",
+  "model_version": "gpt-5.4-mini-2026-03-17"
+ },
+ "c556943ad163795c5b87351a9bb276970178c0b6a72f743df7233ce85e21cffb": {
+  "text": "{\"text\":\"Shot quality 0.54, and territory share is Redfern United 0.6 to Riverside Athletic 0.4. Possession share is 0.54 now, against 0.37 before 46:00.\"}",
+  "model": "gpt-5.4-mini",
+  "model_version": "gpt-5.4-mini-2026-03-17"
+ },
+ "c7bfb575ad211ce2259acde751ab9c509495ebca5df5330f4cb29ba075b17478": {
+  "text": "{\"text\":\"A quick attack, 7 passes in 18 s from winning the ball, ended with Idris Gorstow's first of the match, with Riverside Athletic 1, Redfern United 1. Shot quality 0.12, below a big chance, and chance quality: Redfern United 1.42, Riverside Athletic 0. Redfern United are pressing much harder: pressing intensity 11, 2 or more standard deviations from their norm this match.\"}",
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },
@@ -194,18 +169,38 @@
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },
- "d6f764973db62b438bad13db953fa7c1459e36e191b515e894acd6bf0a6bca28": {
-  "text": "{\"text\":\"It was a big chance.\"}",
-  "model": "gpt-5.4-mini",
-  "model_version": "gpt-5.4-mini-2026-03-17"
- },
  "d6fd2b9b8caebaa32e4797ac41c646ab6779476f2216bc2cbd95ad9d950820e6": {
   "text": "{\"claims\":[{\"claim_type\":\"descriptive\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"build_up_passes\",\"window\":{\"start_ms\":3233035,\"end_ms\":3263535},\"value\":10,\"evidence_ids\":[{\"kind\":\"event\",\"id\":\"m-1-e1046\"},{\"kind\":\"event\",\"id\":\"m-1-e1047\"},{\"kind\":\"event\",\"id\":\"m-1-e1048\"},{\"kind\":\"event\",\"id\":\"m-1-e1049\"},{\"kind\":\"event\",\"id\":\"m-1-e1050\"},{\"kind\":\"event\",\"id\":\"m-1-e1051\"},{\"kind\":\"event\",\"id\":\"m-1-e1052\"},{\"kind\":\"event\",\"id\":\"m-1-e1053\"},{\"kind\":\"event\",\"id\":\"m-1-e1054\"},{\"kind\":\"event\",\"id\":\"m-1-e1055\"},{\"kind\":\"event\",\"id\":\"m-1-e1056\"},{\"kind\":\"event\",\"id\":\"m-1-e1057\"},{\"kind\":\"event\",\"id\":\"m-1-e1058\"},{\"kind\":\"event\",\"id\":\"m-1-e1059\"},{\"kind\":\"event\",\"id\":\"m-1-e1060\"},{\"kind\":\"event\",\"id\":\"m-1-e1061\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"chances\",\"window\":{\"start_ms\":2663535,\"end_ms\":3263535},\"value\":2,\"evidence_ids\":[{\"kind\":\"event\",\"id\":\"m-1-e998\"},{\"kind\":\"event\",\"id\":\"m-1-e1061\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"chances\",\"window\":{\"start_ms\":2663535,\"end_ms\":3263535},\"value\":0,\"evidence_ids\":[{\"kind\":\"event\",\"id\":\"m-1-e935\"}]}],\"backing_reading\":null,\"threshold\":null}]}",
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },
- "d98c6aab26703ddc76f8d3351276c3b95a62103c23573ec0476bba1337db9efa": {
-  "text": "{\"text\":\"Riverside Athletic are playing further up the pitch: territory share 1, 1.25 or more standard deviations from their norm this match. 3 big chances for Riverside Athletic in the last 10 minutes. Shot quality 0.27. Possession share: Riverside Athletic 0.33, Redfern United 0.67.\"}",
+ "dc4407aa8101968c89069a288dcdefae1934f7c799608ca5567f42b8cd863b4b": {
+  "text": "{\"text\":\"Redfern United have the third big chance in ten minutes.\"}",
+  "model": "gpt-5.4-mini",
+  "model_version": "gpt-5.4-mini-2026-03-17"
+ },
+ "dfbf6516a34f4e1d1386ef6a868c464e1a12705111e13859aa0fd580e092b716": {
+  "text": "{\"text\":\"A patient move: 11 passes over 34 s. Shot quality 0.6. Possession share: Riverside Athletic 0.53, Redfern United 0.47. Pressing intensity: Redfern United 8, Riverside Athletic 5.33.\"}",
+  "model": "gpt-5.4-mini",
+  "model_version": "gpt-5.4-mini-2026-03-17"
+ },
+ "e0f365f7351bf94bb9389590da941f7a7c64637036a0c1ee2e1fe3db69301b17": {
+  "text": "{\"text\":\"Redfern United have had 3 big chances in the last 10 minutes, with shot quality 0.33 from a quick attack of 4 passes in 11 s from winning the ball. Redfern United's possession share is 0.63 to Riverside Athletic's 0.37, and they are creating far better chances: chance quality 0.85, 2 or more standard deviations from their norm this match.\"}",
+  "model": "gpt-5.4-mini",
+  "model_version": "gpt-5.4-mini-2026-03-17"
+ },
+ "e21595eccbb0b2d1237d84f484ed93da0b3d572a1f365cee2f8f6e3e6ade67a1": {
+  "text": "{\"text\":\"It was a big chance.\"}",
+  "model": "gpt-5.4-mini",
+  "model_version": "gpt-5.4-mini-2026-03-17"
+ },
+ "e2272cfce9f57e01a322e35699a2c93765e4c93bfc19199631f0f19eefd91473": {
+  "text": "{\"text\":\"Riverside Athletic had 3 big chances in the last 10 minutes, with shot quality 0.27, and their possession share is 0.33 to Redfern United's 0.67. Riverside Athletic are playing further up the pitch, with territory share 1 and 1.25 or more standard deviations from their norm this match.\"}",
+  "model": "gpt-5.4-mini",
+  "model_version": "gpt-5.4-mini-2026-03-17"
+ },
+ "e290b1182fb314ec10ea39a010bc08c09f0f68350e87e1a69eb7f2201aa6f998": {
+  "text": "{\"text\":\"Finn Norham scored his first of the match, with shot quality 0.13, below a big chance, to make it Riverside Athletic 2, Redfern United 1. Possession share: Riverside Athletic 0.8, Redfern United 0.2. Riverside Athletic are playing further up the pitch: territory share 1, 1.25 or more standard deviations from their norm this match.\"}",
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },
@@ -219,8 +214,13 @@
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },
- "ef9a7ba129a2f445fa27d4712643b5fefe522781e194680e56a741bb9530497b": {
-  "text": "{\"text\":\"Gideon Corlan with the goal.\"}",
+ "e52480aa323634a3a4831f27c4ce4f4d0cc644ca2802fb5b3c3e354e0d399fdb": {
+  "text": "{\"text\":\"Riverside Athletic have 3 big chances in the last 10 minutes, and a quick attack of 3 passes in 14 s from winning the ball had shot quality 0.37. Riverside Athletic have possession share 0.72 and Redfern United 0.28, and Riverside Athletic are creating better chances: chance quality 0.59, 1.25 or more standard deviations from their norm this match.\"}",
+  "model": "gpt-5.4-mini",
+  "model_version": "gpt-5.4-mini-2026-03-17"
+ },
+ "f55276d3b1a9462e3ba9c73d1ffc09f13a5617d07ef192dd1afa6a2feae4de72": {
+  "text": "{\"text\":\"The third big chance for Riverside Athletic in ten minutes.\"}",
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },
@@ -229,8 +229,8 @@
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },
- "f959ff7a365dbc0cd99bf551dcc7a1baea767ac2935769443e2707ddd53d72ac": {
-  "text": "{\"text\":\"The third big chance for Redfern United in ten minutes.\"}",
+ "fce96476c9a6e097342cfc34bab88e81b0156bbc610e8e7d2849f057c6af7b1e": {
+  "text": "{\"text\":\"Shot quality 0.34, and territory share: Redfern United 0.86, Riverside Athletic 0.14, while pressing intensity: Redfern United 4.67, Riverside Athletic 13.\"}",
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  }

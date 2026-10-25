@@ -91,12 +91,14 @@ def load(path: Path = TEMPLATES_PATH) -> Templates:
         facts[(row["language"], row["metric"], row["form"], depth)] = _checked(row["text"], allowed)
     signals = {
         (row["language"], Metric(row["metric"])): SignalWords(
-            row["label"], {p: row[p] for p in _PHRASES}
+            row["label"], {phrase: row[phrase] for phrase in _PHRASES}
         )
         for row in data.get("signals", [])
     }
     ordinals = {lang: tuple(words) for lang, words in data.get("ordinals", {}).items()}
-    number_words = {lang: frozenset(w) for lang, w in data.get("number_words", {}).items()}
+    number_words = {
+        language: frozenset(words) for language, words in data.get("number_words", {}).items()
+    }
     return Templates(headlines, facts, signals, ordinals, number_words)
 
 
