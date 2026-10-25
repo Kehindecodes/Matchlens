@@ -1,4 +1,4 @@
-from matchlens.models import Frame, Phase
+from matchlens.models import Event, Frame, Outcome, Phase
 from matchlens.source import MatchSetup, simulate
 from matchlens.understanding.match_state import MatchStateTracker
 
@@ -37,15 +37,42 @@ def test_home_is_listed_first():
     assert state.score[0].team_id == home.team_id
 
 
-def test_without_the_score_fold_every_score_is_zero():
+def test_before_any_goal_every_score_is_zero():
     state = MatchStateTracker(_setup()).observe(_frame(0, 0))
     assert state is not None
-    assert [t.goals for t in state.score] == [0, 0]
+    assert [team.goals for team in state.score] == [0, 0]
 
 
-def test_the_score_comes_from_the_fold_it_is_given():
+def _goal(event: Event, clock_ms: int, seq: int) -> Event:
+    return event.model_copy(update={"clock_ms": clock_ms, "seq": seq})
+
+
+def test_a_goal_changes_the_score_at_once_even_within_a_second():
     setup = _setup()
-    home = next(t for t in setup.match.teams if t.is_home)
-    state = MatchStateTracker(setup, score=lambda clock: {home.team_id: 2}).observe(_frame(0, 0))
+    home = next(team for team in setup.match.teams if team.is_home)
+    tracker = MatchStateTracker(setup)
+    goal = next(
+        item
+        for item in simulate(1)
+        if isinstance(item, Event) and item.outcome is Outcome.GOAL and item.team == home.team_id
+    )
+    assert tracker.observe(_frame(0, 5_000)) is not None
+    state = tracker.observe(_goal(goal, 5_400, seq=1))
     assert state is not None
-    assert [t.goals for t in state.score] == [2, 0]
+    assert [team.goals for team in state.score] == [1, 0]
+    assert tracker.observe(_frame(2, 5_800)) is None  # the second's state is already out
+
+
+def test_the_scoreboard_ends_on_the_seeded_matchs_final_score():
+    items = list(simulate(1))
+    setup = items[0]
+    assert isinstance(setup, MatchSetup)
+    tracker = MatchStateTracker(setup)
+    played = [item for item in items if isinstance(item, Frame | Event)]
+    states = [state for item in played if (state := tracker.observe(item)) is not None]
+    goals = [item for item in items if isinstance(item, Event) and item.outcome is Outcome.GOAL]
+    assert goals
+    final = {team.team_id: team.goals for team in states[-1].score}
+    assert final == {
+        team.team_id: sum(goal.team == team.team_id for goal in goals) for team in setup.match.teams
+    }
