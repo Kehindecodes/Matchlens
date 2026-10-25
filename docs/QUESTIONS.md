@@ -30,6 +30,7 @@ Newest at the top. Kehinde answers inline and moves the resolved ones to `docs/D
 
 **Answer:** Kehinde, 25 Oct:
 - **Deadline: 5 s** from when the moment fired. Past it, the moment's cards ship on L7's claims and the miss is recorded.
+- **Amended, 25 Oct: 15 s for v1 and the demo.** The live model's median is 12 s, so at 5 s every live call missed. 15 s lets most land. Production latency is to be handled properly later, not by this number.
 - **Selective enrichment: goals and chances only.** Tactical shifts, and any other moment type, get no model call.
 - His D36 and ticket edits are committed first on the branch that implements this.
 

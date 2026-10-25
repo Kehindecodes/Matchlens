@@ -126,7 +126,7 @@ Update the **Status** column when a ticket moves. Statuses: `todo`, `wip`, `done
 | ID | Ticket | Est | Deps | Tier | Status | Brief |
 |---|---|---|---|---|---|---|
 | 📝 A1 | Frozen-log reader: events at or before clock X | 0.5 | S2 | T1 | done | ✅ |
-| 📝 A2 | Explainer agent emitting structured Claims, not prose | 2 | A1, M1b | T1 | done: on cards behind a 5 s deadline (D36); demo from cache; live latency 12 s | ✅ |
+| 📝 A2 | Explainer agent emitting structured Claims, not prose | 2 | A1, M1b | T1 | done: on cards behind a 15 s deadline for v1 (D36, Q37); demo from cache; live latency 12 s | ✅ |
 | 📝 A3 | Verifier: six checks, value recomputation, fails closed | 2 | A2 | T1 | done | ✅ |
 | A4 | Lens-aware generation from each lens's surviving claim set | 1 | A3, L3 | T2 | todo | ✅ |
 | 📝 A5 | Degradation ladder with automatic fallback L0→L4 | 0.5 | A4, L3 | T1 | todo | ✅ |

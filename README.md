@@ -14,7 +14,7 @@ Built for the viewer, sold to streaming platforms. Solo entry to the Microsoft P
 
 One container on Azure Container Apps (UK South), playing the seeded demo match at 25× speed: the full match runs in about four minutes, and the walking-skeleton card appears at 67:19 of match time.
 
-**The model's claims in the demo are pre-computed.** On the live path, the explainer agent (A2) calls the model once for each goal and chance, and a card waits up to 5 seconds for its answer, inside the viewer's stream delay. The 25× replay squeezes that delay 25-fold, so it serves the model's answers for the demo match from a cache built offline over the same seed (`matchlens/explanation/claims-cache.json`). The match is byte-identical from its seed, so each cached answer was given to exactly the prompt the live path would send. Every cached claim still goes through the verifier, which rejects 3 of the 51 (D36).
+**The model's claims in the demo are pre-computed.** On the live path, the explainer agent (A2) calls the model once for each goal and chance, and a card waits up to 15 seconds for its answer, inside the viewer's stream delay. The 25× replay squeezes that delay 25-fold, so it serves the model's answers for the demo match from a cache built offline over the same seed (`matchlens/explanation/claims-cache.json`). The match is byte-identical from its seed, so each cached answer was given to exactly the prompt the live path would send. Every cached claim still goes through the verifier, which rejects 3 of the 51 (D36).
 
 **The first load can take 15–30 seconds.** The app scales to zero when nobody is watching, so the first visit after a quiet spell starts the container and generates the match from kickoff. After that it is instant.
 
