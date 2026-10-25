@@ -20,6 +20,9 @@ from matchlens.models import Depth, Metric, MomentType
 
 TEMPLATES_PATH = Path(__file__).with_name("templates.json")
 
+MODEL = "templates"  # what a rendition's words came from when no model wrote them (invariant 7)
+MODEL_VERSION = "templates-1"  # bump by hand whenever a row below changes what a card says
+
 SIGNAL_ROWS = "signal"  # the fact rows the four signal metrics share
 
 _HEADLINE_FIELDS = frozenset({"team", "window"})
@@ -52,6 +55,7 @@ class Templates:
     facts: dict[tuple[str, str, str, Depth], str]  # language, metric or `signal`, form, depth
     signals: dict[tuple[str, Metric], SignalWords]
     ordinals: dict[str, tuple[str, ...]]
+    number_words: dict[str, frozenset[str]]  # words that say a number, which A4 may not invent
 
 
 def fields(template: str) -> set[str]:
@@ -92,7 +96,8 @@ def load(path: Path = TEMPLATES_PATH) -> Templates:
         for row in data.get("signals", [])
     }
     ordinals = {lang: tuple(words) for lang, words in data.get("ordinals", {}).items()}
-    return Templates(headlines, facts, signals, ordinals)
+    number_words = {lang: frozenset(w) for lang, w in data.get("number_words", {}).items()}
+    return Templates(headlines, facts, signals, ordinals, number_words)
 
 
 _TEMPLATES = load()
@@ -126,3 +131,8 @@ def ordinal(language: str, n: float) -> str | None:
     """ "first" for 1, and so on, or None where there is no word for `n`."""
     words = _TEMPLATES.ordinals.get(language, ())
     return words[int(n) - 1] if n.is_integer() and 1 <= n <= len(words) else None
+
+
+def number_words(language: str) -> frozenset[str] | None:
+    """The words that say a number in `language`, or None if nobody has listed them."""
+    return _TEMPLATES.number_words.get(language)

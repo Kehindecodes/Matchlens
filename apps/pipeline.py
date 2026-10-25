@@ -11,6 +11,10 @@ further behind never sees a richer one. A card published later than a viewer's o
 have released it is released on arrival: release is `max(viewer's due time, deadline)`, and no
 card is changed once it has gone. With no model, the cards are L7's alone (D35).
 
+With a writer (A4), a goal's or a chance's lenses are also worded by a model, each from its own
+selected claims, and the cards wait for those words until a second deadline from when Rendering
+starts, then go out with whichever came, and L3's words for the rest (Q38).
+
 `run()` drives a whole seeded match as fast as it generates. The delivery app drives the same
 `Pipeline` from its paced replay, so a card is published at its moment in match time.
 """
@@ -27,9 +31,9 @@ from matchlens import audit, explanation, lenses, selection, verification
 from matchlens.config import settings
 from matchlens.explanation import Proposer, foundry
 from matchlens.ingest import FrozenLog, Ingest
-from matchlens.models import Claim, SignalReading, Verdict, Verification
-from matchlens.rendering import Card, in_full, overlay_packet, render
-from matchlens.selection import ShownCards
+from matchlens.models import Claim, Lens, Moment, SignalReading, Verdict, Verification
+from matchlens.rendering import Card, Written, in_full, overlay_packet, render, write
+from matchlens.selection import Selection, ShownCards
 from matchlens.source import MatchSetup, StreamItem, simulate
 from matchlens.spotting import Spotter, SpotterResult
 from matchlens.understanding import Understanding
@@ -52,14 +56,21 @@ class _Explained:
 
 
 class Pipeline:
-    def __init__(self, proposer: Proposer | None = None, publish: Publish | None = None) -> None:
-        """`proposer` is A2's model. With none, `process` returns each moment's cards.
+    def __init__(
+        self,
+        proposer: Proposer | None = None,
+        publish: Publish | None = None,
+        writer: Proposer | None = None,
+    ) -> None:
+        """`proposer` is A2's model and `writer` A4's. With neither, `process` returns each
+        moment's cards.
 
-        With one, a moment's editorial stages run on a thread of their own, one moment at a
+        With either, a moment's editorial stages run on a thread of their own, one moment at a
         time in the order they fired, because Selection's rate limit counts them in that order.
         Its cards go to `publish`, and `process` returns none.
         """
-        if proposer is not None and publish is None:
+        self._waits = proposer is not None or writer is not None
+        if self._waits and publish is None:
             raise ValueError("a pipeline with a model publishes its cards when they are ready")
         self._ingest = Ingest()
         self._understanding = Understanding(self._ingest.record)
@@ -69,8 +80,12 @@ class Pipeline:
         self._readings: list[SignalReading] = []  # derived, append-only: what the explainer reads
         self._proposer = proposer
         self._publish = publish
+        self._writer = writer
         if proposer is not None:
             self._model = ThreadPoolExecutor(settings.explainer_concurrency, "explainer")
+        if writer is not None:
+            self._writing = ThreadPoolExecutor(settings.writer_concurrency, "writer")
+        if self._waits:
             self._editor = ThreadPoolExecutor(1, "editorial")
         self._pending: list[Future[None]] = []  # moments handed to the editor, not yet drained
 
@@ -90,7 +105,7 @@ class Pipeline:
         readings = self._understanding.observe(item)
         self._readings.extend(readings)
         results = self._spotter.consider(readings, item)
-        if self._proposer is None:
+        if not self._waits:
             return self._cards(results)
         for result in results:
             moment = self._explain(result)
@@ -141,17 +156,23 @@ class Pipeline:
             ]
             passing = _passing(claims, verifications)
 
-            renditions = []
-            cards = []
+            selections = []
             for lens in lenses.all_lenses():
                 with tracer.start_as_current_span(
                     "selection", attributes={"moment_id": moment.moment_id, "lens_id": lens.lens_id}
                 ):
-                    selected = selection.select(moment, passing, lens, self._shown)
+                    selections.append((lens, selection.select(moment, passing, lens, self._shown)))
+            written = self._written(moment, selections)
+
+            renditions = []
+            cards = []
+            for lens, selected in selections:
                 with tracer.start_as_current_span(
                     "rendering", attributes={"moment_id": moment.moment_id}
                 ):
-                    rendition = render(moment, selected, lens, self._names)
+                    rendition = render(
+                        moment, selected, lens, self._names, written.get(lens.lens_id)
+                    )
                     body_in_full = in_full(moment, selected, lens, self._names)
                     packet = overlay_packet(moment, selected, lens, self._names, rendition)
                 renditions.append(rendition)
@@ -198,6 +219,48 @@ class Pipeline:
             span.set_attribute("claims_proposed", len(proposed))
             return proposed
 
+    def _written(
+        self, moment: Moment, selections: list[tuple[Lens, Selection]]
+    ) -> dict[str, Written]:
+        """A4's words for each lens of `moment` that it answered by the deadline, by lens id.
+
+        Every lens is asked at once, and all of them share one deadline from now. A lens it
+        missed, failed or had nothing to word for is not in the result, and its card keeps L3's
+        words. A miss is logged and put on the trace; the call goes on unwaited-for.
+        """
+        if self._writer is None or moment.type.value not in settings.writer_moment_types:
+            return {}
+        deadline_s = time.time() + settings.writer_deadline_ms / 1000
+        asked = {
+            lens.lens_id: self._writing.submit(
+                write, moment, selected, lens, self._names, self._writer
+            )
+            for lens, selected in selections
+        }
+        written: dict[str, Written] = {}
+        with tracer.start_as_current_span(
+            "rendering.model", attributes={"moment_id": moment.moment_id}
+        ) as span:
+            missed = []
+            for lens_id, future in asked.items():
+                try:
+                    words = future.result(timeout=max(0.0, deadline_s - time.time()))
+                except TimeoutError:
+                    missed.append(lens_id)
+                    continue
+                if words is not None:
+                    written[lens_id] = words
+            if missed:
+                logger.warning(
+                    "writer: %s missed its %d ms deadline on %s; L3's words go out instead",
+                    moment.moment_id,
+                    settings.writer_deadline_ms,
+                    ", ".join(missed),
+                )
+            span.set_attribute("deadline_missed", missed)
+            span.set_attribute("lenses_written", sorted(written))
+        return written
+
     def drain(self) -> None:
         """Wait until every moment handed to the editor so far has published its cards."""
         pending, self._pending = self._pending, []
@@ -206,9 +269,12 @@ class Pipeline:
 
     def close(self) -> None:
         """Stop: moments still queued are dropped, and nothing waits for a model call."""
-        if self._proposer is not None:
+        if self._waits:
             self._editor.shutdown(wait=False, cancel_futures=True)
+        if self._proposer is not None:
             self._model.shutdown(wait=False, cancel_futures=True)
+        if self._writer is not None:
+            self._writing.shutdown(wait=False, cancel_futures=True)
 
 
 class _in_trace:
@@ -235,7 +301,8 @@ def _passing(claims: list[Claim], verifications: list[Verification]) -> list[Cla
 
 def run(seed: int, publish: Publish) -> None:
     """Drive one seeded match through the pipeline, publishing every card."""
-    pipeline = Pipeline(foundry.from_settings(), publish)
+    model = foundry.from_settings()
+    pipeline = Pipeline(model, publish, writer=model)
     try:
         for item in simulate(seed):
             for card in pipeline.process(item):

@@ -81,7 +81,7 @@ async def _lifespan(_: FastAPI):
         # A card the editorial thread finishes is handed to the release queues on this loop.
         loop.call_soon_threadsafe(router.receive, card)
 
-    pipeline = Pipeline(proposer, publish)
+    pipeline = Pipeline(proposer, publish, writer=proposer)  # one model: A2 and A4 (Q38)
     foundry.warm(proposer)
     feed = asyncio.create_task(run_local_feed(hub, replay, pipeline, router.receive))
     try:

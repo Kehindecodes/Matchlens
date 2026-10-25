@@ -24,6 +24,33 @@ Newest at the top. Kehinde answers inline and moves the resolved ones to `docs/D
 
 ---
 
+## Q38 · A4: what the model is given beyond claims, whether the trace check runs live, and which moments wait for it  [ticket: A4]  [blocking: yes]
+
+**What I need to know:**
+
+1. **The card's frame is not a claim.** L3's headline and opening line ("Redfern United scored, at 18:54") come from the moment's type, subject and clock. The brief says the prompt gets the surviving claims and nothing else. Also, the casual lens is `detail_level: minimal` and speaks **zero** claims, so under that rule it would have nothing to send.
+   - A: **The template keeps the headline and opening line. The model writes only the sentences for the claims L3 would speak.** Casual never calls the model and reads exactly as at L1. Costs: casual has no L0 at all, and on the other two lenses the model rewrites only the claim sentences.
+   - B: **The model writes the whole card and is also given a frame: moment type, subject name, clock.** No importance and no triggers. Costs: amends the brief's "nothing else", and the clock becomes a number the model may use that no claim backs.
+2. **The trace check: a test only, or also at runtime?** Tests never call a live model, so a test can only exercise whatever check exists, plus the cached demo answers. D22 says a text-side check after Rendering "is a new decision".
+   - A: **Runtime guard.** If a number, a name or "xG" in the model's text does not trace to a spoken claim (or to the frame), that rendition falls back to L3's text, and the fallback is logged. A test also covers every cached answer.
+   - B: **Test only**, over the cached demo answers. Live text goes out unchecked.
+3. **Which moments wait for A4, and for how long.** A4 is one call per lens, made after A2's 15 s deadline, so every enriched card ships later.
+   - Which moments: goals and chances only (as with Q37), or every moment.
+   - Deadline: past it, L3's text ships. Like A2, the 25× replay serves pre-computed renditions from a cache keyed on the prompt (D36 extended to A4).
+
+**Why I cannot decide it:** (1) amends the brief and changes what a viewer sees; (2) is the check D22 left as a new decision; (3) changes when a viewer sees a card.
+
+**What I would do if forced:** 1A, 2A, 3 goals and chances with a 10 s deadline. Not done.
+
+**Implementation I am taking without asking:** `model` and `model_version` go on `Rendition`, as the brief's provenance criterion asks. L3 renditions carry `model="templates"`.
+
+**Answer:** Kehinde, 25 Oct: **1A, 2A, goals and chances, 10 s.**
+- The template keeps the headline and opening line. The model words only the sentences L3 would speak for the lens, so casual (minimal, no claim spoken) is never asked.
+- Runtime guard. Any number, number word or name not in those sentences, the banned abbreviation, or "we/us/our" drops the text to L3's.
+- Only goals and chances call A4. The deadline is 10 s from when Rendering starts on the moment, and every lens of the moment is asked at once.
+
+---
+
 ## Q37 · Putting A2's claims on cards (D36): the deadline, which moments, and the earlier answers it replaces  [ticket: A2]  [blocking: yes]
 
 **What I needed to know:** Kehinde chose to put A2's claims on cards behind D36's per-moment deadline (option B, 25 Oct), which replaces Q32: A (held out until A3; A3 is in) and Q34: A (off the card path). D36 leaves two things open: the deadline's value, and whether only some moments are enriched.

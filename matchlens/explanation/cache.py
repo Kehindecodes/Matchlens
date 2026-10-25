@@ -1,5 +1,7 @@
 """Pre-computed model answers for the demo seed, served instead of a live call (D36).
 
+It holds both models' answers, A2's claims and A4's words (Q38), each under its own prompt.
+
 The 25x replay compresses the viewer's offset 25-fold, so no live call fits its deadline. The
 demo match is byte-identical from its seed (invariant 9), so its prompts are too, and an answer
 recorded offline for a prompt is an answer to exactly that input. Each answer is stored under
@@ -85,13 +87,15 @@ def build(seed: int) -> Recording:
     settings.explainer_deadline_ms = 10**9
     settings.explainer_timeout_s = 180.0
     settings.explainer_concurrency = 1
+    settings.writer_deadline_ms = 10**9
+    settings.writer_concurrency = 1
     live = foundry.live()
     if live is None:
         raise SystemExit("no model configured: set MATCHLENS_FOUNDRY_ENDPOINT and _MODEL_NAME")
     path = Path(settings.explainer_cache_path)
     # A rebuild asks again only what is not cached yet: the prompts that are, are answered.
     recording = Recording(Cached.load(str(path), live) if path.exists() else live)
-    pipeline = Pipeline(recording, publish=lambda card: None)
+    pipeline = Pipeline(recording, publish=lambda card: None, writer=recording)
     for item in simulate(seed):
         for _ in pipeline.process(item):
             pass

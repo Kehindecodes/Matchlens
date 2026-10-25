@@ -202,6 +202,8 @@ class Rendition(_Record):
     suppressed: bool
     suppression_reason: SuppressionReason | None
     rendered_at: AwareDatetime
+    model: str  # what wrote the words: the templates, or a model (A4)
+    model_version: str
 
     @model_validator(mode="after")
     def _reason_iff_suppressed(self):

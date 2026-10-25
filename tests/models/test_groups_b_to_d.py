@@ -134,7 +134,8 @@ def _rendition(**overrides) -> Rendition:
     fields = dict(
         rendition_id="m1:casual", moment_id="m1", lens_id="casual", language="en",
         headline="Home are camped in the final third", body="...", surviving_claim_ids=("c1",),
-        suppressed=False, suppression_reason=None, rendered_at=NOW,
+        suppressed=False, suppression_reason=None, rendered_at=NOW, model="templates",
+        model_version="t",
     )  # fmt: skip
     return Rendition.model_validate(fields | overrides)
 
