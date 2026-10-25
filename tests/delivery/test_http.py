@@ -145,7 +145,7 @@ def _new_session(client: TestClient, **body) -> dict:
 def test_the_page_is_served(client: TestClient):
     r = client.get("/")
     assert r.status_code == 200
-    assert "<title>MatchLens</title>" in r.text
+    assert "<title>Parallax</title>" in r.text
     assert client.get("/static/app.js").status_code == 200
 
 

@@ -1,8 +1,10 @@
-# MatchLens
+# Parallax
 
 A personalization layer for streaming platforms. One live football match is understood **once** and rendered as three genuinely different viewing experiences — whole match at casual depth, whole match at analyst depth, and one side at engaged-supporter depth.
 
 Built for the viewer, sold to streaming platforms. Solo entry to the Microsoft Premier League Hackathon ("Inside the Game"), submission 27 October 2026.
+
+> **On the name:** the product is **Parallax** — the same object appears to shift depending on where you stand, which is what this builds. The Python package, the environment prefix and the Azure resources are still called `matchlens` from an earlier name, and are deliberately left that way: renaming them two days from submission would be risk without benefit (D37).
 
 > The product's central claim is not that an AI can narrate football. That exists and it is award-winning. The claim is that **what you are told varies by who is watching**, automatically, so it works on every fixture rather than only the marquee one — and that nothing it says is unverifiable.
 
@@ -18,12 +20,12 @@ One container on Azure Container Apps (UK South), playing the seeded demo match 
 
 **The first load can take 15–30 seconds.** The app scales to zero when nobody is watching, so the first visit after a quiet spell starts the container and generates the match from kickoff. After that it is instant.
 
-## What MatchLens explains next
+## What Parallax explains next
 
-A viewer can see a goal. What they cannot easily see is what caused it, and what changed in the game around it. That is what MatchLens is for, at every depth. v1 explains moments from four team-level signals. Next, in order:
+A viewer can see a goal. What they cannot easily see is what caused it, and what changed in the game around it. That is what Parallax is for, at every depth. v1 explains moments from four team-level signals. Next, in order:
 
 1. **How a goal came about.** Who gave the ball away and where, how fast it was punished, where the shot came from and how it was finished: "Pell gave it away on halfway; 3 passes and 9 seconds later Norham finished first time from 16 m." Every fact is countable from the event log, so it stays verifiable. It needs claims that can carry categories (a body part, a side of the box) as well as numbers.
-2. **What changed after a substitution or a red card.** "Since Norham came on at 58', Riverside have pressed higher." That means comparing the stretch before a sub with the stretch after it, which v1's signal windows, bounded by goals, red cards and half time, do not do yet. MatchLens will say *since*, never *because*: a timing it can check, not a cause it cannot.
+2. **What changed after a substitution or a red card.** "Since Norham came on at 58', Riverside have pressed higher." That means comparing the stretch before a sub with the stretch after it, which v1's signal windows, bounded by goals, red cards and half time, do not do yet. Parallax will say *since*, never *because*: a timing it can check, not a cause it cannot.
 3. **Shape and style.** Crossing, width, a team's attacking pattern, and a change when a particular player comes on. This needs players with styles in the simulated match, plus measures for them, and it comes after the two above.
 
 Throughout, a viewer is never shown a calibrated value: no shot rating, no standard deviations. Cards say "a hard chance" and "pressing much harder than their norm", and show only counts, percentages and metres.

@@ -1,4 +1,6 @@
-# MatchLens
+# Parallax
+
+*(The package, env prefix and Azure resources are still `matchlens` — D37.)*
 
 A personalization layer for streaming platforms. One live football match is understood **once** and rendered as three genuinely different viewing experiences. Built for the viewer, sold to streaming platforms.
 
@@ -41,7 +43,7 @@ Write the question into `docs/QUESTIONS.md` with the ticket ID and what you need
 
 ### Tickets you implement, and must explain (D29)
 
-MatchLens is a learning project. Two things are firsts for Kehinde — **building an event-driven system** and **orchestrating AI agents** — and until 24 October the tickets carrying those lessons were reserved for him to write.
+Parallax is a learning project. Two things are firsts for Kehinde — **building an event-driven system** and **orchestrating AI agents** — and until 24 October the tickets carrying those lessons were reserved for him to write.
 
 **That reservation is lifted (D29).** With two build days left, implement everything, tests included. The learning moves from writing the code to reading an account of it.
 
