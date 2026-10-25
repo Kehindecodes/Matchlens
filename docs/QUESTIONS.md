@@ -24,6 +24,40 @@ Newest at the top. Kehinde answers inline and moves the resolved ones to `docs/D
 
 ---
 
+## Q36 · `entity` says "on the pitch across the window", but a scorer's `goals` window starts at kickoff  [ticket: A3]  [blocking: yes]
+
+**What I need to know:** What `entity` checks for a player subject.
+
+**The conflict:** the A3 brief says the subject *"was on the pitch across the window"*. L7's scorer claim (D30: *"his second"*) uses the window `[0, clock]`, kickoff to the goal. A substitute who scores was not on the pitch across that window, so `entity` would fail his claim, and fail-closed means the claim is dropped. **6 of the 27 goals across the 12 generated matches are scored by substitutes.**
+
+**Why I cannot decide it:** it changes what a viewer sees, and what `entity` means.
+
+**Options as I see them:**
+- A: **On the pitch at the end of the window, and at some point inside it.** Costs: a weaker reading of "across".
+- B: **Across the window, as written, and L7's scorer window becomes `[entered, clock]`.** Costs: an L7 change, and claims-1 becomes claims-2 (invariant 7).
+- C: **Across the window, as written, and substitute scorers lose the claim.** Costs: 6 of 27 goals lose the scorer line.
+
+**What I would do if forced:** B.
+
+**Answer:** B. Kehinde, 25 Oct: across the window as written; a substitute's goals window starts when he came on.
+
+## Q35 · `value`'s tolerance: D21 left it to you  [ticket: A3]  [blocking: yes]
+
+**What I need to know:** How close a claimed value must be to the recomputed one. D21 lists it under *"Still open, and still Kehinde's"*: *"exact for counts, an epsilon for ratios"*.
+
+**What the evidence says:** the recomputation calls the same functions L7 does, so L7's values match exactly. In the live run, the model copied the digest's full-precision numbers, and 67 of 72 claims matched within `1e-6` relative. A model that rounds fails anything tight.
+
+**Options as I see them:**
+- A: **Exact for counts, `1e-6` relative for the rest.**
+- B: **Exact for counts, the rest within display precision.**
+- C: **Exact for everything.**
+
+**What I would do if forced:** A.
+
+**Answer:** A. Kehinde, 25 Oct: exact for counts, `1e-6` relative for the rest.
+
+---
+
 ## Q34 · A live model holds every card for up to 20 s, and half the calls hit that limit  [ticket: A2, A5]  [blocking: before the model goes into the deployed app, or into a local demo run]
 
 **What I need to know:** Whether A2 may hold a moment's cards while it waits for the model, and for how long.

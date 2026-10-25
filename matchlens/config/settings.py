@@ -44,6 +44,10 @@ class Settings(BaseSettings):
     wording_quick_attack_ms: int = 20_000  # ball won in open play to the shot
     wording_patient_passes: int = 10
 
+    # Verification (A3)
+    value_rel_tolerance: float = 1e-6  # Q35: counts are exact, every other value within this
+    verifier_budget_ms: int = 500  # one claim's six checks, ~25x the slowest; then the rest fail
+
     # Lenses
     default_lens_id: str = "match_casual"
     team_result_boost: float = 1.25  # Q22: a goal or chance is worth this much more to a supporter

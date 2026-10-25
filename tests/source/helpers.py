@@ -1,7 +1,7 @@
 """Test-side helpers for reading a generated match.
 
 `was_on_pitch` here is a reference implementation of the D16 formula, written independently of the
-simulator so the two can disagree. The production version belongs with the log reader (A1).
+simulator so the two can disagree. The production version is `matchlens/ingest/roster.py` (A3).
 """
 
 from dataclasses import dataclass

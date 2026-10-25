@@ -82,13 +82,18 @@ class Pipeline:
             with tracer.start_as_current_span(
                 "explanation", attributes={"moment_id": result.moment.moment_id}
             ):
-                log = FrozenLog(
-                    result.moment, self._ingest.record(), self._readings, self._understanding.epochs
-                )
+                reader = self._ingest.record()
+                log = FrozenLog(result.moment, reader, self._readings, self._understanding.epochs)
                 claims = explanation.explain(result.moment, log)
+                # What Verification checks against: the record as it stands now, not the log
+                # the explainer was frozen to, so a claim citing a later row resolves and fails
+                # `temporal` for it.
+                record = verification.Record.of(reader, self._readings)
 
             # verify() opens its own span, so latency_ms and the span share one stopwatch.
-            verifications = [verification.verify(claim, log.events) for claim in claims]
+            verifications = [
+                verification.verify(claim, result.moment, claims, record) for claim in claims
+            ]
 
             passing = _passing(claims, verifications)
 
@@ -121,12 +126,14 @@ class Pipeline:
                     )
             audit.record(result.moment, claims, verifications, renditions)
             if self._model is not None:
-                self._asked.append(self._model.submit(self._propose, result, log, claims))
+                self._asked.append(self._model.submit(self._propose, result, log, claims, record))
             return cards
         finally:
             context.detach(token)
 
-    def _propose(self, result: SpotterResult, log: FrozenLog, made: list[Claim]) -> None:
+    def _propose(
+        self, result: SpotterResult, log: FrozenLog, made: list[Claim], record: verification.Record
+    ) -> None:
         """A2 for one moment, after its cards have gone: the model's claims, verified and audited.
 
         `log` is the moment's frozen log, which no later append can reach, so asking late reads
@@ -141,7 +148,11 @@ class Pipeline:
             ):
                 claims = explanation.propose(result.moment, log, made, self._proposer)
             if claims:
-                verifications = [verification.verify(claim, log.events) for claim in claims]
+                # Coverage is over every claim of the moment, L7's included (D22).
+                every = [*made, *claims]
+                verifications = [
+                    verification.verify(claim, result.moment, every, record) for claim in claims
+                ]
                 audit.record(result.moment, claims, verifications, ())
         finally:
             context.detach(token)

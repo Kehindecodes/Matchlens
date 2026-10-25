@@ -13,7 +13,7 @@ was built from, so there is nothing on it to follow to a `Frame` (invariant 1).
 from collections.abc import Iterable
 
 from matchlens.ingest.record import RecordReader
-from matchlens.models import Epoch, Event, Match, Moment, SignalReading
+from matchlens.models import Epoch, Event, Match, Moment, Player, SignalReading
 
 
 class FrozenLog:
@@ -27,6 +27,7 @@ class FrozenLog:
         clock = moment.clock_ms
         self._clock_ms = clock
         self._match = record.match
+        self._players = record.players
         self._events = record.events_between(0, clock + 1)  # [from, to), so +1 includes the clock
         self._readings = tuple(r for r in readings if r.clock_ms <= clock)
         self._epochs = tuple(e for e in epochs if e.start_clock_ms <= clock)
@@ -39,6 +40,11 @@ class FrozenLog:
     @property
     def match(self) -> Match:
         return self._match
+
+    @property
+    def players(self) -> tuple[Player, ...]:
+        """The roster, which is identity only and the same at every clock (D16)."""
+        return self._players
 
     @property
     def events(self) -> tuple[Event, ...]:
