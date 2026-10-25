@@ -30,7 +30,6 @@ from matchlens.models import (
     SuppressionReason,
 )
 from matchlens.rendering import Card, overlay, overlay_packet, render
-from matchlens.rendering.facts import number
 from matchlens.selection import Selection
 from tests.rendering.test_rendering import (
     ANALYST,
@@ -151,11 +150,11 @@ def test_a_card_that_spoke_a_comparison_between_the_sides_is_a_stat_bar_with_its
     assert packet is not None
     assert packet.template is OverlayTemplate.STAT_BAR
     assert packet.payload == packet.payload | {
-        "label": "pressing intensity", "team": "Larkfield", "value": 10.67,
-        "other": "Ashworth", "other_value": 7.0,
+        "label": "opponent passes allowed per defensive action", "team": "Larkfield",
+        "value": "10.7", "other": "Ashworth", "other_value": "7",
     }  # fmt: skip
     body = rendition.body or ""
-    assert "10.67" in body and "7" in body  # only numbers the card said
+    assert "10.7" in body and "7" in body  # only numbers the card said, as it said them
 
 
 def test_a_stat_bar_told_from_a_side_puts_that_side_first():
@@ -165,7 +164,7 @@ def test_a_stat_bar_told_from_a_side_puts_that_side_first():
     rendition = render(moment, selection, focus_on_opponent, NAMES)
     packet = overlay_packet(moment, selection, focus_on_opponent, NAMES, rendition)
     assert packet is not None and packet.template is OverlayTemplate.STAT_BAR
-    assert (packet.payload["team"], packet.payload["value"]) == ("Ashworth", 7.0)
+    assert (packet.payload["team"], packet.payload["value"]) == ("Ashworth", "7")
 
 
 def test_a_casual_card_is_never_a_stat_bar_because_it_spoke_no_number():
@@ -185,8 +184,8 @@ def test_seed_one_stat_bars_only_show_numbers_their_card_said(seed_one):
     for card in bars:
         assert lenses.get(card.rendition.lens_id).depth is Depth.ANALYST
         for key in ("value", "other_value"):
-            said = number(card.overlay.payload[key])
-            assert said in (card.rendition.body or ""), (said, card.rendition.body)
+            said = card.overlay.payload[key]
+            assert isinstance(said, str) and said in (card.rendition.body or ""), said
 
 
 # --- how long ------------------------------------------------------------------------------------
@@ -245,3 +244,12 @@ def test_an_unknown_session_has_no_overlays():
 
 def test_the_committed_sample_is_what_seed_one_makes_now(seed_one):
     assert json.loads(SAMPLE.read_text()) == sample(seed_one)
+
+
+def test_no_card_or_overlay_in_seed_one_shows_a_calibrated_value(seed_one):
+    # Shot quality, summed shot quality and standard deviations are said in words, never shown.
+    calibrated = re.compile(r"quality:? \d|standard deviation|\d+(\.\d+)?σ", re.IGNORECASE)
+    for card in seed_one:
+        shown = [card.rendition.headline or "", card.rendition.body or "", card.body_in_full]
+        shown += [str(value) for value in card.overlay.payload.values()]
+        assert not any(calibrated.search(text) for text in shown), shown

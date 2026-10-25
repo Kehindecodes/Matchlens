@@ -116,10 +116,11 @@ def test_a_side_alone_on_goals_never_claims_a_lead():
 # --- signals --------------------------------------------------------------------------------------
 
 
+# Pressing intensity is passes allowed per defensive action: it rises when a side presses less.
 @pytest.mark.parametrize(
     ("threshold", "phrase"),
-    [(1.25, "pressing harder"), (2.0, "pressing much harder"),
-     (-1.25, "pressing less"), (-2.0, "pressing much less")],
+    [(1.25, "pressing less"), (2.0, "pressing much less"),
+     (-1.25, "pressing harder"), (-2.0, "pressing much harder")],
 )  # fmt: skip
 def test_the_signed_threshold_decides_the_direction_and_the_strength(threshold, phrase):
     claim = _claim(_operand(Metric.PRESSING_INTENSITY, 9.0), threshold=threshold)
@@ -161,3 +162,42 @@ def test_every_metric_has_words_at_every_depth():
         key = templates.SIGNAL_ROWS if metric.value in signals else metric.value
         for depth in Depth:
             assert (key, depth.value) in rows, (metric, depth)
+
+
+# --- no calibrated value reaches a viewer ---------------------------------------------------------
+
+
+@pytest.mark.parametrize("depth", list(Depth))
+def test_a_shots_quality_is_said_in_words_and_never_as_its_value(depth):
+    for value in (0.13, 0.41):
+        text = _said(_claim(_operand(Metric.SHOT_QUALITY, value)), depth)
+        assert "chance" in text and str(value) not in text
+
+
+def test_an_interpretive_signal_claim_never_states_a_value_or_standard_deviations():
+    claim = _claim(_operand(Metric.TERRITORY, 0.83), threshold=2.0)
+    text = _said(claim, Depth.ANALYST)
+    assert "playing much further up the pitch than their norm" in text
+    assert not re.search(r"\d", text) and "standard deviation" not in text
+
+
+def test_a_chance_quality_comparison_is_said_without_a_number():
+    ours = _operand(Metric.CHANCE_QUALITY, 1.42, end_ms=2_400_000)
+    theirs = _operand(Metric.CHANCE_QUALITY, 0.04, subject=AWAY, end_ms=2_400_000)
+    text = _said(_claim(ours, theirs), Depth.ANALYST)
+    assert "creating better chances than" in text
+    assert not re.search(r"\d", text)
+
+
+def test_a_share_is_a_percentage_and_pressing_is_passes_per_defensive_action():
+    ours = _operand(Metric.POSSESSION_CONTROL, 0.58, end_ms=2_400_000)
+    theirs = _operand(Metric.POSSESSION_CONTROL, 0.42, subject=AWAY, end_ms=2_400_000)
+    assert "Share of the passes:" in _said(_claim(ours, theirs), Depth.ANALYST)
+    assert "58%" in _said(_claim(ours, theirs), Depth.ANALYST) and "42%" in _said(
+        _claim(ours, theirs), Depth.ANALYST
+    )
+    ours = _operand(Metric.PRESSING_INTENSITY, 10.67, end_ms=2_400_000)
+    theirs = _operand(Metric.PRESSING_INTENSITY, 8.0, subject=AWAY, end_ms=2_400_000)
+    text = _said(_claim(ours, theirs), Depth.ANALYST)
+    assert "opponent passes allowed per defensive action" in text.lower()
+    assert "10.7" in text and "10.67" not in text

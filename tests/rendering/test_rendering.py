@@ -223,8 +223,10 @@ def test_templates_are_keyed_on_depth_not_on_the_lens():
 
 
 def test_a_claim_selection_filtered_out_is_not_in_the_text():
-    kept = _claim("kept", value=11)
-    filtered = _claim("filtered", value=777, claim_type=ClaimType.INTERPRETIVE)
+    kept = _claim("kept", value=11, metric=Metric.BUILD_UP_PASSES)
+    filtered = _claim(
+        "filtered", value=777, metric=Metric.BUILD_UP_PASSES, claim_type=ClaimType.INTERPRETIVE
+    )
     lens = ANALYST.model_copy(update={"allowed_claim_types": (ClaimType.DESCRIPTIVE,)})
     chosen = select(_moment(), [kept, filtered], lens, ShownCards())
     rendition = render(_moment(), chosen, lens, NAMES)
@@ -234,7 +236,10 @@ def test_a_claim_selection_filtered_out_is_not_in_the_text():
 
 
 def test_detail_level_decides_how_many_selected_claims_are_spoken():
-    claims = (_claim("a", value=11), _claim("b", value=22))
+    claims = (
+        _claim("a", value=11, metric=Metric.BUILD_UP_PASSES),
+        _claim("b", value=22, metric=Metric.BUILD_UP_PASSES),
+    )
 
     def spoken(level: DetailLevel) -> str:
         lens = ANALYST.model_copy(update={"detail_level": level})
@@ -270,7 +275,8 @@ def test_every_number_in_the_text_comes_from_a_claim():
 
 
 def test_a_value_is_written_as_the_claim_holds_it():
-    text = _text(render(_moment(), _selected(_claim(value=2.5)), ANALYST, NAMES))
+    claim = _claim(value=2.5, metric=Metric.BUILD_UP_PASSES)
+    text = _text(render(_moment(), _selected(claim), ANALYST, NAMES))
     assert "2.5" in text
 
 

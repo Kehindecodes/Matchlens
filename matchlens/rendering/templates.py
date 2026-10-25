@@ -8,7 +8,8 @@ opponent: supporter-oriented, partisan in emphasis and neutral in voice (D31).
 A fact row phrases one claim: it is keyed on the claim's metric, the form Rendering reads the
 claim as (D30's wording rules), and the depth. The four signal metrics share the `signal` rows
 and differ by the phrase their `signals` row gives. A claim whose form has no row is not
-spoken, because a number nobody templated is a number nobody agreed to say.
+spoken, because a number nobody templated is a number nobody agreed to say. A signal metric may
+also have rows of its own, which it reads before the shared ones.
 """
 
 import json
@@ -21,7 +22,7 @@ from matchlens.models import Depth, Metric, MomentType
 TEMPLATES_PATH = Path(__file__).with_name("templates.json")
 
 MODEL = "templates"  # what a rendition's words came from when no model wrote them (invariant 7)
-MODEL_VERSION = "templates-2"  # bump by hand whenever a row below changes what a card says
+MODEL_VERSION = "templates-3"  # bump by hand whenever a row below changes what a card says
 
 SIGNAL_ROWS = "signal"  # the fact rows the four signal metrics share
 
@@ -30,7 +31,7 @@ _SIDED_FIELDS = _HEADLINE_FIELDS | {"focus"}  # a sided row may also name the fo
 SIDES = ("for", "against")
 _FACT_FIELDS = frozenset(
     {"name", "other", "value", "other_value", "ordinal", "phrase", "label"}
-    | {"minutes", "seconds", "until", "sigma"}
+    | {"minutes", "seconds", "until"}
 )
 # What a casual fact may say: names and words, never a number (L3).
 CASUAL_FACT_FIELDS = frozenset({"name", "other", "ordinal", "phrase", "label"})
@@ -119,9 +120,14 @@ def lookup(language: str, type_: MomentType, depth: Depth, side: str | None = No
 
 
 def fact(language: str, metric: Metric, form: str, depth: Depth) -> str | None:
-    """How to phrase a claim on `metric` read as `form` at `depth`, or None if nobody has said."""
-    key = SIGNAL_ROWS if (language, metric) in _TEMPLATES.signals else metric.value
-    return _TEMPLATES.facts.get((language, key, form, depth))
+    """How to phrase a claim on `metric` read as `form` at `depth`, or None if nobody has said.
+
+    A signal metric's own row comes first, then the row the four signals share.
+    """
+    own = _TEMPLATES.facts.get((language, metric.value, form, depth))
+    if own is not None or (language, metric) not in _TEMPLATES.signals:
+        return own
+    return _TEMPLATES.facts.get((language, SIGNAL_ROWS, form, depth))
 
 
 def signal(language: str, metric: Metric) -> SignalWords | None:

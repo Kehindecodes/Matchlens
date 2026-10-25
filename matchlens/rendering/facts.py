@@ -6,6 +6,11 @@ in 20 s or less is a quick attack. The rules read only what the claim holds, so 
 never say more than the evidence the claim cites. A claim the rules have no form for is not
 spoken.
 
+A viewer is never shown a calibrated value: not a shot's quality, not a sum of them, not a
+standard deviation. Those claims are said in words only, and their `value` field is empty, so a
+row that asked for one would not be spoken at all. The plain ratios are shown in a form a viewer
+can read: a share as a percentage, passes allowed per defensive action to one decimal place.
+
 Told from a focus team, a comparison whose second operand is that team is read the other way
 round, so "Oakhurst lead 2–1" becomes "Redfern trail 1–2" (D31). The claim is not changed: the
 reversed copy is only read here, never stored or passed on.
@@ -103,11 +108,10 @@ def _fields(claim: Claim, language: str, names: Mapping[str, str]) -> dict[str, 
     width = subject.window.end_ms - subject.window.start_ms
     filled: dict[str, str | None] = {
         "name": names[subject.subject.id],
-        "value": number(subject.value),
+        "value": shown(subject.metric, subject.value),
         "ordinal": templates.ordinal(language, subject.value),
         "minutes": number(round(width / 60_000)),
         "seconds": number(round(width / 1000)),
-        "sigma": number(abs(claim.threshold)) if claim.threshold is not None else None,
         "other": None,
         "other_value": None,
         "until": None,
@@ -115,10 +119,25 @@ def _fields(claim: Claim, language: str, names: Mapping[str, str]) -> dict[str, 
     if other:
         filled |= {
             "other": names[other[0].subject.id],
-            "other_value": number(other[0].value),
+            "other_value": shown(other[0].metric, other[0].value),
             "until": clock(other[0].window.end_ms),
         }
     return filled
+
+
+_CALIBRATED = frozenset({Metric.SHOT_QUALITY, Metric.CHANCE_QUALITY})  # said in words only
+_SHARES = frozenset({Metric.TERRITORY, Metric.POSSESSION_CONTROL})  # 0–1, shown as a percentage
+
+
+def shown(metric: Metric, value: float) -> str | None:
+    """`value` as a viewer reads it, or None for a calibrated value, which a viewer never sees."""
+    if metric in _CALIBRATED:
+        return None
+    if metric in _SHARES:
+        return f"{round(value * 100)}%"
+    if metric is Metric.PRESSING_INTENSITY:
+        return number(round(value, 1))
+    return number(value)
 
 
 def clock(ms: int) -> str:

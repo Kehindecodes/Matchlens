@@ -8,11 +8,11 @@
     "payload": {
       "headline": "Tactical shift: Riverside Athletic",
       "clock": "13:00",
-      "label": "pressing intensity",
+      "label": "opponent passes allowed per defensive action",
       "team": "Riverside Athletic",
-      "value": 10.67,
+      "value": "10.7",
       "other": "Redfern United",
-      "other_value": 7.0
+      "other_value": "7"
     }
   },
   {
@@ -24,7 +24,7 @@
     "payload": {
       "headline": "Chance: Redfern United",
       "clock": "30:25",
-      "body": "Redfern United took a shot rated as a chance that was not a goal, at 30:25. Shot quality 0.26."
+      "body": "Redfern United took a shot rated as a chance that was not a goal, at 30:25. A big chance."
     }
   },
   {

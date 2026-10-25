@@ -18,6 +18,16 @@ One container on Azure Container Apps (UK South), playing the seeded demo match 
 
 **The first load can take 15–30 seconds.** The app scales to zero when nobody is watching, so the first visit after a quiet spell starts the container and generates the match from kickoff. After that it is instant.
 
+## What MatchLens explains next
+
+A viewer can see a goal. What they cannot easily see is what caused it, and what changed in the game around it. That is what MatchLens is for, at every depth. v1 explains moments from four team-level signals. Next, in order:
+
+1. **How a goal came about.** Who gave the ball away and where, how fast it was punished, where the shot came from and how it was finished: "Pell gave it away on halfway; 3 passes and 9 seconds later Norham finished first time from 16 m." Every fact is countable from the event log, so it stays verifiable. It needs claims that can carry categories (a body part, a side of the box) as well as numbers.
+2. **What changed after a substitution or a red card.** "Since Norham came on at 58', Riverside have pressed higher." That means comparing the stretch before a sub with the stretch after it, which v1's signal windows, bounded by goals, red cards and half time, do not do yet. MatchLens will say *since*, never *because*: a timing it can check, not a cause it cannot.
+3. **Shape and style.** Crossing, width, a team's attacking pattern, and a change when a particular player comes on. This needs players with styles in the simulated match, plus measures for them, and it comes after the two above.
+
+Throughout, a viewer is never shown a calibrated value: no shot rating, no standard deviations. Cards say "a hard chance" and "pressing much harder than their norm", and show only counts, percentages and metres.
+
 ## This repo is a handover pack, not yet a codebase
 
 No code is written yet. What exists is the design, settled decisions, and a dependency-ordered backlog.

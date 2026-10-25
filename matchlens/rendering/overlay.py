@@ -6,8 +6,9 @@ else is a lower third: the headline and the line beneath it. A stat bar needs th
 said both numbers, so a depth that words the comparison without them is a lower third, and no
 packet shows a number its card did not.
 
-The payload is the renderer's fields, flat: names, words and the numbers the card spoke. No id,
-importance or reason reaches it. The packet's own `rendition_id` is what traces it back.
+The payload is the renderer's fields, flat: names, words and the numbers the card spoke, as the
+card wrote them ("58%"), never a calibrated value. No id, importance or reason reaches it. The
+packet's own `rendition_id` is what traces it back.
 
 It stays up for as long as it takes to read, between a floor and a ceiling.
 """
@@ -25,7 +26,7 @@ from matchlens.models import (
     Rendition,
 )
 from matchlens.rendering import templates
-from matchlens.rendering.facts import clock, told_from
+from matchlens.rendering.facts import clock, shown, told_from
 
 Payload = dict[str, str | int | float]
 _BETWEEN_SIDES = "vs_opponent"  # the form `facts` reads a signal compared across the sides as
@@ -90,10 +91,13 @@ def _stat(claim: Claim, lens: Lens, names: Mapping[str, str]) -> Payload | None:
     row = templates.fact(lens.language, first.metric, _BETWEEN_SIDES, lens.depth)
     if row is None or not {"value", "other_value"} <= templates.fields(row):
         return None
+    value, other_value = shown(first.metric, first.value), shown(second.metric, second.value)
+    if value is None or other_value is None:
+        return None
     return {
         "label": words.label,
         "team": names[first.subject.id],
-        "value": round(first.value, 2),
+        "value": value,
         "other": names[second.subject.id],
-        "other_value": round(second.value, 2),
+        "other_value": other_value,
     }

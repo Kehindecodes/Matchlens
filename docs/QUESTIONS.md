@@ -24,6 +24,19 @@ Newest at the top. Kehinde answers inline and moves the resolved ones to `docs/D
 
 ---
 
+## Q40 · No calibrated value on any card; the analyst card says what an analyst can picture  [ticket: A4]  [blocking: yes]
+
+**What I needed to know:** the analyst card printed calibrated values: "shot quality 0.13", "territory share 1", "pressing intensity 10.67", "1.25 or more standard deviations". None of them is readable without a key, and a bare 0–1 shot value invites being read as xG (invariant 12).
+
+**Answer:** Kehinde, 25 Oct, after a brainstorm:
+- **No calibrated value reaches a viewer, anywhere.** Shot quality, chance quality and standard deviations are said in words only: "a hard chance, below a big one", "creating better chances than", "pressing much harder than their norm this match". `facts.shown` returns no value for the calibrated metrics, so a row that tried to print one would not be spoken.
+- **Plain ratios stay, readably.** A share is a percentage ("58% of the passes", "attacks reaching a final third: 100%"). Pressing is shown as "opponent passes allowed per defensive action", to one decimal place. The overlay stat bar shows the same strings the card said.
+- **Unchanged:** goals, scores, passes, seconds, minutes, counts of big chances, the clock. Claims, verification, selection, A2 and the data model are untouched. Templates are now `templates-3`.
+- **Bug found and fixed along the way:** pressing intensity is PPDA, which rises when a side presses *less*, but its phrases read the rise as "pressing harder". Every pressing card said the opposite of the record. The phrases now follow the value's direction.
+- **Roadmap, not built:** how a goal came about (the giveaway, the finish), what changed after a sub or a red ("since", never "because"), then shape and style. These are written in the README as what MatchLens explains next.
+
+---
+
 ## Q39 · A4's first cached run: a misread scorer line, and a goal card that lost its scorer  [ticket: A4]  [blocking: yes]
 
 **What I needed to know:** two things from the first live A4 cache over seed 1.

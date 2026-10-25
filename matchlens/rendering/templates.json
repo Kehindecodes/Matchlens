@@ -85,10 +85,10 @@
 
     {"language": "en", "metric": "shot_quality", "form": "big", "depth": "casual", "text": "It was a great chance."},
     {"language": "en", "metric": "shot_quality", "form": "big", "depth": "engaged", "text": "It was a big chance."},
-    {"language": "en", "metric": "shot_quality", "form": "big", "depth": "analyst", "text": "Shot quality {value}."},
+    {"language": "en", "metric": "shot_quality", "form": "big", "depth": "analyst", "text": "A big chance."},
     {"language": "en", "metric": "shot_quality", "form": "hard", "depth": "casual", "text": "It was a hard chance, too."},
     {"language": "en", "metric": "shot_quality", "form": "hard", "depth": "engaged", "text": "It was a hard chance to take."},
-    {"language": "en", "metric": "shot_quality", "form": "hard", "depth": "analyst", "text": "Shot quality {value}, below a big chance."},
+    {"language": "en", "metric": "shot_quality", "form": "hard", "depth": "analyst", "text": "A hard chance, below a big one."},
 
     {"language": "en", "metric": "chances", "form": "run", "depth": "casual", "text": "That is the {ordinal} big chance for {name} in ten minutes."},
     {"language": "en", "metric": "chances", "form": "run", "depth": "engaged", "text": "The {ordinal} big chance for {name} in ten minutes."},
@@ -103,28 +103,22 @@
 
     {"language": "en", "metric": "signal", "form": "judged", "depth": "casual", "text": "{name} are {phrase}."},
     {"language": "en", "metric": "signal", "form": "judged", "depth": "engaged", "text": "{name} are {phrase} than earlier in the match."},
-    {"language": "en", "metric": "signal", "form": "judged", "depth": "analyst", "text": "{name} are {phrase}: {label} {value}, {sigma} or more standard deviations from their norm this match."},
+    {"language": "en", "metric": "signal", "form": "judged", "depth": "analyst", "text": "{name} are {phrase} than their norm this match."},
     {"language": "en", "metric": "signal", "form": "vs_earlier", "depth": "casual", "text": "{name} are {phrase} than before."},
     {"language": "en", "metric": "signal", "form": "vs_earlier", "depth": "engaged", "text": "{name} are {phrase} than before {until}."},
-    {"language": "en", "metric": "signal", "form": "vs_earlier", "depth": "analyst", "text": "{label} {value} now, against {other_value} before {until}."},
+    {"language": "en", "metric": "signal", "form": "vs_earlier", "depth": "analyst", "text": "{label}: {name} {value} now, against {other_value} before {until}."},
     {"language": "en", "metric": "signal", "form": "vs_opponent", "depth": "casual", "text": "{name} are {phrase} than {other}."},
     {"language": "en", "metric": "signal", "form": "vs_opponent", "depth": "engaged", "text": "{name} are {phrase} than {other}."},
-    {"language": "en", "metric": "signal", "form": "vs_opponent", "depth": "analyst", "text": "{label}: {name} {value}, {other} {other_value}."}
+    {"language": "en", "metric": "signal", "form": "vs_opponent", "depth": "analyst", "text": "{label}: {name} {value}, {other} {other_value}."},
+    {"language": "en", "metric": "chance_quality", "form": "vs_earlier", "depth": "analyst", "text": "{name} are {phrase} than before {until}."},
+    {"language": "en", "metric": "chance_quality", "form": "vs_opponent", "depth": "analyst", "text": "{name} are {phrase} than {other}."}
   ],
 
   "signals": [
-    {"language": "en", "metric": "pressing_intensity", "label": "pressing intensity",
-     "up": "pressing harder", "strong_up": "pressing much harder",
-     "down": "pressing less", "strong_down": "pressing much less"},
-    {"language": "en", "metric": "possession_control", "label": "possession share",
-     "up": "seeing more of the ball", "strong_up": "seeing much more of the ball",
-     "down": "seeing less of the ball", "strong_down": "seeing much less of the ball"},
-    {"language": "en", "metric": "territory", "label": "territory share",
-     "up": "playing further up the pitch", "strong_up": "playing much further up the pitch",
-     "down": "playing deeper", "strong_down": "playing much deeper"},
-    {"language": "en", "metric": "chance_quality", "label": "chance quality",
-     "up": "creating better chances", "strong_up": "creating far better chances",
-     "down": "creating worse chances", "strong_down": "creating far worse chances"}
+    {"language": "en", "metric": "pressing_intensity", "label": "opponent passes allowed per defensive action", "up": "pressing less", "strong_up": "pressing much less", "down": "pressing harder", "strong_down": "pressing much harder"},
+    {"language": "en", "metric": "possession_control", "label": "share of the passes", "up": "seeing more of the ball", "strong_up": "seeing much more of the ball", "down": "seeing less of the ball", "strong_down": "seeing much less of the ball"},
+    {"language": "en", "metric": "territory", "label": "attacks reaching a final third", "up": "playing further up the pitch", "strong_up": "playing much further up the pitch", "down": "playing deeper", "strong_down": "playing much deeper"},
+    {"language": "en", "metric": "chance_quality", "label": "chance quality", "up": "creating better chances", "strong_up": "creating far better chances", "down": "creating worse chances", "strong_down": "creating far worse chances"}
   ],
 
   "ordinals": {
