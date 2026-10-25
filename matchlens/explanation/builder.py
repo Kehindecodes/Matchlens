@@ -17,6 +17,7 @@ import math
 from collections.abc import Sequence
 
 from matchlens.config import settings
+from matchlens.ingest.roster import pitch_window
 from matchlens.models import (
     Action,
     Claim,
@@ -29,6 +30,7 @@ from matchlens.models import (
     MomentType,
     Operand,
     Outcome,
+    Player,
     Ref,
     RefKind,
     SignalReading,
@@ -38,7 +40,7 @@ from matchlens.understanding.possession import from_events
 from matchlens.understanding.shot_value import is_shot, value
 
 MODEL = "deterministic"
-MODEL_VERSION = "claims-1"  # bump by hand whenever a rule below changes (invariant 7)
+MODEL_VERSION = "claims-2"  # bump by hand whenever a rule below changes (invariant 7)
 
 # How a possession wins the ball in open play; a restart is not winning it (D30).
 _BALL_WINNING = frozenset({Action.TACKLE, Action.INTERCEPTION, Action.AERIAL_DUEL})
@@ -50,6 +52,7 @@ def explain_moment(
     readings: Sequence[SignalReading],
     epochs: Sequence[Epoch],
     match: Match,
+    players: Sequence[Player],
 ) -> list[Claim]:
     """The claims for `moment`. Every input is already frozen at the moment's clock."""
     if moment.type is MomentType.TACTICAL_SHIFT:
@@ -57,7 +60,7 @@ def explain_moment(
     elif moment.type in (MomentType.GOAL, MomentType.CHANCE):
         trigger = next(e for e in events if e.event_id == moment.trigger_event_ids[0])
         if moment.type is MomentType.GOAL:
-            operands = _goal(trigger, events, match)
+            operands = _goal(trigger, events, match, players)
         else:
             operands = _chance(trigger, events, match)
     else:
@@ -114,14 +117,17 @@ def _opponent(match: Match, team_id: str) -> str:
 # --- goals and chances ---------------------------------------------------------------------------
 
 
-def _goals(subject: Ref, scored: Sequence[Event], clock_ms: int) -> Operand | None:
-    """How many goals `subject` has by `clock_ms`, citing each one, or None if it has none."""
+def _goals(
+    subject: Ref, scored: Sequence[Event], clock_ms: int, since_ms: int = 0
+) -> Operand | None:
+    """How many goals `subject` has from `since_ms` to `clock_ms`, citing each one, or None if
+    it has none."""
     if not scored:
         return None  # a count of nothing cites nothing, so it is not claimed (Q26 2a)
     return Operand(
         subject=subject,
         metric=Metric.GOALS,
-        window=Window(start_ms=0, end_ms=clock_ms),
+        window=Window(start_ms=since_ms, end_ms=clock_ms),
         value=float(len(scored)),
         evidence_ids=_events(scored),
     )
@@ -137,13 +143,19 @@ def _shot_quality(shot: Event, match: Match) -> Operand:
     )
 
 
-def _goal(goal: Event, events: Sequence[Event], match: Match) -> list[_Spec]:
+def _goal(
+    goal: Event, events: Sequence[Event], match: Match, players: Sequence[Player]
+) -> list[_Spec]:
     assert goal.team is not None  # a goal is an on-ball event
     goals = [e for e in events if e.outcome is Outcome.GOAL]
     specs: list[_Spec] = []
     if goal.player is not None:
         mine = [e for e in goals if e.player == goal.player]
-        scorer = _goals(Ref(kind=RefKind.PLAYER, id=goal.player), mine, goal.clock_ms)
+        # A player's count runs from when he came on, so the window is all time on the pitch
+        # and `entity` can check him across it (Q36: B).
+        player = next(p for p in players if p.player_id == goal.player)
+        entered, _ = pitch_window(player, events)
+        scorer = _goals(Ref(kind=RefKind.PLAYER, id=goal.player), mine, goal.clock_ms, entered)
         assert scorer is not None  # this goal is one of them
         specs.append(_descriptive(scorer))
 

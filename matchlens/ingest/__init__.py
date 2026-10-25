@@ -5,6 +5,7 @@ from matchlens.ingest.frames import FrameAccess
 from matchlens.ingest.frozen import FrozenLog
 from matchlens.ingest.intake import Ingest, RosterNotLoaded
 from matchlens.ingest.record import RecordReader
+from matchlens.ingest.roster import on_pitch_across, pitch_window
 
 __all__ = [
     "EventRepository",
@@ -14,4 +15,6 @@ __all__ = [
     "Ingest",
     "RecordReader",
     "RosterNotLoaded",
+    "on_pitch_across",
+    "pitch_window",
 ]

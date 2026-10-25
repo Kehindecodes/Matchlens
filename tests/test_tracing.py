@@ -57,14 +57,17 @@ def traced(monkeypatch_module):
     monkeypatch_module.setattr(pipeline.audit, "record", record)
 
     published: list[tuple[Card, int]] = []
-    # A full collection sweeps every match the session has cached, which is not pipeline work,
-    # and lands in whichever gap between spans is open when it fires. Freezing the heap first
-    # keeps it out of the timings.
+    # A collection is not pipeline work, but it lands in whichever gap between spans is open
+    # when it fires: a full one sweeps every match the session has cached, and the young ones
+    # come more often the more a stage allocates (A3's checks do). Freezing the heap and
+    # pausing the collector for the run keeps both out of the timings.
     gc.collect()
     gc.freeze()
+    gc.disable()
     try:
         pipeline.run(1, lambda card: published.append((card, time.time_ns())))
     finally:
+        gc.enable()
         gc.unfreeze()
     return list(_exporter.get_finished_spans()), published, verifications
 

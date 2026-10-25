@@ -15,7 +15,7 @@ import pytest
 from apps import pipeline
 from matchlens import explanation
 from matchlens.explanation import Answer, Proposer, agent
-from matchlens.models import Claim, ClaimType, Metric
+from matchlens.models import Claim, ClaimType, Metric, Verdict
 from matchlens.source import simulate
 from tests.explanation.test_builder import Played, _play, _recount
 
@@ -388,12 +388,12 @@ def test_no_card_depends_on_a2_or_waits_for_it(model, alone, monkeypatch):
     # it: the model gives no answer at all until every card of the match has gone out. Audit is
     # handed its claims, with their verifications, once it does answer.
     audited: list[tuple[Claim, ...]] = []
-    verified: list[str] = []
+    verdicts: dict[str, Verdict] = {}
     real = pipeline.audit.record
 
     def record(moment, claims, verifications, renditions):
         audited.append(tuple(claims))
-        verified.extend(v.claim_id for v in verifications)
+        verdicts.update({v.claim_id: v.verdict for v in verifications})
         real(moment, claims, verifications, renditions)
 
     monkeypatch.setattr(pipeline.audit, "record", record)
@@ -416,4 +416,7 @@ def test_no_card_depends_on_a2_or_waits_for_it(model, alone, monkeypatch):
         assert not proposed
     else:
         assert proposed
-        assert {c.claim_id for c in proposed} <= set(verified)
+        # A3 judges them where L7's are judged, and rejects every number the liar changed,
+        # while L7's claims on the same moments pass and their cards shipped (D35).
+        assert {verdicts[c.claim_id] for c in proposed} == {Verdict.FAIL}
+        assert {v for k, v in verdicts.items() if ":c" in k} == {Verdict.PASS}
