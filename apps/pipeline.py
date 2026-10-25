@@ -21,6 +21,11 @@ from the next moment on. While down it is still asked, but not waited for and no
 two good answers in a row bring it back. A moment Rendering fails on is suppressed as
 `degraded` rather than lost.
 
+Beside the cards, each moment reports what every lens did with it (P1, Q42), suppressed
+renditions and the importance and rate-limit count Selection judged included, to `report`. A
+moment that fails outside Rendering is logged and reported failed, so no lens is left looking
+quiet for a moment nobody can see was lost. None of it reaches a viewer.
+
 `run()` drives a whole seeded match as fast as it generates. The delivery app drives the same
 `Pipeline` from its paced replay, so a card is published at its moment in match time.
 """
@@ -41,13 +46,24 @@ from matchlens.control.ladder import Breaker, Ladder, Rung
 from matchlens.explanation import Failure, Proposer, foundry
 from matchlens.ingest import FrozenLog, Ingest
 from matchlens.models import Claim, Lens, Moment, SignalReading, Verdict, Verification
-from matchlens.rendering import Card, Written, degraded, in_full, overlay_packet, render, write
+from matchlens.rendering import (
+    Card,
+    LensOutcome,
+    MomentOutcome,
+    Written,
+    degraded,
+    in_full,
+    overlay_packet,
+    render,
+    write,
+)
 from matchlens.selection import Selection, ShownCards
 from matchlens.source import MatchSetup, StreamItem, simulate
 from matchlens.spotting import Spotter, SpotterResult
 from matchlens.understanding import Understanding
 
 Publish = Callable[[Card], None]
+Report = Callable[[MomentOutcome], None]
 
 logger = logging.getLogger(__name__)
 tracer = trace.get_tracer(__name__)
@@ -91,6 +107,7 @@ class Pipeline:
         writer: Proposer | None = None,
         ladder: Ladder | None = None,
         queue_limit: int | None = None,
+        report: Report | None = None,
     ) -> None:
         """`proposer` is A2's model and `writer` A4's. With neither, `process` returns each
         moment's cards.
@@ -103,6 +120,9 @@ class Pipeline:
         put behind its switch. `queue_limit` is how many moments may wait for the editor before
         the models are shed. None for an unpaced run, which queues every moment at once by
         design; the paced feed passes `settings.ladder_queue_limit`.
+
+        `report` is told, once per moment and in the order they fired, what each lens did with
+        it (P1). It is called on whichever thread the moment's editorial stages run on.
         """
         self._waits = proposer is not None or writer is not None
         if self._waits and publish is None:
@@ -117,6 +137,7 @@ class Pipeline:
         self.ladder.configure(explainer=proposer is not None, writer=writer is not None)
         self._proposer = self.ladder.guard(proposer)
         self._publish = publish
+        self._report = report
         self._writer = self.ladder.guard(writer)
         self._queue_limit = queue_limit
         self._shadows: list[_Shadow] = []  # models asked while down, scored at the next moment
@@ -188,11 +209,29 @@ class Pipeline:
     def _published(self, explained: _Explained) -> None:
         assert self._publish is not None
         try:
-            for card in self._editorial(explained):
+            for card in self._guarded(explained):
                 self._publish(card)
         finally:
             with self._queued_lock:
                 self._queued -= 1
+
+    def _guarded(self, explained: _Explained) -> list[Card]:
+        """`_editorial`, with a failure logged and reported before it is raised on.
+
+        On the editorial thread nothing reads the exception until `drain`, which the delivery
+        app never calls, so without this a moment that fails outside Rendering would vanish and
+        its lenses would look quiet. Rendering's own failures do not come here: they are
+        suppressed as `degraded` and the moment completes (A5).
+        """
+        moment = explained.result.moment
+        try:
+            return self._editorial(explained)
+        except Exception as error:
+            logger.exception(
+                "editorial: %s failed; no lens has a rendition for it", moment.moment_id
+            )
+            self._tell(moment, (), failure=f"{type(error).__name__}: {error}")
+            raise
 
     def _editorial(self, explained: _Explained) -> list[Card]:
         result = explained.result
@@ -260,7 +299,36 @@ class Pipeline:
                     )
             self.ladder.rendered(unrendered)
             audit.record(moment, claims, verifications, renditions)
+            self._tell(
+                moment,
+                [
+                    LensOutcome(
+                        lens_id=lens.lens_id,
+                        rendition=rendition,
+                        importance=selected.importance,
+                        shown_in_window=self._shown.in_window(lens.lens_id, moment.clock_ms),
+                    )
+                    for (lens, selected), rendition in zip(selections, renditions, strict=True)
+                ],
+            )
             return cards
+
+    def _tell(
+        self, moment: Moment, outcomes: Sequence[LensOutcome], failure: str | None = None
+    ) -> None:
+        """Report what the lenses did with `moment` (P1), if anything is listening."""
+        if self._report is None:
+            return
+        self._report(
+            MomentOutcome(
+                moment_id=moment.moment_id,
+                clock_ms=moment.clock_ms,
+                moment_type=moment.type,
+                lens_ids=tuple(lens.lens_id for lens in lenses.all_lenses()),
+                outcomes=tuple(outcomes),
+                failure=failure,
+            )
+        )
 
     def _backlog(self) -> str | None:
         """Why the models are shed for this moment, or None: more moments waiting for the

@@ -23,6 +23,8 @@ async function start() {
   document.getElementById("panels").append(...panels.map((p) => p.root));
   setStatus(panels);
   panels.forEach((p) => connect(p, panels));
+  return panels;
 }
 
-start();
+// The panels once they are on the page, for a view that adds to them.
+const panelsMounted = start();

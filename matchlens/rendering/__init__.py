@@ -19,10 +19,21 @@ from matchlens.models import (
 from matchlens.rendering import overlay, templates, writer
 from matchlens.rendering.card import Card
 from matchlens.rendering.facts import clock, sentence
+from matchlens.rendering.outcomes import LensOutcome, MomentOutcome
 from matchlens.rendering.writer import Written
 from matchlens.selection import Selection
 
-__all__ = ["Card", "Written", "degraded", "in_full", "overlay_packet", "render", "write"]
+__all__ = [
+    "Card",
+    "LensOutcome",
+    "MomentOutcome",
+    "Written",
+    "degraded",
+    "in_full",
+    "overlay_packet",
+    "render",
+    "write",
+]
 
 # Reasons that outrank `degraded` (DATA-MODEL's evaluation order): a lens that was never a
 # candidate, or was muted, says so even when Rendering failed.

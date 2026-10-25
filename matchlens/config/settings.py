@@ -58,6 +58,7 @@ class Settings(BaseSettings):
     replay_speed: float = 25.0  # the in-process feed, until the pipeline sends over Service Bus
     max_replay_speed: float = 100.0  # the most the page may ask for (D3); above it is refused
     catchup_key_moments: int = 3  # D4, Q30: what a late joiner is told when nobody has scored
+    producer_view: bool = False  # P1, Q42: 4B. Off, the producer page, stream and files are 404
     overlay_ms_per_word: int = 250  # D5: an overlay stays up as long as it takes to read
     overlay_min_ms: int = 5_000
     overlay_max_ms: int = 12_000

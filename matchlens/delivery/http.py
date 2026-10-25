@@ -1,20 +1,27 @@
-"""The delivery HTTP surface: the page, viewer sessions, and the SSE stream."""
+"""The delivery HTTP surface: the page, viewer sessions, and the SSE stream.
+
+With a `ProducerFeed` it also serves the producer view (P1, Q42: 4B). Without one, the page, its
+stream and its files do not exist: a deployment that has not switched it on has nothing to find.
+"""
 
 from collections.abc import AsyncIterator
 from pathlib import Path
-from typing import Annotated, Literal
+from typing import Annotated, Literal, override
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Query, status
 from fastapi.responses import FileResponse
 from fastapi.sse import EventSourceResponse, ServerSentEvent
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ConfigDict, Field
+from starlette.responses import Response
+from starlette.types import Scope
 
 from matchlens import lenses
 from matchlens.catchup import CatchUp
 from matchlens.config.settings import settings
 from matchlens.control.ladder import Ladder, LadderStatus
 from matchlens.delivery.hub import MatchStateHub
+from matchlens.delivery.producer import ProducerFeed
 from matchlens.delivery.release import ReleaseQueues
 from matchlens.delivery.router import CardRouter
 from matchlens.delivery.session_clock import viewer_position
@@ -23,6 +30,23 @@ from matchlens.models import ClockMs, Lens, OverlayPacket, ViewerSession
 from matchlens.rendering import Card
 
 WEB_DIR = Path(__file__).resolve().parents[2] / "web"
+
+# The files only the producer view uses. Lower case, since the check is not case-sensitive.
+PRODUCER_FILES = frozenset({"producer.html", "producer.js", "producer.css"})
+
+
+class _Files(StaticFiles):
+    """The web directory, less the files named in `hidden`, which are then not found."""
+
+    def __init__(self, *, directory: Path, hidden: frozenset[str]) -> None:
+        super().__init__(directory=directory)
+        self._hidden = hidden
+
+    @override
+    async def get_response(self, path: str, scope: Scope) -> Response:
+        if path.lower() in self._hidden:
+            raise HTTPException(status.HTTP_404_NOT_FOUND)
+        return await super().get_response(path, scope)
 
 
 class NewSession(BaseModel):
@@ -66,6 +90,7 @@ def create_app(
     router: CardRouter | None = None,
     ladder: Ladder | None = None,
     *,
+    producer: ProducerFeed | None = None,
     web_dir: Path = WEB_DIR,
     lifespan=None,
 ) -> FastAPI:
@@ -203,7 +228,25 @@ def create_app(
                 event = "catch_up" if isinstance(entry, CatchUp) else "card"
                 yield ServerSentEvent(data=entry, event=event, id=f"{seq}:{sent}")
 
-    app.mount("/static", StaticFiles(directory=web_dir), name="static")
+    if producer is not None:
+
+        @app.get("/producer", include_in_schema=False)
+        def producer_page() -> FileResponse:
+            """Every lens on one screen, with what a viewer is never shown (P1)."""
+            return FileResponse(web_dir / "producer.html")
+
+        @app.get("/producer/stream", response_class=EventSourceResponse)
+        async def producer_stream() -> AsyncIterator[ServerSentEvent]:
+            """What each lens last did and why, sent whole each time one of them changes.
+
+            Live, not held to a viewer's clock: this is the producer's, not a viewer's, and it
+            carries no card. A reconnect is sent the current state, so there is no id to resume.
+            """
+            async for snapshot in producer.follow():
+                yield ServerSentEvent(data=snapshot, event="lenses")
+
+    hidden = frozenset() if producer is not None else PRODUCER_FILES
+    app.mount("/static", _Files(directory=web_dir, hidden=hidden), name="static")
     return app
 
 

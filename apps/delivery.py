@@ -11,16 +11,18 @@ from contextlib import asynccontextmanager
 from azure.monitor.opentelemetry import configure_azure_monitor
 from fastapi import FastAPI
 
-from apps.pipeline import Pipeline, Publish
+from apps.pipeline import Pipeline, Publish, Report
+from matchlens import lenses
 from matchlens.config.settings import settings
 from matchlens.control.ladder import Ladder
 from matchlens.delivery.http import create_app
 from matchlens.delivery.hub import MatchStateHub
+from matchlens.delivery.producer import ProducerFeed
 from matchlens.delivery.release import ReleaseQueues
 from matchlens.delivery.router import CardRouter
 from matchlens.delivery.sessions import SessionStore
 from matchlens.explanation import foundry
-from matchlens.rendering import Card
+from matchlens.rendering import Card, MomentOutcome
 from matchlens.source.replay import Replay
 from matchlens.understanding.match_state import MatchStateTracker
 
@@ -68,7 +70,22 @@ queues = ReleaseQueues()
 router = CardRouter(
     sessions, queues
 )  # Delivery's end of the bus: the pipeline publishes to receive
+
+
+def _reporter(loop: asyncio.AbstractEventLoop, feed: ProducerFeed | None) -> Report | None:
+    """The pipeline's report, handed to `feed` on `loop` as a card is; None with no feed."""
+    if feed is None:
+        return None
+
+    def report(outcome: MomentOutcome) -> None:
+        loop.call_soon_threadsafe(feed.receive, outcome)
+
+    return report
+
+
 ladder = Ladder()  # A5: the pipeline keeps the rung, the page shows it and switches the models
+# P1, Q42: 4B. The producer view exists only where it is switched on.
+producer = ProducerFeed(lenses.all_lenses()) if settings.producer_view else None
 
 
 @asynccontextmanager
@@ -85,7 +102,12 @@ async def _lifespan(_: FastAPI):
 
     writer = foundry.from_settings(settings.writer_reasoning_effort)  # A4: same model (Q38)
     pipeline = Pipeline(
-        proposer, publish, writer=writer, ladder=ladder, queue_limit=settings.ladder_queue_limit
+        proposer,
+        publish,
+        writer=writer,
+        ladder=ladder,
+        queue_limit=settings.ladder_queue_limit,
+        report=_reporter(loop, producer),
     )
     foundry.warm(proposer)
     foundry.warm(writer)
@@ -97,4 +119,4 @@ async def _lifespan(_: FastAPI):
         pipeline.close()
 
 
-app = create_app(hub, sessions, queues, router, ladder, lifespan=_lifespan)
+app = create_app(hub, sessions, queues, router, ladder, producer=producer, lifespan=_lifespan)

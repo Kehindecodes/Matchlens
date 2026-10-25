@@ -19,6 +19,7 @@ from apps.pipeline import Pipeline
 from matchlens.control.ladder import Ladder
 from matchlens.delivery.http import create_app
 from matchlens.delivery.hub import MatchStateHub
+from matchlens.delivery.producer import ProducerFeed
 from matchlens.delivery.release import ReleaseQueues
 from matchlens.delivery.sessions import SessionStore
 from matchlens.models import Frame, MomentType, Phase, Rendition
@@ -51,7 +52,12 @@ def client(hub: MatchStateHub) -> Iterator[TestClient]:
 class LiveServer:
     """The app on a real uvicorn server in a thread, so streams disconnect as a browser's do."""
 
-    def __init__(self, hub: MatchStateHub, queues: ReleaseQueues):
+    def __init__(
+        self,
+        hub: MatchStateHub,
+        queues: ReleaseQueues | None = None,
+        producer: ProducerFeed | None = None,
+    ):
         self.hub = hub
         self.sessions = SessionStore()
         self.ladder = Ladder()
@@ -63,7 +69,9 @@ class LiveServer:
             yield
 
         config = uvicorn.Config(
-            create_app(hub, self.sessions, queues, ladder=self.ladder, lifespan=lifespan),
+            create_app(
+                hub, self.sessions, queues, ladder=self.ladder, producer=producer, lifespan=lifespan
+            ),
             host="127.0.0.1", port=0, log_level="warning", timeout_graceful_shutdown=1,
         )  # fmt: skip
         self.server = uvicorn.Server(config)
