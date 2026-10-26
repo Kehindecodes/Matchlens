@@ -30,3 +30,27 @@
 .internals.state-broken .headline { color: var(--broken); font-weight: 700; }
 .internals.state-broken .headline::before { content: "✕"; }
 .internals.state-broken .why { color: var(--fg); }
+
+/* A lens a producer has stopped: it stays stopped, which is neither a choice nor a failure. */
+:root { --pause: #8ab4f8; --pause-tint: #161d2b; }
+.internals.state-muted { border-color: var(--pause); background: var(--pause-tint); }
+.internals.state-muted .headline { color: var(--pause); }
+.internals.state-muted .headline::before { content: "‖"; }
+.internals .muted-by { margin: 0; color: var(--pause); font-size: 0.8rem; }
+
+/* The mute and unmute controls, and the log of what was done with them. */
+.controls { display: grid; grid-template-columns: 1fr auto; gap: 6px; align-items: center; }
+.controls input, .actor input { font: inherit; font-size: 0.85rem; color: var(--fg); background: var(--card);
+                                border: 1px solid var(--line); border-radius: 6px; padding: 5px 8px; min-width: 0; }
+.controls button { font: inherit; font-size: 0.85rem; color: var(--fg); background: var(--card);
+                   border: 1px solid var(--line); border-radius: 6px; padding: 5px 10px; cursor: pointer; }
+.controls button:focus-visible, .controls input:focus-visible, .actor input:focus-visible {
+  outline: 2px solid var(--accent); outline-offset: 2px; }
+.controls .note { grid-column: 1 / -1; margin: 0; font-size: 0.8rem; color: var(--warn); }
+.controls .note:empty { display: none; }
+.actor { display: block; margin-top: 8px; font-size: 0.8rem; color: var(--muted); }
+.log { max-width: 1280px; margin: 0 auto; padding: 0 16px 24px; }
+.log h2 { font-size: 0.9rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+.log ol { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; font-size: 0.85rem; }
+.log li { padding: 6px 10px; background: var(--card); border: 1px solid var(--line); border-radius: 6px; }
+.log li.none { color: var(--faint); }

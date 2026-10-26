@@ -62,7 +62,7 @@ def test_every_moment_reports_an_outcome_for_every_lens(reported):
     assert outcomes
     for moment_outcome in outcomes:
         assert moment_outcome.lens_ids == expected
-        assert tuple(o.lens_id for o in moment_outcome.outcomes) == expected
+        assert tuple(lens_outcome.lens_id for lens_outcome in moment_outcome.outcomes) == expected
         assert moment_outcome.failure is None
 
 

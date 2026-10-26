@@ -10,12 +10,22 @@ from matchlens.selection.scope import judged_importance
 __all__ = ["Selection", "ShownCards", "select"]
 
 
-def select(moment: Moment, claims: Sequence[Claim], lens: Lens, shown: ShownCards) -> Selection:
+def select(
+    moment: Moment,
+    claims: Sequence[Claim],
+    lens: Lens,
+    shown: ShownCards,
+    *,
+    muted: bool = False,
+) -> Selection:
     """The claims `lens` shows for `moment`, or the one reason it shows none.
 
     `claims` are the ones that passed verification. No model is called, and nothing is written
     except the card this lens now counts against its rate limit, in `shown`, which belongs to
     one match.
+
+    `muted` is Control's decision, made before Selection runs (P2). It outranks every reason
+    below, as DATA-MODEL's order has it, and a muted lens spends none of its rate limit.
 
     Every reason that applies is weighed and the first in `SuppressionReason`'s declared order
     wins (D14), so the answer does not depend on which check runs first:
@@ -28,10 +38,14 @@ def select(moment: Moment, claims: Sequence[Claim], lens: Lens, shown: ShownCard
     5. rate limit: `rate_limited`, unless the moment's type is one of the lens's
        `breakthrough_types`. Those are still counted.
 
-    `muted` and `degraded` belong to Control and the ladder, which decide before Selection runs.
+    `degraded` belongs to the ladder, which decides before Selection runs.
     """
     calltrace.entered("Selection")
     importance = judged_importance(moment, lens)
+    if muted:
+        return Selection(
+            claims=(), suppression_reason=SuppressionReason.MUTED, importance=importance
+        )
 
     reason = None
     kept = tuple(c for c in claims if c.claim_type in lens.allowed_claim_types)

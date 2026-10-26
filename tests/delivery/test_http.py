@@ -16,6 +16,7 @@ from fastapi.testclient import TestClient
 
 from apps.delivery import run_local_feed
 from apps.pipeline import Pipeline
+from matchlens.control import Mutes
 from matchlens.control.ladder import Ladder
 from matchlens.delivery.http import create_app
 from matchlens.delivery.hub import MatchStateHub
@@ -57,6 +58,7 @@ class LiveServer:
         hub: MatchStateHub,
         queues: ReleaseQueues | None = None,
         producer: ProducerFeed | None = None,
+        mutes: Mutes | None = None,
     ):
         self.hub = hub
         self.sessions = SessionStore()
@@ -70,7 +72,13 @@ class LiveServer:
 
         config = uvicorn.Config(
             create_app(
-                hub, self.sessions, queues, ladder=self.ladder, producer=producer, lifespan=lifespan
+                hub,
+                self.sessions,
+                queues,
+                ladder=self.ladder,
+                producer=producer,
+                mutes=mutes,
+                lifespan=lifespan,
             ),
             host="127.0.0.1", port=0, log_level="warning", timeout_graceful_shutdown=1,
         )  # fmt: skip

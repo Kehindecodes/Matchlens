@@ -6,6 +6,10 @@ silence has a suppressed rendition and a reason (invariant 11); a lens that fail
 a `degraded` one. That is the whole difference, and the feed only reads it: the words and the
 numbers on the page are the ones it is handed, not worked out in the browser.
 
+A lens a producer has muted (P2) reads as muted whatever it last reported, with the action that
+muted it, and the log of every mute and unmute goes out with each snapshot. Both come from Control,
+which this only reads.
+
 Nothing here is sent to a viewer. The feed is not behind the viewer's release queue either: the
 producer sees a lens's outcome when the pipeline has it, which is when a viewer on no delay
 would see the card.
@@ -17,7 +21,8 @@ from enum import StrEnum
 
 from pydantic import BaseModel, ConfigDict
 
-from matchlens.models import ClockMs, Lens, SuppressionReason
+from matchlens.control import Mutes
+from matchlens.models import ClockMs, Lens, ProducerAction, SuppressionReason
 from matchlens.rendering import LensOutcome, MomentOutcome
 
 
@@ -27,6 +32,7 @@ class LensState(StrEnum):
     QUIET = "quiet"  # the latest moment was a silence the lens chose
     ALARM = "alarm"  # silent because no claim held: the pipeline worked, the claims did not
     BROKEN = "broken"  # silent because it failed: no rendition, or a `degraded` one
+    MUTED = "muted"  # a producer has stopped it, and it stays stopped until they undo it
 
 
 # Which reasons are a lens's own choice, which are an alarm and which are a failure, from
@@ -47,6 +53,7 @@ _HEADLINE = {
     LensState.QUIET: "Quiet by choice",
     LensState.ALARM: "Quiet, but not by choice",
     LensState.BROKEN: "Broken",
+    LensState.MUTED: "Muted by a producer",
 }
 
 # One sentence per reason, for a producer. `importance`, `threshold`, `shown` and `limit` fill in
@@ -84,12 +91,14 @@ class LensView(BaseModel):
     threshold: float  # the lens's own, from its row
     shown_in_window: int | None  # cards shown in the ten match minutes to `as_of_clock`
     max_cards_per_10min: int
+    muted: ProducerAction | None = None  # the mute stopping this lens now, with who and why
 
 
 class ProducerSnapshot(BaseModel):
     model_config = ConfigDict(frozen=True)
 
     lenses: list[LensView]
+    actions: list[ProducerAction] = []  # every mute and unmute, in the order they were made
 
 
 class ProducerFeed:
@@ -99,7 +108,8 @@ class ProducerFeed:
     its reports over with `loop.call_soon_threadsafe(feed.receive, ...)`.
     """
 
-    def __init__(self, lens_rows: Sequence[Lens]) -> None:
+    def __init__(self, lens_rows: Sequence[Lens], mutes: Mutes | None = None) -> None:
+        self._mutes = Mutes() if mutes is None else mutes
         self._lenses = {lens.lens_id: lens for lens in lens_rows}
         self._views = {lens.lens_id: _listening(lens) for lens in lens_rows}
         self._waiters: set[asyncio.Event] = set()
@@ -111,11 +121,19 @@ class ProducerFeed:
             self._views[lens_id] = _view(
                 self._lenses[lens_id], moment_outcome, answered.get(lens_id)
             )
+        self.changed()
+
+    def changed(self) -> None:
+        """Wake every follower: something the snapshot shows has moved, a mute for one."""
         for waiter in self._waiters:
             waiter.set()
 
     def snapshot(self) -> ProducerSnapshot:
-        return ProducerSnapshot(lenses=list(self._views.values()))
+        views = []
+        for lens_id, view in self._views.items():
+            mute = self._mutes.in_force(lens_id)
+            views.append(view if mute is None else _muted(view, mute))
+        return ProducerSnapshot(lenses=views, actions=self._mutes.actions())
 
     async def follow(self) -> AsyncIterator[ProducerSnapshot]:
         """The snapshot now, then again each time a report changes it."""
@@ -128,6 +146,18 @@ class ProducerFeed:
                 await changed.wait()
         finally:
             self._waiters.discard(changed)
+
+
+def _muted(view: LensView, mute: ProducerAction) -> LensView:
+    """`view` as it reads while a producer's mute is in force."""
+    return view.model_copy(
+        update={
+            "state": LensState.MUTED,
+            "headline": _HEADLINE[LensState.MUTED],
+            "why": "Its cards are stopped until a producer unmutes it.",
+            "muted": mute,
+        }
+    )
 
 
 def _listening(lens: Lens) -> LensView:

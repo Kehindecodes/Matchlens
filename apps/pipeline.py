@@ -42,6 +42,7 @@ from opentelemetry import context, trace
 
 from matchlens import audit, explanation, lenses, selection, verification
 from matchlens.config import settings
+from matchlens.control import Mutes
 from matchlens.control.ladder import Breaker, Ladder, Rung
 from matchlens.explanation import Failure, Proposer, foundry
 from matchlens.ingest import FrozenLog, Ingest
@@ -108,6 +109,7 @@ class Pipeline:
         ladder: Ladder | None = None,
         queue_limit: int | None = None,
         report: Report | None = None,
+        mutes: Mutes | None = None,
     ) -> None:
         """`proposer` is A2's model and `writer` A4's. With neither, `process` returns each
         moment's cards.
@@ -123,6 +125,10 @@ class Pipeline:
 
         `report` is told, once per moment and in the order they fired, what each lens did with
         it (P1). It is called on whichever thread the moment's editorial stages run on.
+
+        `mutes` is where a producer's mutes are kept (P2). A lens muted for a moment, by its
+        clock or by being muted when the moment is handled, is suppressed as `muted` before
+        Selection runs, so the silence is a record (invariant 11).
         """
         self._waits = proposer is not None or writer is not None
         if self._waits and publish is None:
@@ -138,6 +144,7 @@ class Pipeline:
         self._proposer = self.ladder.guard(proposer)
         self._publish = publish
         self._report = report
+        self._mutes = Mutes() if mutes is None else mutes
         self._writer = self.ladder.guard(writer)
         self._queue_limit = queue_limit
         self._shadows: list[_Shadow] = []  # models asked while down, scored at the next moment
@@ -254,7 +261,10 @@ class Pipeline:
                 with tracer.start_as_current_span(
                     "selection", attributes={"moment_id": moment.moment_id, "lens_id": lens.lens_id}
                 ):
-                    selections.append((lens, selection.select(moment, passing, lens, self._shown)))
+                    muted = self._mutes.stops(lens.lens_id, moment.clock_ms)
+                    selections.append(
+                        (lens, selection.select(moment, passing, lens, self._shown, muted=muted))
+                    )
             written = self._written(moment, selections, shed)
 
             renditions = []

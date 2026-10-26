@@ -1,6 +1,8 @@
 // What the demo view (index.html) and the viewer view (watch.html) share: the clock spine, a
 // lens panel, and a session with its stream. Plain scripts, no modules, no build step.
 
+const NOTICE_WORDS = { paused: "Insights paused", resumed: "Insights resumed" };
+
 const JUST_SPOKE_MS = 60_000; // match time a card counts as just said, before the panel reads as quiet
 
 let spineSeq = -1; // the newest match state shown; every stream carries the same hub sequence
@@ -279,6 +281,16 @@ class Panel {
     this.cards.before(section);
   }
 
+  // A mute or an unmute of this lens, told to a viewer who had cards (P2). A line at the clock it
+  // took effect, like a lens switch: it is not a card, is not counted and does not reset the idle
+  // line. The words are here, so the stream only says which and when.
+  addNotice(notice) {
+    const li = document.createElement("li");
+    li.className = "notice";
+    li.textContent = `${NOTICE_WORDS[notice.kind]} · from ${mmss(notice.clock_ms)}`;
+    this.cards.prepend(li);
+  }
+
   // A lens switch: the cards already shown stay as they were, and a marker says where the new
   // lens takes over. Nothing is re-rendered or back-filled (L5).
   switchTo(lens) {
@@ -311,6 +323,7 @@ function stream(panel, session, onStatus, reopen) {
   });
   source.addEventListener("card", (e) => panel.addCard(JSON.parse(e.data)));
   source.addEventListener("catch_up", (e) => panel.showCatchUp(JSON.parse(e.data)));
+  source.addEventListener("notice", (event) => panel.addNotice(JSON.parse(event.data)));
   source.addEventListener("playback", (e) => showSpeed(JSON.parse(e.data).speed));
   source.addEventListener("ladder", (e) => {
     ladderStreamed = true;

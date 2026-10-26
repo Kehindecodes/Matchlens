@@ -18,8 +18,13 @@
     <div class="playback" id="playback"></div>
     <div class="ladder" id="ladder" role="status"></div>
     <div class="views">Producer view: every lens, and what a viewer is never shown</div>
+    <label class="actor">Acting as <input id="actor" type="text" value="producer" autocomplete="off"></label>
   </header>
   <main class="panels" id="panels"></main>
+  <section class="log" aria-label="Interventions">
+    <h2>Interventions</h2>
+    <ol id="actions"><li class="none">No mute or unmute yet.</li></ol>
+  </section>
 
   <template id="panel-template">
     <section class="panel">

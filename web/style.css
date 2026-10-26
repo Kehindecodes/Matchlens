@@ -50,8 +50,8 @@ header { position: sticky; top: 0; z-index: 1; background: var(--bg); border-bot
                  border: 1px solid var(--line); border-radius: 999px; padding: 6px 14px; cursor: pointer; }
 .picker button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
 .picker button:disabled { cursor: default; opacity: 0.6; }
-.switch { color: var(--faint); font-size: 0.8rem; text-align: center; padding: 2px 0;
-          border-top: 1px dashed var(--line); }
+.switch, .notice { color: var(--faint); font-size: 0.8rem; text-align: center; padding: 2px 0;
+                   border-top: 1px dashed var(--line); }
 .views { font-size: 0.8rem; margin-top: 6px; }
 .views a { color: var(--muted); }
 

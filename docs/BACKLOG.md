@@ -146,7 +146,7 @@ Update the **Status** column when a ticket moves. Statuses: `todo`, `wip`, `done
 | ID | Ticket | Est | Deps | Tier | Status | Brief |
 |---|---|---|---|---|---|---|
 | P1 | Producer view: all lenses live, idle vs broken | 1 | L4 | T2 | done | ✅ |
-| P2 | Mute circuit breaker, ProducerAction log, viewer notice | 1 | D1 | T2 | todo | ✅ |
+| P2 | Mute circuit breaker, ProducerAction log, viewer notice | 1 | D1 | T2 | done | ✅ |
 | P3 | Rejected-claims view with reasons | 0.5 | A3, P1 | T2 | todo | ✅ |
 | 📝 P4 | Archetype regression check in CI | 1 | R2, U3 | T2 | todo | ✅ |
 | P5 | Post-match report, produced unasked | 0.5 | A3, P4 | T2 | todo | ✅ |

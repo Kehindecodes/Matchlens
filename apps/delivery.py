@@ -14,6 +14,7 @@ from fastapi import FastAPI
 from apps.pipeline import Pipeline, Publish, Report
 from matchlens import lenses
 from matchlens.config.settings import settings
+from matchlens.control import Mutes
 from matchlens.control.ladder import Ladder
 from matchlens.delivery.http import create_app
 from matchlens.delivery.hub import MatchStateHub
@@ -67,8 +68,9 @@ def _follow_speed(hub: MatchStateHub, replay: Replay) -> None:
 hub = MatchStateHub()
 sessions = SessionStore()
 queues = ReleaseQueues()
+mutes = Mutes()  # P2: the producer's mutes, read by the router, the pipeline and the view
 router = CardRouter(
-    sessions, queues
+    sessions, queues, mutes
 )  # Delivery's end of the bus: the pipeline publishes to receive
 
 
@@ -85,7 +87,7 @@ def _reporter(loop: asyncio.AbstractEventLoop, feed: ProducerFeed | None) -> Rep
 
 ladder = Ladder()  # A5: the pipeline keeps the rung, the page shows it and switches the models
 # P1, Q43: 4B. The producer view exists only where it is switched on.
-producer = ProducerFeed(lenses.all_lenses()) if settings.producer_view else None
+producer = ProducerFeed(lenses.all_lenses(), mutes) if settings.producer_view else None
 
 
 @asynccontextmanager
@@ -108,6 +110,7 @@ async def _lifespan(_: FastAPI):
         ladder=ladder,
         queue_limit=settings.ladder_queue_limit,
         report=_reporter(loop, producer),
+        mutes=mutes,
     )
     foundry.warm(proposer)
     foundry.warm(writer)
@@ -119,4 +122,6 @@ async def _lifespan(_: FastAPI):
         pipeline.close()
 
 
-app = create_app(hub, sessions, queues, router, ladder, producer=producer, lifespan=_lifespan)
+app = create_app(
+    hub, sessions, queues, router, ladder, producer=producer, mutes=mutes, lifespan=_lifespan
+)
