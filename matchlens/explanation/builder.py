@@ -5,9 +5,9 @@ them should hear them:
 
 - goal: the scorer's goals, the score (or the team's goals while the other side has none, Q26
   2a), how it came about (the build-up, where the ball was won, who gave it away, how far out the
-  shot was), the shot's quality
+  shot was), who set it up, the shot's quality
 - chance: the run of big chances, the run set against the opponent's over the same window when
-  they had one too, how it came about, the shot's quality
+  they had one too, how it came about, who saved or blocked it, the shot's quality
 - tactical shift: the signal that fired, read as a judgement, then compared with the same team
   in the previous epoch and with the opponent at the same clock
 
@@ -21,6 +21,7 @@ from collections.abc import Sequence
 from matchlens.config import settings
 from matchlens.ingest.roster import pitch_window
 from matchlens.models import (
+    Action,
     Claim,
     ClaimType,
     Epoch,
@@ -37,12 +38,19 @@ from matchlens.models import (
     SignalReading,
     Window,
 )
-from matchlens.understanding.buildup import BALL_WINNING, ball_loser, shot_distance, win_third
+from matchlens.understanding.buildup import (
+    BALL_WINNING,
+    assist_of,
+    ball_loser,
+    shot_distance,
+    stopper_of,
+    win_third,
+)
 from matchlens.understanding.possession import from_events
 from matchlens.understanding.shot_value import is_shot, value
 
 MODEL = "deterministic"
-MODEL_VERSION = "claims-4"  # bump by hand whenever a rule below changes (invariant 7)
+MODEL_VERSION = "claims-5"  # bump by hand whenever a rule below changes (invariant 7)
 
 
 def explain_moment(
@@ -61,7 +69,7 @@ def explain_moment(
         if moment.type is MomentType.GOAL:
             operands = _goal(trigger, events, match, players)
         else:
-            operands = _chance(trigger, events, match)
+            operands = _chance(trigger, events, match, players)
     else:
         operands = []
     return [
@@ -164,12 +172,16 @@ def _goal(
     assert team is not None
     specs.append(_comparative(team, against) if against is not None else _descriptive(team))
 
-    specs.extend(_descriptive(operand) for operand in _how(goal, events, match))
+    specs.extend(_descriptive(operand) for operand in _how(goal, events, match, players))
+    if (assist := _assist(goal, events)) is not None:
+        specs.append(_descriptive(assist))
     specs.append(_descriptive(_shot_quality(goal, match)))
     return specs
 
 
-def _how(shot: Event, events: Sequence[Event], match: Match) -> list[Operand]:
+def _how(
+    shot: Event, events: Sequence[Event], match: Match, players: Sequence[Player]
+) -> list[Operand]:
     """How `shot` came about, as the facts the log can recount: the move that ended in it, where
     that move won the ball, who gave the ball away, and how far out the shot was struck.
 
@@ -201,10 +213,11 @@ def _how(shot: Event, events: Sequence[Event], match: Match) -> list[Operand]:
             )
             if (lost := ball_loser(match, events, move)) is not None:
                 assert lost.player is not None  # `ball_loser` only returns an event with a player
+                keeper = any(p.player_id == lost.player and p.position == "GK" for p in players)
                 operands.append(
                     Operand(
                         subject=Ref(kind=RefKind.PLAYER, id=lost.player),
-                        metric=Metric.BALL_LOST,
+                        metric=Metric.BALL_LOST_BY_KEEPER if keeper else Metric.BALL_LOST,
                         window=Window(start_ms=lost.clock_ms, end_ms=lost.clock_ms),
                         value=1.0,
                         evidence_ids=_events([lost]),
@@ -246,14 +259,47 @@ def _big_chances(
     )
 
 
-def _chance(shot: Event, events: Sequence[Event], match: Match) -> list[_Spec]:
+def _assist(goal: Event, events: Sequence[Event]) -> Operand | None:
+    """The pass that set `goal` up, citing it and the goal, or None if he carried it in."""
+    pass_ = assist_of(events, goal)
+    if pass_ is None:
+        return None
+    assert pass_.player is not None  # `assist_of` only returns a pass with a player
+    return Operand(
+        subject=Ref(kind=RefKind.PLAYER, id=pass_.player),
+        metric=Metric.ASSIST,
+        window=Window(start_ms=pass_.clock_ms, end_ms=goal.clock_ms),
+        value=1.0,
+        evidence_ids=_events([pass_, goal]),
+    )
+
+
+def _stopped(shot: Event, events: Sequence[Event]) -> Operand | None:
+    """The keeper who saved `shot` or the player who blocked it, citing the shot and the stop."""
+    stop = stopper_of(events, shot)
+    if stop is None or stop.player is None:
+        return None
+    return Operand(
+        subject=Ref(kind=RefKind.PLAYER, id=stop.player),
+        metric=Metric.SHOT_SAVED_BY if stop.action is Action.SAVE else Metric.SHOT_BLOCKED_BY,
+        window=Window(start_ms=shot.clock_ms, end_ms=stop.clock_ms),
+        value=1.0,
+        evidence_ids=_events([shot, stop]),
+    )
+
+
+def _chance(
+    shot: Event, events: Sequence[Event], match: Match, players: Sequence[Player]
+) -> list[_Spec]:
     team_id = shot.team or ""
     run = _big_chances(team_id, shot, events, match)
     assert run is not None  # the shot that fired this moment is one of them
     specs = [_descriptive(run)]
     if (theirs := _big_chances(_opponent(match, team_id), shot, events, match)) is not None:
         specs.append(_comparative(run, theirs))
-    specs.extend(_descriptive(operand) for operand in _how(shot, events, match))
+    specs.extend(_descriptive(operand) for operand in _how(shot, events, match, players))
+    if (stopped := _stopped(shot, events)) is not None:
+        specs.append(_descriptive(stopped))
     specs.append(_descriptive(_shot_quality(shot, match)))
     return specs
 

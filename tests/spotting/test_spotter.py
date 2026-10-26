@@ -251,8 +251,11 @@ def test_a_chance_is_a_shot_that_was_not_a_goal(spotted):
     chances = [m for m in spotted.moments if m.type is MomentType.CHANCE]
     assert chances, "no chance moments to check"
     for m in chances:
-        [event_id] = m.trigger_event_ids
-        assert is_shot(by_id[event_id]) and by_id[event_id].outcome is not Outcome.GOAL
+        # The shot is first. A shot that was saved or blocked also cites the save or block that
+        # stopped it, which is what the moment waited for, and nothing else.
+        shot, *stop = m.trigger_event_ids
+        assert is_shot(by_id[shot]) and by_id[shot].outcome is not Outcome.GOAL
+        assert len(stop) <= 1 and all(by_id[s].action in (Action.SAVE, Action.BLOCK) for s in stop)
 
 
 def test_every_moment_cites_what_fired_it_and_only_that(spotted):
@@ -261,6 +264,8 @@ def test_every_moment_cites_what_fired_it_and_only_that(spotted):
     for m in spotted.moments:
         if m.type is MomentType.TACTICAL_SHIFT:
             assert len(m.trigger_reading_ids) == 1 and m.trigger_event_ids == ()
+        elif m.type is MomentType.CHANCE:
+            assert 1 <= len(m.trigger_event_ids) <= 2 and m.trigger_reading_ids == ()
         else:
             assert len(m.trigger_event_ids) == 1 and m.trigger_reading_ids == ()
         assert set(m.trigger_reading_ids) <= reading_ids

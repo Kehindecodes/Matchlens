@@ -1,56 +1,76 @@
 {
- "108a61b19dd326a30e8c85567ae149be204c1da72b72aed805c567da719f6cfc": {
-  "text": "{\"text\":\"Won in midfield after Sami Orsner lost the ball, from 1.1 m.\"}",
+ "0557ad9690613c6946c140c7880bfd27e2d959d7fece4b3ee297d63b0f22f68a": {
+  "text": "{\"text\":\"\"}",
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },
- "220e4f6d4fb8289491c8964e2e1727714f1e82da1da22b9d7711e043491d5e33": {
-  "text": "{\"text\":\"It was 5.4 m, a high-quality chance, and share of the passes: Riverside Athletic 54%, Redfern United 46%.\"}",
+ "07f494f32165286b1d2f9c0482b83848a592dbd0f8360d3b1a8eac497424dca7": {
+  "text": "{\"claims\":[{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"territory\",\"window\":{\"start_ms\":3120000,\"end_ms\":3420000},\"value\":1.0,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch3-territory-m-1-home-3420000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"territory\",\"window\":{\"start_ms\":3120000,\"end_ms\":3420000},\"value\":0.0,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch3-territory-m-1-away-3420000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"descriptive\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"chances\",\"window\":{\"start_ms\":2785535,\"end_ms\":3479535},\"value\":2,\"evidence_ids\":[{\"kind\":\"event\",\"id\":\"m-1-e1042\"},{\"kind\":\"event\",\"id\":\"m-1-e1052\"},{\"kind\":\"event\",\"id\":\"m-1-e1074\"},{\"kind\":\"event\",\"id\":\"m-1-e1116\"},{\"kind\":\"event\",\"id\":\"m-1-e1164\"},{\"kind\":\"event\",\"id\":\"m-1-e1172\"}]}],\"backing_reading\":null,\"threshold\":null}]}",
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },
- "25f289bc03cac77abae22111a376c4c416ff4b7e41562dd36ab919a8d02af0f4": {
-  "text": "{\"text\":\"Ball won in the final third after Sami Cornov lost the ball.\"}",
+ "10780f95e3eaa340b451f76b099673ea932ce40909f420394d7fdbf573375725": {
+  "text": "{\"text\":\"Blocked by Arlo Gorstow, ball won in midfield after a patient move: 15 passes over 34 s.\"}",
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },
- "2601e4e86c3cb9043c07af9fd444c0cc067144371dad0e29d39427b268c8dbde": {
-  "text": "{\"claims\":[{\"claim_type\":\"descriptive\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"territory\",\"window\":{\"start_ms\":3120000,\"end_ms\":3420000},\"value\":1.0,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch3-territory-m-1-home-3420000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":3120000,\"end_ms\":3420000},\"value\":0.55,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch3-possession_control-m-1-home-3420000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":3120000,\"end_ms\":3420000},\"value\":0.45,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch3-possession_control-m-1-away-3420000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"pressing_intensity\",\"window\":{\"start_ms\":3120000,\"end_ms\":3420000},\"value\":10.0,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch3-pressing_intensity-m-1-away-3420000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"pressing_intensity\",\"window\":{\"start_ms\":3120000,\"end_ms\":3420000},\"value\":4.5,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch3-pressing_intensity-m-1-home-3420000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"descriptive\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"chance_quality\",\"window\":{\"start_ms\":3120000,\"end_ms\":3420000},\"value\":0.756528860091,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch3-chance_quality-m-1-home-3420000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"interpretive\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"territory\",\"window\":{\"start_ms\":3120000,\"end_ms\":3420000},\"value\":1.0,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch3-territory-m-1-home-3420000\"}]}],\"backing_reading\":{\"kind\":\"reading\",\"id\":\"m-1-epoch3-territory-m-1-home-3420000\"},\"threshold\":1.25}]}",
+ "11fde9c2848070ad8e4572a33e697849eefe2828a5a58efb2d59aea68e6ceef3": {
+  "text": "{\"text\":\"Won in own third, with a quick attack of 8 passes in 20 s and assist from Finn Norham.\"}",
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },
- "2c58754b867ecca9a1455dfcca92b13d731b7064b8db1da9d31c11677842cc40": {
-  "text": "{\"claims\":[{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"territory\",\"window\":{\"start_ms\":420000,\"end_ms\":720000},\"value\":1.0,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch0-territory-m-1-away-720000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"territory\",\"window\":{\"start_ms\":420000,\"end_ms\":720000},\"value\":0.0,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch0-territory-m-1-home-720000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":420000,\"end_ms\":720000},\"value\":0.5882352941176471,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch0-possession_control-m-1-away-720000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":420000,\"end_ms\":720000},\"value\":0.4117647058823529,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch0-possession_control-m-1-home-720000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"interpretive\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"territory\",\"window\":{\"start_ms\":420000,\"end_ms\":720000},\"value\":1.0,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch0-territory-m-1-away-720000\"}]}],\"backing_reading\":{\"kind\":\"reading\",\"id\":\"m-1-epoch0-territory-m-1-away-720000\"},\"threshold\":1.25}]}",
+ "1c937d8cdb9a7ee69adb80212262a46e78ca15e866ed1ca8b1b33dcb6ec126f6": {
+  "text": "{\"claims\":[{\"claim_type\":\"descriptive\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":420000,\"end_ms\":720000},\"value\":0.4117647058823529,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch0-possession_control-m-1-home-720000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"territory\",\"window\":{\"start_ms\":420000,\"end_ms\":720000},\"value\":1.0,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch0-territory-m-1-away-720000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"territory\",\"window\":{\"start_ms\":420000,\"end_ms\":720000},\"value\":0.0,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch0-territory-m-1-home-720000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"interpretive\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"territory\",\"window\":{\"start_ms\":420000,\"end_ms\":720000},\"value\":1.0,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch0-territory-m-1-away-720000\"}]}],\"backing_reading\":{\"kind\":\"reading\",\"id\":\"m-1-epoch0-territory-m-1-away-720000\"},\"threshold\":1.25}]}",
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },
- "4999b78f3de9339c32c4923275a91139b181ccc6474c9f3623727af05671c13f": {
-  "text": "{\"text\":\"Won back deep in their own half.\"}",
+ "2ccff1a7cdcd3ce2943179dff00101af57cc00a456feffeb201180113c2da9cc": {
+  "text": "{\"text\":\"Gideon Corlan's first of the match was from 12.7 m, and Redfern United goals so far: 2.\"}",
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },
- "5ab836b931b1829c3b6455816a8c755b162744e26c56519edf85097d3188a08e": {
-  "text": "{\"claims\":[{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":764535,\"end_ms\":900000},\"value\":0.5384615384615384,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch1-possession_control-m-1-home-900000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":764535,\"end_ms\":900000},\"value\":0.46153846153846156,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch1-possession_control-m-1-away-900000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"interpretive\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"territory\",\"window\":{\"start_ms\":420000,\"end_ms\":720000},\"value\":1.0,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch0-territory-m-1-away-720000\"}]}],\"backing_reading\":{\"kind\":\"reading\",\"id\":\"m-1-epoch0-territory-m-1-away-720000\"},\"threshold\":1.25}]}",
+ "2e710073461065cfd94ae215570be92c40422866cf1bafe5e8a08f517b5729d4": {
+  "text": "{\"text\":\"Ball won in the final third, shot from 3.3 m.\"}",
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },
- "6602fba13dbee644c742f7af8a1a9c937292ef4beed0e70b0f33c61691642817": {
-  "text": "{\"claims\":[{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":4601035,\"end_ms\":4680000},\"value\":1.0,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch5-possession_control-m-1-away-4680000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":4601035,\"end_ms\":4680000},\"value\":0.0,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch5-possession_control-m-1-home-4680000\"}]}],\"backing_reading\":null,\"threshold\":null}]}",
+ "38d30d6fa369e292ad76dc5c20f973b5bd72c626e1d8ef2c643b2bea9f09fe0d": {
+  "text": "{\"claims\":[{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"territory\",\"window\":{\"start_ms\":4260000,\"end_ms\":4560000},\"value\":0.875,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch4-territory-m-1-home-4560000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"territory\",\"window\":{\"start_ms\":4260000,\"end_ms\":4560000},\"value\":0.125,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch4-territory-m-1-away-4560000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"pressing_intensity\",\"window\":{\"start_ms\":4260000,\"end_ms\":4560000},\"value\":8.333333333333334,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch4-pressing_intensity-m-1-home-4560000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"pressing_intensity\",\"window\":{\"start_ms\":4260000,\"end_ms\":4560000},\"value\":6.0,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch4-pressing_intensity-m-1-away-4560000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"interpretive\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"pressing_intensity\",\"window\":{\"start_ms\":4260000,\"end_ms\":4560000},\"value\":8.333333333333334,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch4-pressing_intensity-m-1-home-4560000\"}]}],\"backing_reading\":{\"kind\":\"reading\",\"id\":\"m-1-epoch4-pressing_intensity-m-1-home-4560000\"},\"threshold\":1.25}]}",
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },
- "6da85a0e2d303b53a474bdbc6b0954038cb041c563673fa819524b19bf62d960": {
-  "text": "{\"text\":\"Won in midfield, then a quick attack: 5 passes in 12 s, from 10.5 m.\"}",
+ "4c79398c4cde3185febed44662dafec02c934d3ec8bb4f2fffeb458885c481a7": {
+  "text": "{\"claims\":[{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":4601035,\"end_ms\":4680000},\"value\":1.0,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch5-possession_control-m-1-away-4680000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":4601035,\"end_ms\":4680000},\"value\":0.0,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch5-possession_control-m-1-home-4680000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"interpretive\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":4601035,\"end_ms\":4680000},\"value\":1.0,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch5-possession_control-m-1-away-4680000\"}]}],\"backing_reading\":{\"kind\":\"reading\",\"id\":\"m-1-epoch5-possession_control-m-1-away-4680000\"},\"threshold\":2.0},{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"pressing_intensity\",\"window\":{\"start_ms\":4601035,\"end_ms\":4680000},\"value\":1.0,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch5-pressing_intensity-m-1-home-4680000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"pressing_intensity\",\"window\":{\"start_ms\":4601035,\"end_ms\":4680000},\"value\":6.0,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch5-pressing_intensity-m-1-away-4680000\"}]}],\"backing_reading\":null,\"threshold\":null}]}",
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },
- "71aa7ab09fa34dfa8a19a4a3907cf20b3c0c2e25d0c427e555d9cb6f3e00dc54": {
-  "text": "{\"text\":\"Won in the final third, quick attack: 2 passes in 8 s, from 10.2 m.\"}",
+ "523daca68b1c69fc4dc4dabcd51c83e2c48aa1a3c36814250500d3d68b3429f3": {
+  "text": "{\"text\":\"Ball won in midfield, with a quick attack: 5 passes in 12 s, assist: Elio Bromont.\"}",
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },
- "74f2ef313d0d7395926d2a144f374f364eba232f8f94a69eb99124ce12eba82a": {
-  "text": "{\"claims\":[{\"claim_type\":\"descriptive\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"territory\",\"window\":{\"start_ms\":4260000,\"end_ms\":4560000},\"value\":0.875,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch4-territory-m-1-home-4560000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"descriptive\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":4260000,\"end_ms\":4560000},\"value\":0.532258064516129,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch4-possession_control-m-1-home-4560000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"descriptive\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"pressing_intensity\",\"window\":{\"start_ms\":4260000,\"end_ms\":4560000},\"value\":8.333333333333334,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch4-pressing_intensity-m-1-home-4560000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"descriptive\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"chance_quality\",\"window\":{\"start_ms\":4260000,\"end_ms\":4560000},\"value\":0.15134937315,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch4-chance_quality-m-1-home-4560000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"territory\",\"window\":{\"start_ms\":4260000,\"end_ms\":4560000},\"value\":0.875,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch4-territory-m-1-home-4560000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"territory\",\"window\":{\"start_ms\":4260000,\"end_ms\":4560000},\"value\":0.125,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch4-territory-m-1-away-4560000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"pressing_intensity\",\"window\":{\"start_ms\":4260000,\"end_ms\":4560000},\"value\":8.333333333333334,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch4-pressing_intensity-m-1-home-4560000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"pressing_intensity\",\"window\":{\"start_ms\":4260000,\"end_ms\":4560000},\"value\":6.0,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch4-pressing_intensity-m-1-away-4560000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":4260000,\"end_ms\":4560000},\"value\":0.532258064516129,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch4-possession_control-m-1-home-4560000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":4260000,\"end_ms\":4560000},\"value\":0.46774193548387094,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch4-possession_control-m-1-away-4560000\"}]}],\"backing_reading\":null,\"threshold\":null}]}",
+ "5a28db1b59f4678adc6dc562fa371c134729825291b076523bf4d39aad2f3620": {
+  "text": "{\"text\":\"Arlo Lorwick was set up by Sami Orsner.\"}",
+  "model": "gpt-5.4-mini",
+  "model_version": "gpt-5.4-mini-2026-03-17"
+ },
+ "5ccba41096bcd89220520493c01c4dd094189e9489e4592f2368c3db63a1e186": {
+  "text": "{\"text\":\"A high-quality chance from 5.4 m.\"}",
+  "model": "gpt-5.4-mini",
+  "model_version": "gpt-5.4-mini-2026-03-17"
+ },
+ "6ae19b0ec74b384e92aecf8eb4c58fc2416d51ff239256d4475b42b816a9a717": {
+  "text": "{\"claims\":[{\"claim_type\":\"descriptive\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":764535,\"end_ms\":900000},\"value\":0.46153846153846156,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch1-possession_control-m-1-away-900000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":764535,\"end_ms\":900000},\"value\":0.46153846153846156,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch1-possession_control-m-1-away-900000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":764535,\"end_ms\":900000},\"value\":0.5384615384615384,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch1-possession_control-m-1-home-900000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"interpretive\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"territory\",\"window\":{\"start_ms\":420000,\"end_ms\":720000},\"value\":1.0,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch0-territory-m-1-away-720000\"}]}],\"backing_reading\":{\"kind\":\"reading\",\"id\":\"m-1-epoch0-territory-m-1-away-720000\"},\"threshold\":1.25}]}",
+  "model": "gpt-5.4-mini",
+  "model_version": "gpt-5.4-mini-2026-03-17"
+ },
+ "6ccf5c756d8bd45e351bcd60b25ad74782ba8c7e2f0f2a0e493bcea97fb13488": {
+  "text": "{\"text\":\"Kofi Rennov set it up.\"}",
+  "model": "gpt-5.4-mini",
+  "model_version": "gpt-5.4-mini-2026-03-17"
+ },
+ "6d6904537c0de56e95a5d53b1292a96ec22af42fddfd48b3ff45133d4848c16b": {
+  "text": "{\"claims\":[{\"claim_type\":\"descriptive\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"build_up_passes\",\"window\":{\"start_ms\":3749035,\"end_ms\":3766535},\"value\":6,\"evidence_ids\":[{\"kind\":\"event\",\"id\":\"m-1-e1268\"},{\"kind\":\"event\",\"id\":\"m-1-e1269\"},{\"kind\":\"event\",\"id\":\"m-1-e1270\"},{\"kind\":\"event\",\"id\":\"m-1-e1271\"},{\"kind\":\"event\",\"id\":\"m-1-e1272\"},{\"kind\":\"event\",\"id\":\"m-1-e1273\"},{\"kind\":\"event\",\"id\":\"m-1-e1274\"},{\"kind\":\"event\",\"id\":\"m-1-e1275\"},{\"kind\":\"event\",\"id\":\"m-1-e1276\"},{\"kind\":\"event\",\"id\":\"m-1-e1277\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":3479535,\"end_ms\":3720000},\"value\":0.7727272727272727,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch4-possession_control-m-1-home-3720000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":3479535,\"end_ms\":3720000},\"value\":0.22727272727272727,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch4-possession_control-m-1-away-3720000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"interpretive\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"territory\",\"window\":{\"start_ms\":3479535,\"end_ms\":3720000},\"value\":1.0,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch4-territory-m-1-home-3720000\"}]}],\"backing_reading\":{\"kind\":\"reading\",\"id\":\"m-1-epoch4-territory-m-1-home-3720000\"},\"threshold\":1.25}]}",
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },
@@ -59,53 +79,63 @@
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },
- "7d51d4246028214711cea23727b30b1f0adaa9de2ea5d876dc7bf699b19a823b": {
-  "text": "{\"text\":\"Riverside Athletic lead 3\u20132.\"}",
+ "80a7b680a26c7c253ae6b946943f49f8461307bad8fa77abc5e6b8ffb1bcd709": {
+  "text": "{\"text\":\"Sami Orsner set it up.\"}",
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },
- "7fcb4cdb40e2a13c418708dc47fca0dfacffa62f1d7920d6bd9542911e12566f": {
-  "text": "{\"text\":\"The ball was won in midfield, and Yusuf Savlan lost it.\"}",
+ "8bc54bf5c9dd3acd8b1dbc04fac1360eef65c7719a6a51a9db10939268e50236": {
+  "text": "{\"text\":\"The ball was won in midfield and a shot from 3.6 m.\"}",
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },
- "83b59093394b703862c9cdc377d03314b9dbf9eaf6779c79f5098e6db1db3103": {
-  "text": "{\"text\":\"Ball won in the final third, then a quick attack: 1 pass in 6 s from 16.5 m.\"}",
+ "9363e37479afcec2e00b6231a79a94cb5034b19400c870a8fc1b164a33c3a946": {
+  "text": "{\"text\":\"Dale Drustow, after the ball was won in midfield, shot from 1.1 m.\"}",
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },
- "8adaf62288e197279bbf4386f57b3a44e10d35c0c7215485c76f0b4285b8e1cf": {
-  "text": "{\"text\":\"It came from a quick attack.\"}",
+ "9378c3a8d883365841ef77ac454d5bc794835ee1d1e505f39ea6879043545de5": {
+  "text": "{\"text\":\"Riverside Athletic lead 3\u20132, with Arlo Lorwick's second goal today set up by Finn Norham.\"}",
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },
- "8c91d6e134315b2d3859f66d0ff9b4edde6218b9ac11411aa79fbfac86545dea": {
-  "text": "{\"text\":\"Won in midfield, a patient move: 15 passes over 34 s, from 3.9 m.\"}",
+ "945301e00a396f9f0ffbe2ac2e97c4e3d84e275143ed90b2fac44784eaeeb4b1": {
+  "text": "{\"claims\":[{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"territory\",\"window\":{\"start_ms\":2400000,\"end_ms\":2700000},\"value\":0.875,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch2-territory-m-1-away-2700000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"territory\",\"window\":{\"start_ms\":2400000,\"end_ms\":2700000},\"value\":0.125,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch2-territory-m-1-home-2700000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"interpretive\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"pressing_intensity\",\"window\":{\"start_ms\":2400000,\"end_ms\":2700000},\"value\":16.0,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch2-pressing_intensity-m-1-home-2700000\"}]}],\"backing_reading\":{\"kind\":\"reading\",\"id\":\"m-1-epoch2-pressing_intensity-m-1-home-2700000\"},\"threshold\":2.0}]}",
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },
- "90d9fba19328615f10e949e004c8968b1e8c53ed6923add22b3739527346cfc6": {
-  "text": "{\"claims\":[{\"claim_type\":\"descriptive\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":2880000,\"end_ms\":3180000},\"value\":0.5142857142857142,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch3-possession_control-m-1-home-3180000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"territory\",\"window\":{\"start_ms\":2880000,\"end_ms\":3180000},\"value\":0.5,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch3-territory-m-1-home-3180000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"territory\",\"window\":{\"start_ms\":2880000,\"end_ms\":3180000},\"value\":0.5,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch3-territory-m-1-away-3180000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"pressing_intensity\",\"window\":{\"start_ms\":2880000,\"end_ms\":3180000},\"value\":8.333333333333334,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch3-pressing_intensity-m-1-home-3180000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"pressing_intensity\",\"window\":{\"start_ms\":2880000,\"end_ms\":3180000},\"value\":7.333333333333333,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch3-pressing_intensity-m-1-away-3180000\"}]}],\"backing_reading\":null,\"threshold\":null}]}",
+ "99de914facc459343eab7898786276400d86d632667045008390aacb118677ba": {
+  "text": "{\"claims\":[{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"pressing_intensity\",\"window\":{\"start_ms\":2880000,\"end_ms\":3180000},\"value\":8.333333333333334,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch3-pressing_intensity-m-1-home-3180000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"pressing_intensity\",\"window\":{\"start_ms\":2880000,\"end_ms\":3180000},\"value\":7.333333333333333,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch3-pressing_intensity-m-1-away-3180000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"chance_quality\",\"window\":{\"start_ms\":2880000,\"end_ms\":3180000},\"value\":0.24383375776,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch3-chance_quality-m-1-home-3180000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"chance_quality\",\"window\":{\"start_ms\":2460000,\"end_ms\":2760000},\"value\":0.0,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch2-chance_quality-m-1-home-2760000\"}]}],\"backing_reading\":null,\"threshold\":null}]}",
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },
- "c98054373842ef895dbc52b5896869b6eb3802bdc9a60536745815ceeb134313": {
-  "text": "{\"claims\":[{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"territory\",\"window\":{\"start_ms\":5040000,\"end_ms\":5340000},\"value\":0.42857142857142855,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch5-territory-m-1-home-5340000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"territory\",\"window\":{\"start_ms\":5040000,\"end_ms\":5340000},\"value\":0.5714285714285714,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch5-territory-m-1-away-5340000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":5040000,\"end_ms\":5340000},\"value\":0.5094339622641509,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch5-possession_control-m-1-home-5340000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":5040000,\"end_ms\":5340000},\"value\":0.49056603773584906,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch5-possession_control-m-1-away-5340000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"pressing_intensity\",\"window\":{\"start_ms\":5040000,\"end_ms\":5340000},\"value\":4.666666666666667,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch5-pressing_intensity-m-1-home-5340000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"pressing_intensity\",\"window\":{\"start_ms\":5040000,\"end_ms\":5340000},\"value\":3.75,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch5-pressing_intensity-m-1-away-5340000\"}]}],\"backing_reading\":null,\"threshold\":null}]}",
+ "9c4356f96f6ad8f97e986c01c3fc2a7aba613488eb290b3fc91c87bc37cbc0ff": {
+  "text": "{\"claims\":[{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":1980000,\"end_ms\":2280000},\"value\":0.391304347826087,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch1-possession_control-m-1-away-2280000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":1980000,\"end_ms\":2280000},\"value\":0.6086956521739131,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch1-possession_control-m-1-home-2280000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"territory\",\"window\":{\"start_ms\":1980000,\"end_ms\":2280000},\"value\":0.6666666666666666,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch1-territory-m-1-away-2280000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"territory\",\"window\":{\"start_ms\":1980000,\"end_ms\":2280000},\"value\":0.3333333333333333,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch1-territory-m-1-home-2280000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"pressing_intensity\",\"window\":{\"start_ms\":1980000,\"end_ms\":2280000},\"value\":5.857142857142857,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch1-pressing_intensity-m-1-away-2280000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"pressing_intensity\",\"window\":{\"start_ms\":1980000,\"end_ms\":2280000},\"value\":4.25,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch1-pressing_intensity-m-1-home-2280000\"}]}],\"backing_reading\":null,\"threshold\":null}]}",
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },
- "cafa8f52243b1f4abe901f28ca254585ace130f54af6e84b38a35d3b5a379331": {
-  "text": "{\"text\":\"Gideon Corlan's first of the match came in a quick attack of 4 passes in 12 s.\"}",
+ "a52d2575255c75b3fa7cf282d6a06dec41aabc161b0732818da143547070b968": {
+  "text": "{\"claims\":[{\"claim_type\":\"descriptive\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":2940000,\"end_ms\":3240000},\"value\":0.47761194029850745,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch3-possession_control-m-1-home-3240000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"territory\",\"window\":{\"start_ms\":2940000,\"end_ms\":3240000},\"value\":0.5555555555555556,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch3-territory-m-1-home-3240000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"territory\",\"window\":{\"start_ms\":2940000,\"end_ms\":3240000},\"value\":0.4444444444444444,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch3-territory-m-1-away-3240000\"}]}],\"backing_reading\":null,\"threshold\":null}]}",
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },
- "d35393ea839b907f0c7b2f9348bd037597439e05d0045106bfa319a029ab9752": {
-  "text": "{\"text\":\"Won back high up the pitch.\"}",
+ "c4b112d0e1f2afc55ea54b325287f40b84a5bbe6d59da8749f99715dff35750e": {
+  "text": "{\"text\":\"Gideon Corlan is the scorer.\"}",
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },
- "d6575851fabe5b01407b97b234cfa3d2b2538b4379545b572d70e8bcb0d64c71": {
-  "text": "{\"text\":\"Riverside Athletic trail 1\u20132.\"}",
+ "c73bbdf84929756ab9eccf508dd4adca4368129122490e461f72bff887d193b4": {
+  "text": "{\"text\":\"Ball won in the final third, quick attack: 1 pass in 6 s, assist: Sami Orsner.\"}",
+  "model": "gpt-5.4-mini",
+  "model_version": "gpt-5.4-mini-2026-03-17"
+ },
+ "c76d97a1ea6f540da638d93fd34ae1af1583645d70aec3126d8c93a0b06124b6": {
+  "text": "{\"text\":\"Riverside Athletic trail 1\u20132, with Idris Gorstow set up by Kofi Rennov.\"}",
+  "model": "gpt-5.4-mini",
+  "model_version": "gpt-5.4-mini-2026-03-17"
+ },
+ "cd63084011dac6bb27654f0f995bbb00b71cf7c19458f08e64c2be498b613792": {
+  "text": "{\"text\":\"Ball won in the final third, with 2 passes in 8 s and assist Kofi Rennov.\"}",
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },
@@ -114,28 +144,13 @@
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },
- "e11dd5f9ee53c5614564f6274ed02270b8159c6a9fbf16c8255fde51b1d2b104": {
-  "text": "{\"claims\":[{\"claim_type\":\"descriptive\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":3479535,\"end_ms\":3720000},\"value\":0.7727272727272727,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch4-possession_control-m-1-home-3720000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":3479535,\"end_ms\":3720000},\"value\":0.7727272727272727,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch4-possession_control-m-1-home-3720000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":3120000,\"end_ms\":3420000},\"value\":0.55,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch3-possession_control-m-1-home-3420000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"interpretive\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":3479535,\"end_ms\":3720000},\"value\":0.7727272727272727,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch4-possession_control-m-1-home-3720000\"}]}],\"backing_reading\":{\"kind\":\"reading\",\"id\":\"m-1-epoch4-possession_control-m-1-home-3720000\"},\"threshold\":1.25}]}",
+ "e52ad5e4e2097da48902d5b1cb934273f5445e197e2c3829f436080abe05d8e5": {
+  "text": "{\"text\":\"Idris Lorwick gave it away.\"}",
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },
- "e24c95ed465677f211df075a51fcc7079697c321d57da02055aecaddacadf878": {
-  "text": "{\"claims\":[{\"claim_type\":\"descriptive\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":2940000,\"end_ms\":3240000},\"value\":0.47761194029850745,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch3-possession_control-m-1-home-3240000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":2940000,\"end_ms\":3240000},\"value\":0.47761194029850745,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch3-possession_control-m-1-home-3240000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":2940000,\"end_ms\":3240000},\"value\":0.5223880597014925,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch3-possession_control-m-1-away-3240000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"interpretive\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"chance_quality\",\"window\":{\"start_ms\":2940000,\"end_ms\":3240000},\"value\":0.538970099506,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch3-chance_quality-m-1-home-3240000\"}]}],\"backing_reading\":{\"kind\":\"reading\",\"id\":\"m-1-epoch3-chance_quality-m-1-home-3240000\"},\"threshold\":1.25}]}",
-  "model": "gpt-5.4-mini",
-  "model_version": "gpt-5.4-mini-2026-03-17"
- },
- "e6a18f656f542e91c82344471f658fa01bbe22dec54cb2b604d2aa06767dc820": {
-  "text": "{\"text\":\"Ball won in own third, quick attack: 8 passes in 20 s.\"}",
-  "model": "gpt-5.4-mini",
-  "model_version": "gpt-5.4-mini-2026-03-17"
- },
- "ed77c28e32c62cec1c95581f2074fa58b5c82e94174580fe94850009f0416650": {
-  "text": "{\"claims\":[{\"claim_type\":\"descriptive\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"build_up_passes\",\"window\":{\"start_ms\":2305535,\"end_ms\":2317035},\"value\":4,\"evidence_ids\":[{\"kind\":\"event\",\"id\":\"m-1-e745\"},{\"kind\":\"event\",\"id\":\"m-1-e746\"},{\"kind\":\"event\",\"id\":\"m-1-e747\"},{\"kind\":\"event\",\"id\":\"m-1-e748\"},{\"kind\":\"event\",\"id\":\"m-1-e749\"},{\"kind\":\"event\",\"id\":\"m-1-e750\"},{\"kind\":\"event\",\"id\":\"m-1-e751\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"descriptive\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"build_up_passes\",\"window\":{\"start_ms\":2278535,\"end_ms\":2285535},\"value\":4,\"evidence_ids\":[{\"kind\":\"event\",\"id\":\"m-1-e739\"},{\"kind\":\"event\",\"id\":\"m-1-e740\"},{\"kind\":\"event\",\"id\":\"m-1-e741\"},{\"kind\":\"event\",\"id\":\"m-1-e742\"},{\"kind\":\"event\",\"id\":\"m-1-e743\"},{\"kind\":\"event\",\"id\":\"m-1-e744\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"build_up_passes\",\"window\":{\"start_ms\":2305535,\"end_ms\":2317035},\"value\":4,\"evidence_ids\":[{\"kind\":\"event\",\"id\":\"m-1-e745\"},{\"kind\":\"event\",\"id\":\"m-1-e746\"},{\"kind\":\"event\",\"id\":\"m-1-e747\"},{\"kind\":\"event\",\"id\":\"m-1-e748\"},{\"kind\":\"event\",\"id\":\"m-1-e749\"},{\"kind\":\"event\",\"id\":\"m-1-e750\"},{\"kind\":\"event\",\"id\":\"m-1-e751\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"build_up_passes\",\"window\":{\"start_ms\":2278535,\"end_ms\":2285535},\"value\":4,\"evidence_ids\":[{\"kind\":\"event\",\"id\":\"m-1-e739\"},{\"kind\":\"event\",\"id\":\"m-1-e740\"},{\"kind\":\"event\",\"id\":\"m-1-e741\"},{\"kind\":\"event\",\"id\":\"m-1-e742\"},{\"kind\":\"event\",\"id\":\"m-1-e743\"},{\"kind\":\"event\",\"id\":\"m-1-e744\"}]}],\"backing_reading\":null,\"threshold\":null}]}",
-  "model": "gpt-5.4-mini",
-  "model_version": "gpt-5.4-mini-2026-03-17"
- },
- "ee877309c504b2f5b044d1f6ce31c9c2f0b265afc90841bd310be3038c401ea0": {
-  "text": "{\"text\":\"It is 2\u20132.\"}",
+ "f4c0d07129fe83d6322d218c7a42fabd7732daa47e84df99a580740ed487f324": {
+  "text": "{\"text\":\"Dale Drustow.\"}",
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },
@@ -144,8 +159,8 @@
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },
- "f86a54724243014d8aed1beab25d63a10ccc63f9ca0169f728f78e691a27ca06": {
-  "text": "{\"claims\":[{\"claim_type\":\"descriptive\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"territory\",\"window\":{\"start_ms\":2400000,\"end_ms\":2700000},\"value\":0.875,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch2-territory-m-1-away-2700000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":2400000,\"end_ms\":2700000},\"value\":0.4262295081967213,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch2-possession_control-m-1-home-2700000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":2400000,\"end_ms\":2700000},\"value\":0.5737704918032787,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch2-possession_control-m-1-away-2700000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"interpretive\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"pressing_intensity\",\"window\":{\"start_ms\":2400000,\"end_ms\":2700000},\"value\":16.0,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch2-pressing_intensity-m-1-home-2700000\"}]}],\"backing_reading\":{\"kind\":\"reading\",\"id\":\"m-1-epoch2-pressing_intensity-m-1-home-2700000\"},\"threshold\":2.0}]}",
+ "fdf8f13113a738a866be96f4b904ecbf8f3bda90515bf6a66005892afcfffc1e": {
+  "text": "{\"claims\":[{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"territory\",\"window\":{\"start_ms\":5040000,\"end_ms\":5340000},\"value\":0.42857142857142855,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch5-territory-m-1-home-5340000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"territory\",\"window\":{\"start_ms\":5040000,\"end_ms\":5340000},\"value\":0.5714285714285714,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch5-territory-m-1-away-5340000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":5040000,\"end_ms\":5340000},\"value\":0.5094339622641509,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch5-possession_control-m-1-home-5340000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":5040000,\"end_ms\":5340000},\"value\":0.49056603773584906,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch5-possession_control-m-1-away-5340000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"pressing_intensity\",\"window\":{\"start_ms\":5040000,\"end_ms\":5340000},\"value\":4.666666666666667,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch5-pressing_intensity-m-1-home-5340000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"pressing_intensity\",\"window\":{\"start_ms\":5040000,\"end_ms\":5340000},\"value\":3.75,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch5-pressing_intensity-m-1-away-5340000\"}]}],\"backing_reading\":null,\"threshold\":null}]}",
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },

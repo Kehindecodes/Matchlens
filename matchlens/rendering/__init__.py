@@ -16,6 +16,7 @@ from matchlens.models import (
     Moment,
     MomentType,
     OverlayPacket,
+    RefKind,
     Rendition,
     SuppressionReason,
 )
@@ -223,7 +224,8 @@ def _words(
     spoken = [
         (claim, text)
         for claim in _in_order(selection.claims, moment, lens, pick)
-        if (focus is None or limit is None or _about_the_standing(claim, moment))
+        if (focus is None or not _names_their_player(claim, moment, side))
+        and (focus is None or limit is None or _for_a_supporter(claim, moment))
         and (
             text := sentence(
                 claim,
@@ -232,6 +234,7 @@ def _words(
                 names,
                 focus,
                 templates.variant_for(claim.claim_id),
+                side,
             )
         )
         is not None
@@ -271,35 +274,57 @@ def _state(moment: Moment, claims: tuple[Claim, ...]) -> str | None:
     return None
 
 
-def _joined(opening: str, sentences: list[str]) -> str:
-    """The opening line, if there is one, then the sentences, as one body."""
-    return " ".join(part for part in (opening, *sentences) if part)
-
-
 # How a goal or a chance came about, in the order each viewer wants it. A casual viewer is told
 # who gave it away and where it was won, a person and a place; one who wants the mechanism is
 # told where it was won, how fast it was punished and how far out it was struck, and the person
 # after. A depth that is not casual is the second: the order is a register, not a lens (D31).
-_HOW_CASUAL = (Metric.BALL_WON_THIRD, Metric.SHOT_DISTANCE)  # then the build-up, then the rest
+_HOW_CASUAL = (Metric.BALL_WON_THIRD, Metric.ASSIST, Metric.SHOT_DISTANCE)  # then the build-up
 _HOW_CLOSER = (
     Metric.BALL_WON_THIRD,
     Metric.BUILD_UP_PASSES,
+    Metric.ASSIST,
     Metric.SHOT_DISTANCE,
     Metric.BALL_LOST,
 )
 
 
-def _about_the_standing(claim: Claim, moment: Moment) -> bool:
-    """What a lens that follows a side speaks: where the side stands, not how it came about.
+def _names_their_player(claim: Claim, moment: Moment, side: str | None) -> bool:
+    """Whether `claim` names a player of the side the lens does not follow, which it never says.
 
-    A supporter is told the score a goal left, the run of chances their side is under or making,
-    and what moved in a shift. How the move began, or who lost the ball, is for the others.
+    A supporter is told their own side's players: who scored for them, who set it up, who gave
+    the ball away to the other side's goal, who saved or blocked the other side's shot. The
+    other side's scorer, assist and stopper are the other side's, so which they are follows from
+    whether the moment is for or against the side, and needs no roster.
     """
+    metric = claim.operands[0].metric
+    scorer = metric is Metric.GOALS and claim.operands[0].subject.kind is RefKind.PLAYER
     if moment.type is MomentType.GOAL:
-        return _is_score(claim)
+        if side == "for":
+            return metric in (Metric.BALL_LOST, Metric.BALL_LOST_BY_KEEPER)
+        return scorer or metric is Metric.ASSIST
+    if moment.type is MomentType.CHANCE and side == "for":
+        return metric in _STOPPERS
+    return False
+
+
+def _for_a_supporter(claim: Claim, moment: Moment) -> bool:
+    """What a lens that follows a side speaks: what happened to its side, and who did it.
+
+    A goal: the score it left, who scored, who set it up, and who gave the ball away for it. A
+    chance: the run it is part of, and who saved or blocked it. A shift: what moved. How the move
+    began, or how far out the shot was, is for the lenses that want the mechanism.
+    """
+    first = claim.operands[0]
+    if moment.type is MomentType.GOAL:
+        scorer = first.metric is Metric.GOALS and first.subject.kind is RefKind.PLAYER
+        return _is_score(claim) or scorer or first.metric in _GOAL_PEOPLE
     if moment.type is MomentType.CHANCE:
-        return claim.operands[0].metric is Metric.CHANCES
+        return first.metric is Metric.CHANCES or first.metric in _STOPPERS
     return True
+
+
+_GOAL_PEOPLE = frozenset({Metric.ASSIST, Metric.BALL_LOST, Metric.BALL_LOST_BY_KEEPER})
+_STOPPERS = frozenset({Metric.SHOT_SAVED_BY, Metric.SHOT_BLOCKED_BY})
 
 
 def _in_order(claims: tuple[Claim, ...], moment: Moment, lens: Lens, pick: int = 0) -> list[Claim]:
@@ -321,8 +346,18 @@ def _rank(claim: Claim, moment: Moment, lens: Lens, pick: int) -> int:
         return 0
     if moment.type is MomentType.GOAL and _is_score(claim):
         return 0 if lens.focus_team is not None else 90
+    if lens.focus_team is not None and moment.type is MomentType.GOAL:
+        # Where it leaves the side, then who scored, who set it up, and who gave it away.
+        scorer = first.metric is Metric.GOALS and first.subject.kind is RefKind.PLAYER
+        people = (Metric.ASSIST, Metric.BALL_LOST_BY_KEEPER, Metric.BALL_LOST)
+        if scorer:
+            return 1
+        if first.metric in people:
+            return 2 + people.index(first.metric)
     if first.metric is Metric.CHANCES:
         return 0 if len(claim.operands) == 1 else 1
+    if first.metric in _STOPPERS:
+        return 2
     order = _HOW_CLOSER
     if lens.depth is Depth.CASUAL:
         turn = pick % len(_HOW_CASUAL)  # a different first fact each time, so no card repeats

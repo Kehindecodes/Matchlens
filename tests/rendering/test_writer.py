@@ -121,7 +121,7 @@ class Fails(Proposer):
 
 
 def test_each_lens_is_shown_only_the_sentences_it_would_speak():
-    # The analyst speaks the first two claims it kept; the team lens, at standard detail, one.
+    # The analyst speaks the first three claims it kept; the team lens the score and who scored.
     # DROPPED was not selected by either, and no lens is shown it.
     model = Echo()
     write(_moment(), _selected(SCORED, SCORE, QUICK), ANALYST, NAMES, model)
@@ -138,8 +138,10 @@ def test_each_lens_is_shown_only_the_sentences_it_would_speak():
             "Ashworth 2, Larkfield 1.",
         ],
     }
-    # Told from the focus side and spoken first (D31, Q28: B), and the only one at standard.
-    assert json.loads(team)["sentences"] == ["Larkfield trail 1–2."]
+    # Told from the focus side and spoken first (D31, Q28: B), then who scored.
+    team_sentences = json.loads(team)["sentences"]
+    assert team_sentences[0] == "Larkfield trail 1–2."
+    assert any("Tom Brack" in sentence for sentence in team_sentences)  # who scored
     assert analyst_instructions != team_instructions
     for prompt in (analyst, team):
         assert "0.41" not in prompt  # DROPPED's value

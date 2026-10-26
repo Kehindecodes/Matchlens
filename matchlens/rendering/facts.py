@@ -30,18 +30,24 @@ def sentence(
     names: Mapping[str, str],
     focus: str | None = None,
     pick: int = 0,
+    side: str | None = None,
 ) -> str | None:
     """`claim` as one sentence at `depth`, or None if it is not one this depth speaks.
 
-    `focus` is the team id a lens follows, if it follows one. `pick` chooses among the row's
-    variants (`templates.variant_for`).
+    `focus` is the team id a lens follows, if it follows one, and `side` whether the moment is
+    for or against it: a save reads "saved by" for the side that shot and "makes the save" for the
+    side that kept it out, so a form may have a row for each, `saved_for` and `saved_against`.
+    `pick` chooses among the row's variants (`templates.variant_for`).
     """
     claim = _leader_first(told_from(claim, focus))
     read = _read(claim, language)
     if read is None:
         return None
     form, values = read
-    text = templates.fact(language, claim.operands[0].metric, form, depth, pick)
+    metric = claim.operands[0].metric
+    text = (side and templates.fact(language, metric, f"{form}_{side}", depth, pick)) or (
+        templates.fact(language, metric, form, depth, pick)
+    )
     if text is None:
         return None
     filled = {**_fields(claim, language, names), **values}
@@ -89,6 +95,14 @@ def _read(claim: Claim, language: str) -> tuple[str, Mapping[str, str | None]] |
         return {3: "won_high", 2: "won_middle", 1: "won_deep"}[int(value)], {}
     if metric is Metric.BALL_LOST:
         return "lost", {}
+    if metric is Metric.BALL_LOST_BY_KEEPER:
+        return "keeper_lost", {}
+    if metric is Metric.ASSIST:
+        return "assist", {}
+    if metric is Metric.SHOT_SAVED_BY:
+        return "saved", {}
+    if metric is Metric.SHOT_BLOCKED_BY:
+        return "blocked", {}
     if metric is Metric.SHOT_DISTANCE:
         close, far = settings.wording_close_range_m, settings.wording_long_range_m
         return ("close" if value <= close else "long" if value >= far else "mid"), {}

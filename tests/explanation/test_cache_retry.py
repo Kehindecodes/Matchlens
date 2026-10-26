@@ -1,5 +1,7 @@
 """The offline cache build waits out a rate limit instead of losing the answer."""
 
+from typing import override
+
 import pytest
 
 from matchlens.explanation.agent import Answer, Proposer
@@ -27,6 +29,7 @@ class Scripted(Proposer):
         self.outcomes = list(outcomes)
         self.calls = 0
 
+    @override
     def propose(self, instructions: str, prompt: str) -> Answer:
         self.calls += 1
         outcome = self.outcomes.pop(0)

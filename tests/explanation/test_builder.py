@@ -135,6 +135,20 @@ def _recount(operand, played: Played) -> float:
     if operand.metric is Metric.SHOT_DISTANCE:
         [shot] = cited
         return shot_distance(match, shot)
+    if operand.metric is Metric.BALL_LOST_BY_KEEPER:
+        [lost] = cited
+        assert lost.player == operand.subject.id
+        return 1.0
+    if operand.metric is Metric.ASSIST:
+        pass_, shot = cited
+        assert pass_.action is Action.PASS and pass_.receiver == shot.player
+        assert is_shot(shot) and pass_.team == shot.team
+        return 1.0
+    if operand.metric in (Metric.SHOT_SAVED_BY, Metric.SHOT_BLOCKED_BY):
+        shot, stop = cited
+        wanted = Action.SAVE if operand.metric is Metric.SHOT_SAVED_BY else Action.BLOCK
+        assert is_shot(shot) and stop.action is wanted and stop.team != shot.team
+        return 1.0
     raise AssertionError(operand.metric)
 
 
@@ -226,7 +240,7 @@ def test_the_same_seed_makes_identical_claims(seed_1):
 def test_every_claim_says_which_rules_made_it(seed_1):
     for x in seed_1.explained:
         for claim in x.claims:
-            assert (claim.model, claim.model_version) == ("deterministic", "claims-4")
+            assert (claim.model, claim.model_version) == ("deterministic", "claims-5")
 
 
 @pytest.mark.slow

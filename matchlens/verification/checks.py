@@ -28,8 +28,10 @@ from matchlens.models import (
 )
 from matchlens.understanding.buildup import (
     BALL_WINNING,
+    assist_of,
     losses,
     shot_distance,
+    stopper_of,
     win_third,
 )
 from matchlens.understanding.possession import from_events
@@ -39,7 +41,17 @@ from matchlens.verification.record import Record
 PASSED = CheckResult(status=CheckStatus.PASSED)
 
 _COUNTS = frozenset(
-    {Metric.GOALS, Metric.CHANCES, Metric.BUILD_UP_PASSES, Metric.BALL_WON_THIRD, Metric.BALL_LOST}
+    {
+        Metric.GOALS,
+        Metric.CHANCES,
+        Metric.BUILD_UP_PASSES,
+        Metric.BALL_WON_THIRD,
+        Metric.BALL_LOST,
+        Metric.BALL_LOST_BY_KEEPER,
+        Metric.ASSIST,
+        Metric.SHOT_SAVED_BY,
+        Metric.SHOT_BLOCKED_BY,
+    }
 )
 _SIGNALS = frozenset(
     {Metric.TERRITORY, Metric.POSSESSION_CONTROL, Metric.PRESSING_INTENSITY, Metric.CHANCE_QUALITY}
@@ -152,8 +164,10 @@ def recompute(o: Operand, record: Record) -> list[float]:
                 )
             )
         ]
-    if o.metric is Metric.BALL_LOST:
+    if o.metric in (Metric.BALL_LOST, Metric.BALL_LOST_BY_KEEPER):
         return [_ball_lost(o, record)]
+    if o.metric in (Metric.ASSIST, Metric.SHOT_SAVED_BY, Metric.SHOT_BLOCKED_BY):
+        return [_around_a_shot(o, record)]
     team = _team_only(o)
     if o.metric is Metric.BALL_WON_THIRD:
         wins = [
@@ -211,10 +225,48 @@ def recompute(o: Operand, record: Record) -> list[float]:
     return [r.value for r in readings]
 
 
-def _ball_lost(o: Operand, record: Record) -> float:
-    """1 if the record says `o`'s player gave the ball away at its clock, else 0."""
+def _around_a_shot(o: Operand, record: Record) -> float:
+    """1 if the record says `o`'s player set a shot up, saved it or blocked it, in its window.
+
+    The window runs from the player's event to the shot, for an assist, or from the shot to the
+    player's event, for a save or a block.
+    """
     if o.subject.kind is not RefKind.PLAYER:
         raise _Unrecomputable(f"{o.metric} is a player's, not a {o.subject.kind}'s")
+    start, end = o.window.start_ms, o.window.end_ms
+    for shot in record.events:
+        if not is_shot(shot):
+            continue
+        if o.metric is Metric.ASSIST:
+            pass_ = assist_of(record.events, shot)
+            if (
+                pass_
+                and pass_.player == o.subject.id
+                and (pass_.clock_ms, shot.clock_ms) == (start, end)
+            ):
+                return 1.0
+            continue
+        stop = stopper_of(record.events, shot)
+        wanted = Action.SAVE if o.metric is Metric.SHOT_SAVED_BY else Action.BLOCK
+        if (
+            stop
+            and stop.player == o.subject.id
+            and stop.action is wanted
+            and (shot.clock_ms, stop.clock_ms) == (start, end)
+        ):
+            return 1.0
+    return 0.0
+
+
+def _ball_lost(o: Operand, record: Record) -> float:
+    """1 if the record says `o`'s player gave the ball away at its clock, else 0.
+
+    For a keeper's, the player has to be a goalkeeper."""
+    if o.subject.kind is not RefKind.PLAYER:
+        raise _Unrecomputable(f"{o.metric} is a player's, not a {o.subject.kind}'s")
+    keeper = record.player.get(o.subject.id)
+    if o.metric is Metric.BALL_LOST_BY_KEEPER and (keeper is None or keeper.position != "GK"):
+        return 0.0
     end = o.window.end_ms
     # The whole record, not the events up to the loss: a loss is only one when the other side
     # takes the ball next, and that event comes after it.
@@ -283,10 +335,26 @@ def _supports(o: Operand, record: Record) -> str | None:
         if off:
             return f"cites events that are not {subject}'s goals in the window: {', '.join(off)}"
         counted = float(len(events))
-    elif o.metric is Metric.BALL_LOST:
+    elif o.metric in (Metric.BALL_LOST, Metric.BALL_LOST_BY_KEEPER):
         if len(events) != 1 or events[0].player != subject or events[0].clock_ms != end:
             return f"a loss cites that one event by {subject} at {end} ms"
         counted = 1.0
+    elif o.metric is Metric.ASSIST:
+        if len(events) != 2 or not is_shot(events[1]) or events[0].player != subject:
+            return f"an assist cites the pass by {subject} and the shot it set up"
+        if (events[0].clock_ms, events[1].clock_ms) != (start, end):
+            return "cites a pass and a shot at other clocks"
+        counted = 1.0 if assist_of(events, events[1]) is not None else 0.0
+    elif o.metric in (Metric.SHOT_SAVED_BY, Metric.SHOT_BLOCKED_BY):
+        wanted = Action.SAVE if o.metric is Metric.SHOT_SAVED_BY else Action.BLOCK
+        if len(events) != 2 or not is_shot(events[0]) or events[1].player != subject:
+            return f"a stop cites the shot and the event by {subject} that stopped it"
+        if events[1].action is not wanted or (events[0].clock_ms, events[1].clock_ms) != (
+            start,
+            end,
+        ):
+            return "cites a shot and a stop that do not match"
+        counted = 1.0 if events[1].team != events[0].team else 0.0
     elif o.metric is Metric.BALL_WON_THIRD:
         if len(events) != 1 or events[0].team != subject or events[0].action not in BALL_WINNING:
             return f"a win cites that one ball-winning event by {subject}"

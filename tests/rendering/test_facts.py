@@ -208,13 +208,13 @@ def test_a_share_is_a_percentage_and_pressing_is_passes_per_defensive_action():
 
 
 def test_a_chance_comparison_is_said_only_for_a_clear_edge_and_from_the_side_with_more():
-    window = {"start_ms": 0, "end_ms": settings.claim_chance_window_ms}
-    ahead = _operand(Metric.CHANCES, 5, **window)
-    behind = _operand(Metric.CHANCES, 2, subject=AWAY, **window)
+    end = settings.claim_chance_window_ms
+    ahead = _operand(Metric.CHANCES, 5, start_ms=0, end_ms=end)
+    behind = _operand(Metric.CHANCES, 2, subject=AWAY, start_ms=0, end_ms=end)
     assert "lead the big chances 5 to 2" in _said(_claim(ahead, behind))
     assert "lead the big chances 5 to 2" in _said(_claim(behind, ahead))  # read from the leader
     assert "most of the chances" in _said(_claim(ahead, behind), Depth.CASUAL)
-    close = _operand(Metric.CHANCES, 4, subject=AWAY, **window)
+    close = _operand(Metric.CHANCES, 4, subject=AWAY, start_ms=0, end_ms=end)
     assert _say(_claim(ahead, close)) is None  # four to five is not an edge
 
 
@@ -253,3 +253,32 @@ def test_how_far_out_a_shot_was_is_said_in_bands_and_casual_hears_only_the_extre
     assert "distance" in _said(far, Depth.CASUAL)
     for claim, metres in ((close, "8.4"), (mid, "18"), (far, "27.5")):
         assert f"{metres} m" in _said(claim, Depth.ANALYST)
+
+
+# --- who, for a supporter ------------------------------------------------------------------------
+
+
+def _said_from(claim: Claim, side: str, depth: Depth = Depth.ENGAGED) -> str:
+    text = sentence(claim, depth, "en", NAMES, side=side)
+    assert text is not None
+    return text
+
+
+def test_an_assist_a_save_and_a_block_name_the_player_and_never_the_position():
+    names = {"home-p9": "Ada Quill"}
+    assert "Ada Quill" in _said(_claim(_operand(Metric.ASSIST, 1, subject=SCORER)))
+    keeper = _claim(_operand(Metric.BALL_LOST_BY_KEEPER, 1, subject=SCORER))
+    for depth in Depth:
+        said = _said(keeper, depth)
+        assert "Ada Quill" in said
+        assert not re.search(r"keeper|goalkeeper|GK", said, re.IGNORECASE), said
+    assert names  # the mapping the pipeline supplies names players, not positions
+
+
+def test_a_save_is_told_differently_to_the_side_that_shot_and_the_side_that_kept_it_out():
+    saved = _claim(_operand(Metric.SHOT_SAVED_BY, 1, subject=SCORER))
+    assert _said_from(saved, "for") == "Saved by Ada Quill."
+    assert _said_from(saved, "against") == "Ada Quill makes the save."
+    blocked = _claim(_operand(Metric.SHOT_BLOCKED_BY, 1, subject=SCORER))
+    assert _said_from(blocked, "for") == "Blocked by Ada Quill."
+    assert _said_from(blocked, "against") == "Ada Quill blocks it."

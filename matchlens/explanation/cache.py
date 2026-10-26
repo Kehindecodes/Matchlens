@@ -79,12 +79,13 @@ class Recording(Proposer):
 def rate_limited(failure: BaseException) -> bool:
     """Whether `failure`, or anything it was raised from, is the service's 429."""
     seen: set[int] = set()
-    while failure is not None and id(failure) not in seen:
-        seen.add(id(failure))
-        text = repr(failure).lower()
+    current: BaseException | None = failure
+    while current is not None and id(current) not in seen:
+        seen.add(id(current))
+        text = repr(current).lower()
         if "ratelimit" in text or "rate_limit" in text or "error code: 429" in text:
             return True
-        failure = failure.__cause__ or failure.__context__
+        current = current.__cause__ or current.__context__
     return False
 
 

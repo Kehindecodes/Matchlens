@@ -168,7 +168,7 @@ def test_reading_from_the_focus_side_leaves_the_claim_as_it_was_made():
 def test_the_team_lens_speaks_where_the_moment_leaves_its_side_first():
     """Q28: B. One spoken claim, and for a team lens it is the score, not the explainer's first."""
     first, score = _claim("goals", value=2, metric=Metric.GOALS), _score(OPPONENT, 2, SIDE, 1)
-    assert TEAM.detail_level is DetailLevel.STANDARD  # it speaks one claim
+    assert TEAM.detail_level is DetailLevel.FULL  # a supporter is told who as well as the score
     goal = _moment(MomentType.GOAL, OPPONENT)
     team = render(goal, _selected(first, score), TEAM, NAMES)
     assert "Larkfield trail 1–2." in _text(team)

@@ -41,7 +41,7 @@
       "importance_threshold": 0.35,
       "max_cards_per_10min": 5,
       "allowed_claim_types": ["descriptive", "comparative", "interpretive"],
-      "detail_level": "standard",
+      "detail_level": "full",
       "language": "en",
       "focus_team": "m-1-home",
       "focus_player": null

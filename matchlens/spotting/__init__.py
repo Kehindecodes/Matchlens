@@ -10,6 +10,7 @@ from matchlens import calltrace
 from matchlens.config import settings
 from matchlens.ingest import RecordReader
 from matchlens.models import (
+    Action,
     Epoch,
     Event,
     Frame,
@@ -93,9 +94,26 @@ class Spotter:
     def _event(self, event: Event) -> Moment | None:
         if event.team is None:
             return None
+        triggers = (event.event_id,)
+        shot = event
         if event.outcome is Outcome.GOAL:
             type_, magnitude = MomentType.GOAL, self._goal_magnitude(event)
+        elif event.action in (Action.SAVE, Action.BLOCK):
+            # A shot that was stopped is spotted when it is stopped, a moment later, because who
+            # saved it or blocked it is half of what a supporter wants to know and is not in the
+            # log until then (invariant 6: a moment can only be explained from what is in it).
+            stopped = self._stopped_shot(event)
+            if stopped is None:
+                return None
+            shot, triggers = stopped, (stopped.event_id, event.event_id)
+            quality = value(stopped, self._record().match).value
+            type_, magnitude = (
+                MomentType.CHANCE,
+                max(quality, self._run_magnitude(stopped, quality)),
+            )
         elif is_shot(event):
+            if event.outcome in (Outcome.SAVED, Outcome.BLOCKED):
+                return None  # spotted when it is stopped, above
             quality = value(event, self._record().match).value
             if quality < settings.spotter_chance_quality:
                 return None
@@ -104,17 +122,30 @@ class Spotter:
             return None
 
         return Moment(
-            moment_id=f"moment-{event.event_id}",
+            moment_id=f"moment-{shot.event_id}",
             clock_ms=event.clock_ms,
             type=type_,
-            subject=Ref(kind=RefKind.TEAM, id=event.team),
+            subject=Ref(kind=RefKind.TEAM, id=shot.team or event.team),
             importance=importance(type_, magnitude),
             trigger_reading_ids=(),
-            trigger_event_ids=(event.event_id,),
+            trigger_event_ids=triggers,
             epoch_id=self._epoch_at(event.clock_ms).epoch_id,
             model=MODEL,
             model_version=MODEL_VERSION,
         )
+
+    def _stopped_shot(self, stop: Event) -> Event | None:
+        """The big chance that `stop` stopped: the event just before it, by the other side."""
+        before = [
+            e
+            for e in self._record().events_between(stop.clock_ms - 3000, stop.clock_ms + 1)
+            if e.seq < stop.seq
+        ]
+        shot = before[-1] if before else None
+        if shot is None or not is_shot(shot) or shot.team == stop.team:
+            return None
+        quality = value(shot, self._record().match).value
+        return shot if quality >= settings.spotter_chance_quality else None
 
     def _run_magnitude(self, shot: Event, quality: float) -> float:
         """What a big chance is worth when it is one of a run: the side has had several in ten

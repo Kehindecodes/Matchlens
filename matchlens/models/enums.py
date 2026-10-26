@@ -130,6 +130,10 @@ class Metric(StrEnum):
     BALL_WON_THIRD = "ball_won_third"  # 1 to 3 from the winner's own third: where it was won
     BALL_LOST = "ball_lost"  # 1 for the player who gave the ball away to a move
     SHOT_DISTANCE = "shot_distance"  # metres from the centre of the goal attacked
+    ASSIST = "assist"  # 1 for the player whose completed pass was the one before a shot
+    SHOT_SAVED_BY = "shot_saved_by"  # 1 for the keeper whose save was the next event after a shot
+    SHOT_BLOCKED_BY = "shot_blocked_by"  # 1 for the player whose block was the next event
+    BALL_LOST_BY_KEEPER = "ball_lost_by_keeper"  # `ball_lost`, by a goalkeeper
 
 
 class ClaimType(StrEnum):

@@ -23,7 +23,7 @@ from matchlens.delivery.router import CardRouter
 from matchlens.delivery.sessions import SessionStore
 from matchlens.models import Event, MomentType, Outcome, Rendition, ViewerSession
 from matchlens.rendering import Card
-from matchlens.source import simulate
+from matchlens.source import MatchSetup, simulate
 from tests.delivery.test_http import LiveServer, _fields, _state
 from tests.overlays import overlay_for
 
@@ -69,8 +69,13 @@ def _log(queues: ReleaseQueues, session: ViewerSession) -> list[Card | CatchUp]:
 def _scorers() -> set[str]:
     """The names of the players who scored on seed 1, from the record and not from any card."""
     items = list(simulate(1))
-    names = {p.player_id: p.name for p in items[0].players}
-    return {names[e.player] for e in items if isinstance(e, Event) and e.outcome is Outcome.GOAL}
+    setup = next(item for item in items if isinstance(item, MatchSetup))
+    names = {player.player_id: player.name for player in setup.players}
+    return {
+        names[e.player]
+        for e in items
+        if isinstance(e, Event) and e.outcome is Outcome.GOAL and e.player is not None
+    }
 
 
 def _summary(cards: list[Card], lens_id: str, to_clock: int = JOIN) -> CatchUp:
@@ -134,8 +139,14 @@ def test_every_lens_is_told_the_goals_and_only_the_goals(seed_one, lens_id):
 def test_a_goal_is_told_with_its_scorer_and_how_the_move_began(seed_one, lens_id):
     scorers = _scorers()
     lines = _summary(seed_one, lens_id).lines
-    for line in lines:
-        assert any(name in line.body for name in scorers), line.body
+    if lens_id == "team_engaged":
+        # The team lens names only its own side's players: not the opponent's two scorers, and
+        # Riverside's own scorer on the third goal.
+        assert not any(name in line.body for line in lines[:2] for name in scorers)
+        assert any(name in lines[2].body for name in scorers), lines[2].body
+    else:
+        for line in lines:
+            assert any(name in line.body for name in scorers), line.body
     # The first goal came from winning the ball and a shot 12 seconds later, so every lens says
     # how. The second began with a throw-in, which is not an attack's start (D30): no claim.
     assert re.search(r"(quick|fast) attack", lines[0].body, re.IGNORECASE), lines[0].body
@@ -169,7 +180,9 @@ def test_with_no_goals_yet_a_joiner_is_told_the_most_important_moments(seed_one)
     early = [c for c in goalless if c.display_at_clock <= 40 * MINUTE]
     analyst = [c for c in early if c.rendition.lens_id == "match_analyst"]
     assert len(analyst) > settings.catchup_key_moments
-    lines = catchup.summarise(lenses.get("match_analyst"), goalless, 0, 40 * MINUTE).lines
+    summary = catchup.summarise(lenses.get("match_analyst"), goalless, 0, 40 * MINUTE)
+    assert summary is not None
+    lines = summary.lines
     top = sorted(analyst, key=lambda c: (-c.importance, c.display_at_clock))
     chosen = {c.rendition.moment_id for c in top[: settings.catchup_key_moments]}
     assert {line.moment_id for line in lines} == chosen
