@@ -84,7 +84,16 @@ flowchart TB
 
 Three more components sit across every band rather than inside one: **Lens Registry** (lens config is data, not code), **Control** (a producer can mute or release a lens mid-match), and **Audit** (the trail for every moment, including the claims that were rejected and the renditions that were suppressed).
 
-Two AI agents in the whole system: the **explainer** and the **renderer**. The **verifier is deliberately not a model** — a model-based verifier would itself be unverifiable.
+### The agent pattern: generate → adjudicate → degrade
+
+Two AI agents, one deterministic adjudicator between them, and a designed failure path.
+
+1. **The explainer agent** is handed a *frozen* slice of the record and asked why a moment matters. It may only produce claims that cite an `event_id` or a `reading_id` — it cannot appeal to anything it was not given, and it cannot see raw positional frames at all.
+2. **The adjudicator runs six checks** over every claim it produces — citation, temporal, entity, value, entailment, coverage — recomputing each number from the record rather than trusting the claim. A claim that fails is rejected, with the reason kept.
+3. **The writer agent** turns the surviving claims into words, once per lens, and only for the lens it was called for.
+4. **If the explainer is slow, wrong or down**, Rendering drops a rung and the card still ships from templates. Agent failure is a path through the system, not an exception out of it.
+
+**The adjudicator is deliberately not a model.** A model-based verifier is itself unverifiable, and the whole point of the pattern is that one party in the loop cannot hallucinate. That is the trade: fewer agents, and an output a platform could actually put on screen.
 
 ### If the model goes down
 

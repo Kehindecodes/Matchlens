@@ -341,6 +341,23 @@ def test_running_out_of_budget_fails_what_has_not_run(seed_1, monkeypatch):
     assert "budget" in (v.failure_reason or "")
 
 
+def test_a_pause_between_a_claims_checks_does_not_fail_it(seed_1, monkeypatch):
+    # A garbage collection stops every thread, and in the suite's large process one lasts close
+    # to a second. Landing between two checks, it used up the budget and dropped a claim from a
+    # card, so a test comparing two runs failed on whichever claim it hit. The tests run with the
+    # budget lifted (conftest) so that a slow machine cannot change what a run produces.
+    real = checks.temporal
+
+    def paused(claim, moment, record):
+        time.sleep(0.6)  # longer than the 500 ms the setting ships with
+        return real(claim, moment, record)
+
+    monkeypatch.setattr(checks, "temporal", paused)
+    x = seed_1.explained[0]
+    v = _verify(x, x.claims[0])
+    assert v.verdict is Verdict.PASS, v.failure_reason
+
+
 def test_a_claim_that_does_not_validate_fails_every_check(seed_1):
     x = seed_1.explained[0]
     malformed = Claim.model_construct(**(x.claims[0].__dict__ | {"operands": ()}))
@@ -367,7 +384,9 @@ def test_every_claim_is_checked_well_inside_the_budget(seed_1):
             v = _verify(x, claim)
             slowest = max(slowest, (time.perf_counter() - start) * 1000)
             assert v.latency_ms >= 0
-    assert slowest < settings.verifier_budget_ms / 5, f"slowest claim took {slowest:.1f} ms"
+    # The suite lifts the live budget (conftest), so this holds the claims to the shipped one.
+    shipped = type(settings).model_fields["verifier_budget_ms"].default
+    assert slowest < shipped / 5, f"slowest claim took {slowest:.1f} ms"
 
 
 # --- what the explainer's model gets wrong, A3 catches -----------------------------------------

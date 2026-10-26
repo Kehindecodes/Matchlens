@@ -15,6 +15,19 @@ def _no_live_model():
         yield
 
 
+@pytest.fixture(scope="session", autouse=True)
+def _a_slow_machine_changes_nothing():
+    """The verifier's budget is wall-clock time, and the suite's process is large: a garbage
+    collection there stops every thread for up to a second, and on a loaded CI runner longer. One
+    that lands between a claim's checks fails the rest of them, drops the claim from its card, and
+    fails whichever test compares two runs' cards, a different one each time. The budget is for a
+    runaway check, so the suite lifts it far out of reach; the tests of the budget itself set their
+    own, and the live value is read from the setting's default."""
+    with pytest.MonkeyPatch.context() as mp:
+        mp.setattr(settings, "verifier_budget_ms", 60_000)
+        yield
+
+
 @pytest.fixture(scope="session")
 def played():
     """Seed 1 played through to the end once: its moments, their claims and their records.
