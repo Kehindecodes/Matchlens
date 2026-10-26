@@ -27,6 +27,11 @@ param replaySpeed string = '25'
 @description('Serve the producer view at /producer (MATCHLENS_PRODUCER_VIEW). Off, it is not there at all.')
 param producerView string = 'true'
 
+@description('Replicas kept running. 1 through the judging window to 10 Nov (X4), so no visitor waits for a cold start; 0 after it, or the app keeps billing. infra/README.md has the cost.')
+@minValue(0)
+@maxValue(1)
+param minReplicas int = 1
+
 var bootstrap = empty(image)
 var placeholderImage = 'mcr.microsoft.com/k8se/quickstart:latest' // listens on 80, not 8000
 var acrPullRoleId = '7f951dda-4ed3-4680-a7ca-43fe172d538d'
@@ -157,6 +162,10 @@ resource app 'Microsoft.App/containerApps@2024-03-01' = {
               value: producerView
             }
             {
+              name: 'MATCHLENS_TRUST_FORWARDED_FOR' // every visitor reaches the app from the ingress; the limits need the address it forwards
+              value: 'true'
+            }
+            {
               name: 'APPLICATIONINSIGHTS_CONNECTION_STRING' // read by configure_azure_monitor()
               secretRef: 'appinsights-connection-string'
             }
@@ -164,8 +173,8 @@ resource app 'Microsoft.App/containerApps@2024-03-01' = {
         }
       ]
       scale: {
-        minReplicas: 0 // scale to zero until X4 sets min 1 for judging
-        maxReplicas: 1
+        minReplicas: minReplicas
+        maxReplicas: 1 // one match runs per process (D23, D33), so a second replica would play a second one
       }
     }
   }
