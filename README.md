@@ -1,104 +1,222 @@
 # Parallax
 
-A personalization layer for streaming platforms. One live football match is understood **once** and rendered as three genuinely different viewing experiences — whole match at casual depth, whole match at analyst depth, and one side at engaged-supporter depth.
+**A personalization layer for live football streaming.** One match is understood **once**, then told differently to a casual fan, an analyst and a supporter of one team — with every claim checked against the match record before it reaches anyone.
 
-Built for the viewer, sold to streaming platforms. Solo entry to the Microsoft Premier League Hackathon ("Inside the Game"), submission 27 October 2026.
+Solo entry to the Microsoft Premier League Hackathon ("Inside the Game").
 
-> **On the name:** the product is **Parallax** — the same object appears to shift depending on where you stand, which is what this builds. The Python package, the environment prefix and the Azure resources are still called `matchlens` from an earlier name, and are deliberately left that way: renaming them two days from submission would be risk without benefit (D37).
+**Live demo → https://matchlens.gentletree-f24e197c.uksouth.azurecontainerapps.io**
 
-> The product's central claim is not that an AI can narrate football. That exists and it is award-winning. The claim is that **what you are told varies by who is watching**, automatically, so it works on every fixture rather than only the marquee one — and that nothing it says is unverifiable.
+> **On the name:** the product is **Parallax** — the same object appears to shift depending on where you stand. The Python package, the environment prefix and the Azure resources are still called `matchlens` from an earlier name, left that way deliberately (D37).
 
 ---
 
-## Live demo
+## How it works
 
-**https://matchlens.gentletree-f24e197c.uksouth.azurecontainerapps.io**
+One live match goes in. Three different viewing experiences come out.
 
-One container on Azure Container Apps (UK South), playing the seeded demo match at 25× speed: the full match runs in about four minutes, and the walking-skeleton card appears at 67:19 of match time.
+```mermaid
+flowchart LR
+    FEED["Live match feed<br/>event by event"] --> ONCE["<b>Understood once</b><br/>record · signals · moments<br/>explained · verified"]
+    ONCE --> L1["Casual lens"] --> V1(["Casual fan"])
+    ONCE --> L2["Analyst lens"] --> V2(["Analyst"])
+    ONCE --> L3["Team lens"] --> V3(["Supporter"])
+```
 
-**The model's claims in the demo are pre-computed.** On the live path, the explainer agent (A2) calls the model once for each goal and chance, and a card waits up to 15 seconds for its answer, inside the viewer's stream delay. The 25× replay squeezes that delay 25-fold, so it serves the model's answers for the demo match from a cache built offline over the same seed (`matchlens/explanation/claims-cache.json`). The match is byte-identical from its seed, so each cached answer was given to exactly the prompt the live path would send. Every cached claim still goes through the verifier, which rejects 3 of the 51 (D36).
+End to end, that is nine steps:
 
-**The first load can take 15–30 seconds.** The app scales to zero when nobody is watching, so the first visit after a quiet spell starts the container and generates the match from kickoff. After that it is instant.
+1. **Feed** — a seeded generator produces a full match, event by event, in real time. Synthetic data is what the challenge requires; the seed makes every run byte-identical.
+2. **Record** — events and frames are appended to an immutable log. Everything downstream cites it by ID.
+3. **Understanding** — possessions, shot quality and four team signals (territory, possession control, pressing intensity, chance quality), each measured against the match's own rolling baseline.
+4. **Spotting** — goals, big chances and tactical shifts are picked out and scored for importance.
+5. **Explanation** — an AI agent says *why* the moment matters, citing the events and readings it used.
+6. **Verification** — six deterministic checks recompute every number against the record. A claim that fails is rejected with its reason kept.
+7. **Selection** — the fan-out. Each lens decides independently whether this moment is worth telling *its* viewer. This is where one match becomes three.
+8. **Rendering** — each lens gets its own words: a plain story, a tactical read, or a supporter's view.
+9. **Delivery** — cards and overlays are released per viewer, on that viewer's own clock, so someone thirty seconds behind the live edge is never spoiled.
+
+**The fan-out is at step 7, not step 1.** The match is analysed once; only the telling is per viewer. That is what makes three genuine experiences affordable, and it is why every lens inherits the same verified facts.
+
+## The three lenses
+
+Lenses are presets over two axes — *who the viewer follows* and *how much depth they want* — so another kind of viewer is a row in [`matchlens/lenses/lenses.json`](matchlens/lenses/lenses.json), not a new pipeline.
+
+| Lens | Scope | Depth | What it tells you |
+|---|---|---|---|
+| `match_casual` | whole match | casual | The story: goals, big chances, what just changed |
+| `match_analyst` | whole match | analyst | Tactical context, signals against baseline, the detail behind a moment |
+| `team_engaged` | one side | engaged | One team's match, weighted to what matters to their supporter |
+
+A viewer gets **one** lens. The demo page shows all three side by side so you can watch them diverge — including a lens sitting deliberately silent through a moment another one leads with.
+
+## Architecture
+
+Fourteen components in four bands. Each has a single writer, and nothing downstream of the record can change it.
+
+```mermaid
+flowchart TB
+    subgraph REC["Record · one shared truth"]
+        direction LR
+        SRC["Match Source"] --> ING["Ingest"]
+    end
+    subgraph EDI["Editorial · once per moment"]
+        direction LR
+        UND["Understanding"] --> SPO["Spotting"] --> EXP["Explanation"] --> VER["Verification"]
+    end
+    subgraph PER["Personalization · once per lens"]
+        direction LR
+        SEL["Selection"] --> REN["Rendering"]
+    end
+    subgraph EDG["Edge · once per viewer"]
+        direction LR
+        CLK["Session Clock"] --> DEL["Delivery"]
+        CAT["Catch-up"] --> DEL
+    end
+    ING --> UND
+    VER --> SEL
+    REN --> DEL
+    DEL --> OUT(["One viewer, one lens"])
+```
+
+- **Record** — append-only. A claim whose evidence is not an `event_id` or `reading_id` cannot be verified, so frames never reach a model.
+- **Editorial** — runs once per moment, whatever the audience. The expensive thinking happens here, exactly once.
+- **Personalization** — runs once per lens. Selection is model-free; only Rendering writes words.
+- **Edge** — holds state per viewer: their clock, their position, what they have already been told.
+
+Three more components sit across every band rather than inside one: **Lens Registry** (lens config is data, not code), **Control** (a producer can mute or release a lens mid-match), and **Audit** (the trail for every moment, including the claims that were rejected and the renditions that were suppressed).
+
+### The agent pattern: generate → adjudicate → degrade
+
+Two AI agents, one deterministic adjudicator between them, and a designed failure path.
+
+1. **The explainer agent** is handed a *frozen* slice of the record and asked why a moment matters. It may only produce claims that cite an `event_id` or a `reading_id` — it cannot appeal to anything it was not given, and it cannot see raw positional frames at all.
+2. **The adjudicator runs six checks** over every claim it produces — citation, temporal, entity, value, entailment, coverage — recomputing each number from the record rather than trusting the claim. A claim that fails is rejected, with the reason kept.
+3. **The writer agent** turns the surviving claims into words, once per lens, and only for the lens it was called for.
+4. **If the explainer is slow, wrong or down**, Rendering drops a rung and the card still ships from templates. Agent failure is a path through the system, not an exception out of it.
+
+**The adjudicator is deliberately not a model.** A model-based verifier is itself unverifiable, and the whole point of the pattern is that one party in the loop cannot hallucinate. That is the trade: fewer agents, and an output a platform could actually put on screen.
+
+### If the model goes down
+
+Rendering falls down a ladder rather than failing: model prose → template prose → nothing. Template prose through three diverging lenses still demonstrates the whole product, with zero model calls. The deployed demo has a **`Kill the model`** button in the header — press it and watch the panels keep working.
+
+---
+
+## Run it locally
+
+Requires Python 3.12 and [uv](https://docs.astral.sh/uv/).
+
+```bash
+uv sync                                  # installs runtime, dev and agent groups
+uv run uvicorn apps.delivery:app --reload
+```
+
+Open http://localhost:8000. No API keys, no database, no cloud account needed — with no model configured the ladder starts at template prose and everything still runs.
+
+```bash
+uv run pytest                            # the suite
+uv run pytest -m slow                    # the many-match simulations
+uv run ruff check . && uv run pyright    # lint and types
+```
+
+### Configuration
+
+Everything is read in one place, [`matchlens/config/settings.py`](matchlens/config/settings.py), from `MATCHLENS_`-prefixed environment variables or a local `.env`. Copy `.env.example` to start. The ones worth knowing:
+
+| Variable | Default | What it does |
+|---|---|---|
+| `MATCHLENS_MATCH_SEED` | `1` | The demo match. Same seed, same match, every time |
+| `MATCHLENS_REPLAY_SPEED` | `25` | Match seconds per wall-clock second |
+| `MATCHLENS_MODEL_NAME` | *empty* | Set with `FOUNDRY_ENDPOINT` to enable the agents |
+| `MATCHLENS_FOUNDRY_ENDPOINT` | *empty* | Azure AI Foundry project endpoint |
+| `MATCHLENS_PRODUCER_VIEW` | `false` | Serves `/producer` and `/producer/claims`; off, they return 404 |
+
+There is **no database**. v1 needs none, because the source is a seed and the run is reproducible; a production deployment against a real feed would persist the event log, since a feed is not replayable.
+
+### The pages
+
+| Path | What it is |
+|---|---|
+| `/` | The demo: three lenses side by side, the match clock, the ladder and its kill switch |
+| `/watch` | What one real viewer sees — a single switchable lens |
+| `/delay` | Two viewers at different stream delays, same match |
+| `/producer` | Live control: mute or release a lens mid-match |
+| `/producer/claims` | Every claim and the verifier's verdict, including rejections |
+| `/stream`, `/session/{id}/overlays` | The delivery API a platform would integrate |
+
+---
+
+## The deployed demo
+
+One container on Azure Container Apps (UK South), playing the seeded match at 25×.
+
+- **Full match in 3 min 47 s.** The final whistle, 94:44 of match clock, arrives 227 s after kickoff.
+- **Cold start about 28 seconds** (27.8 s measured, 26 October 2026) — the container booting and generating the match from kickoff. Instant after that.
+- **The verifier rejects 3 of the demo match's 51 claims.** They are visible at `/producer/claims`.
+- **Public endpoints are rate limited per client.** Over the limit returns `429` with `Retry-After`; a full demo returns `503`. Sizing is in [`infra/README.md`](infra/README.md).
+
+**The model's claims in the demo are pre-computed.** On the live path the explainer calls the model once per goal and chance, and a card waits up to 15 s for the answer inside the viewer's stream delay. A 25× replay compresses that budget 25-fold, so the demo serves the model's answers from a cache built offline over the same seed ([`matchlens/explanation/claims-cache.json`](matchlens/explanation/claims-cache.json)). The match is byte-identical from its seed, so each cached answer was given to exactly the prompt the live path would send — and every cached claim still goes through the verifier (D36).
+
+## Microsoft and Azure technologies
+
+| | |
+|---|---|
+| **Microsoft Agent Framework** | Orchestrates the two AI agents, the explainer and the renderer |
+| **Azure AI Foundry** | Serves the models those agents call |
+| **Azure Container Apps** | Runs the whole pipeline as one container behind a public URL |
+| **Azure Container Registry** | Holds the image, pulled with a user-assigned managed identity |
+| **Azure Application Insights** + **Log Analytics** | Traces, and the measured numbers above |
+| **Bicep** | Every resource declared as code, in [`infra/main.bicep`](infra/main.bicep) |
+
+CI pushes to the registry over OIDC federated credentials — no registry passwords anywhere.
+
+## What's in the repo
+
+```
+apps/
+  delivery.py          Container entrypoint: the feed, the pipeline and the web app
+  pipeline.py          The stages wired in order
+matchlens/
+  source/              Seeded match generator, archetypes, squads, replay
+  ingest/              The append-only record: events, frames, rosters
+  understanding/       Possessions, shot quality, signals, baselines, epochs
+  spotting/            Which moments matter, and how much
+  explanation/         The explainer agent, the claim builder, the cache
+  verification/        The six checks
+  selection/           Per-lens: is this moment for this viewer?
+  rendering/           Per-lens words, templates, overlays, the writer agent
+  delivery/            Sessions, release queues, SSE, rate limits, producer view
+  control/             The degradation ladder and live mutes
+  audit/               The trail for every moment, including rejections
+  lenses/              lenses.json — the lens presets
+web/                   The pages, plain HTML and JS, no build step
+infra/                 Bicep, and the deployment notes
+docs/                  Architecture, data model, decisions, backlog, tickets
+tests/                 Mirrors the package layout
+```
+
+## Design notes
+
+Decisions are recorded as they were made, with their reasons, in [`docs/DECISIONS.md`](docs/DECISIONS.md) — including the ones that were reversed. The deeper reference:
+
+- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — the fourteen components and who writes what
+- [`docs/DATA-MODEL.md`](docs/DATA-MODEL.md) — the entities and their attributes
+- [`docs/BACKLOG.md`](docs/BACKLOG.md) — every ticket, its tier, dependencies and status
+
+## Not built in v1
+
+Named rather than hidden, because each was a decision:
+
+- **Player focus.** `Scope.PLAYER` and `focus_player` exist in the model; the lens ships as a config row once the per-player measures do (D1).
+- **Defensive line height.** The one signal that needs positional frames rather than events, deferred — which is why nothing reads a `Frame` in v1 (D24).
+- **Multi-language.** `Lens.language` and the lexicon are modelled; one language ships.
+- **A real event feed.** The pipeline consumes a stream; swapping the generator for a live feed means persisting the record, since a feed cannot be replayed from a seed.
 
 ## What Parallax explains next
 
-A viewer can see a goal. What they cannot easily see is what caused it, and what changed in the game around it. That is what Parallax is for, at every depth. v1 explains moments from four team-level signals. Next, in order:
+A viewer can see a goal. What they cannot easily see is what caused it. v1 explains moments from four team-level signals; next, in order:
 
-1. **How a goal came about.** Who gave the ball away and where, how fast it was punished, where the shot came from and how it was finished: "Pell gave it away on halfway; 3 passes and 9 seconds later Norham finished first time from 16 m." Every fact is countable from the event log, so it stays verifiable. It needs claims that can carry categories (a body part, a side of the box) as well as numbers.
-2. **What changed after a substitution or a red card.** "Since Norham came on at 58', Riverside have pressed higher." That means comparing the stretch before a sub with the stretch after it, which v1's signal windows, bounded by goals, red cards and half time, do not do yet. Parallax will say *since*, never *because*: a timing it can check, not a cause it cannot.
-3. **Shape and style.** Crossing, width, a team's attacking pattern, and a change when a particular player comes on. This needs players with styles in the simulated match, plus measures for them, and it comes after the two above.
+1. **How a goal came about** — who gave the ball away and where, how fast it was punished, where the shot came from. Every fact countable from the event log, so it stays verifiable.
+2. **What changed after a substitution or a red card** — comparing the stretch before with the stretch after. Parallax will say *since*, never *because*: a timing it can check, not a cause it cannot.
+3. **Shape and style** — width, crossing, a team's attacking pattern, and what changes when a particular player comes on.
 
 Throughout, a viewer is never shown a calibrated value: no shot rating, no standard deviations. Cards say "a hard chance" and "pressing much harder than their norm", and show only counts, percentages and metres.
-
-## This repo is a handover pack, not yet a codebase
-
-No code is written yet. What exists is the design, settled decisions, and a dependency-ordered backlog.
-
-```
-CLAUDE.md               Invariants, vocabulary, stack, and who decides what. Read first.
-docs/
-  ARCHITECTURE.md       14 components, data flow, single-writer ownership
-  DATA-MODEL.md         22 entities and their attributes
-  RELATIONSHIPS.md      The ERD, cardinalities, and the ones that enforce an invariant
-  DECISIONS.md          Settled decisions + the OPEN ones awaiting Kehinde
-  BACKLOG.md            Every ticket: tier, dependencies, criteria, status
-  QUESTIONS.md          Where Claude Code writes what it may not decide
-  LEARNING-PLAN.md      Which tickets Kehinde writes himself, and why
-  tickets/F1..F4        Phase 0 — ready to start
-  tickets/S1..S6        Phase 1 — ready to start
-```
-
-Tickets from Phase 2 onward have a one-line spec in `BACKLOG.md` and no file yet. That is deliberate: they get expanded when they are reached, because fixing implementation detail three weeks early is how plans rot.
-
----
-
-## Start here
-
-```bash
-# in Claude Code, from the repo root
-```
-
-> Read `CLAUDE.md`, then `docs/ARCHITECTURE.md`, `docs/DATA-MODEL.md` and `docs/DECISIONS.md`.
->
-> Then start ticket **F1** — the brief is in `docs/tickets/F1.md`.
->
-> Before you begin: `F1` defines `frame_rate_hz` in config, and **D13 in DECISIONS.md is unresolved**. Do not pick a value. Add the setting, leave the value to me, and note it in `docs/QUESTIONS.md` if it blocks you.
-
-The build order is F1 → F2 → F3 → F4, then S1 → S2 → S3 → S4 → S5. **S4 is the milestone that matters**: one hardcoded moment travelling through all fourteen components into a browser. After that there is always something to look at.
-
----
-
-## Two rules that shape everything
-
-**1. Build L1 before L0.** The degradation ladder is also the build ladder, climbed in reverse. Template prose through three diverging lenses demonstrates the entire product thesis with zero model calls. The agents are an upgrade on working software, never a dependency. If the model stack is flaky on 24 October, the submission still works and still proves the point.
-
-**2. Frames never reach an LLM.** Every claim must cite an `event_id` or `reading_id` — something with an ID and a recomputable value. A claim whose evidence is "I looked at the positions" cannot be verified, and unverifiable output is the thing this design exists to prevent. This boundary lives in the data access layer with a test on it, not in a comment.
-
----
-
-## Working with a human in the loop
-
-Kehinde is building this to learn, not to receive a finished system. **Product and architecture decisions are his; implementation decisions are Claude Code's.** The split is written out in `CLAUDE.md` and it is not advisory.
-
-When Claude Code hits something it may not decide — anything marked OPEN, any invariant change, any new entity, anything changing what a viewer sees, any cut — it writes the question into `docs/QUESTIONS.md` and **stops**, rather than picking a sensible default and carrying on. A default chosen quietly is a decision taken away from someone who is trying to learn from making it.
-
-**Some tickets are reserved, not delegated.** Two things are firsts here — building an event-driven system and orchestrating AI agents — so the tickets carrying those lessons (🧑 in `docs/BACKLOG.md`) are Kehinde's to write, and Claude Code leaves them alone even when they block. `docs/LEARNING-PLAN.md` explains which and why.
-
-Brainstorming, trade-offs and reversals happen in conversation with Kehinde, and the outcome lands in `docs/DECISIONS.md` before code follows it.
-
----
-
-## Timing, honestly
-
-17 build days (9–25 Oct), two for submission materials. The T1 tier is **~30 ticket-days**. This is oversubscribed by design rather than by accident — the cut ladder at the bottom of `BACKLOG.md` is live, with dates on each rung.
-
-The two dates that matter:
-
-- **16 Oct** — three signals or five (O5)
-- **20 Oct** — the last day the explainer and verifier could still start and land. After that the fallback is to ship at L1 with no agents, which keeps the product thesis and loses the Multi-Agent prize (O6).
-
----
-
-## Reference
-
-Full design discussion, market positioning, failure modes, delivery scheduling and production scaling live in Notion under *Microsoft Premier League Hackathon*. The docs in this repo are the build-facing subset — if the two disagree, the repo is wrong and Notion is the source.
