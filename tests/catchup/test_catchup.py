@@ -16,6 +16,7 @@ from apps import pipeline
 from matchlens import catchup, lenses
 from matchlens.catchup import CatchUp
 from matchlens.config import settings
+from matchlens.control import Notice
 from matchlens.delivery.hub import MatchStateHub
 from matchlens.delivery.release import ReleaseQueues
 from matchlens.delivery.router import CardRouter
@@ -59,7 +60,9 @@ def _join_live(
 
 
 def _log(queues: ReleaseQueues, session: ViewerSession) -> list[Card | CatchUp]:
-    return queues.released(session.session_id)
+    """The session's cards and catch-up. No mute is in play here, so there is no notice."""
+    log = queues.released(session.session_id)
+    return [entry for entry in log if not isinstance(entry, Notice)]
 
 
 def _summary(cards: list[Card], lens_id: str, to_clock: int = JOIN) -> CatchUp:

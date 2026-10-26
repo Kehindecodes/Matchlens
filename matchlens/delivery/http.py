@@ -1,7 +1,9 @@
 """The delivery HTTP surface: the page, viewer sessions, and the SSE stream.
 
-With a `ProducerFeed` it also serves the producer view (P1, Q43: 4B). Without one, the page, its
-stream and its files do not exist: a deployment that has not switched it on has nothing to find.
+With a `ProducerFeed` it also serves the producer view (P1, Q43: 4B) and the controls on it: mute
+and unmute (P2, Q44: 4A). Without one, the page, its stream, its files and the controls do not
+exist: a deployment that has not switched it on has nothing to find, and a viewer has nothing to
+call.
 """
 
 from collections.abc import AsyncIterator
@@ -12,13 +14,14 @@ from fastapi import Depends, FastAPI, Header, HTTPException, Query, status
 from fastapi.responses import FileResponse
 from fastapi.sse import EventSourceResponse, ServerSentEvent
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, StringConstraints
 from starlette.responses import Response
 from starlette.types import Scope
 
 from matchlens import lenses
 from matchlens.catchup import CatchUp
 from matchlens.config.settings import settings
+from matchlens.control import AlreadyMuted, Mutes, Notice, NotMuted
 from matchlens.control.ladder import Ladder, LadderStatus
 from matchlens.delivery.hub import MatchStateHub
 from matchlens.delivery.producer import ProducerFeed
@@ -26,7 +29,7 @@ from matchlens.delivery.release import ReleaseQueues
 from matchlens.delivery.router import CardRouter
 from matchlens.delivery.session_clock import viewer_position
 from matchlens.delivery.sessions import LensRefused, SessionStore, UnknownSession
-from matchlens.models import ClockMs, Lens, OverlayPacket, ViewerSession
+from matchlens.models import ClockMs, Lens, OverlayPacket, ProducerAction, ViewerSession
 from matchlens.rendering import Card
 
 WEB_DIR = Path(__file__).resolve().parents[2] / "web"
@@ -76,6 +79,20 @@ class ModelSwitch(BaseModel):
     models: Literal["off", "on"]
 
 
+_Text = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1)]
+
+
+class Intervention(BaseModel):
+    """A producer muting or unmuting a lens. The reason is required; the actor is as typed,
+    since there are no accounts (Q44: 4A)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    lens_id: str
+    reason: _Text
+    actor: _Text = "producer"
+
+
 class LensSwitch(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -91,12 +108,14 @@ def create_app(
     ladder: Ladder | None = None,
     *,
     producer: ProducerFeed | None = None,
+    mutes: Mutes | None = None,
     web_dir: Path = WEB_DIR,
     lifespan=None,
 ) -> FastAPI:
     app = FastAPI(title="MatchLens delivery", lifespan=lifespan)
     queues = ReleaseQueues() if queues is None else queues
-    router = CardRouter(sessions, queues) if router is None else router
+    mutes = Mutes() if mutes is None else mutes
+    router = CardRouter(sessions, queues, mutes) if router is None else router
     ladder = Ladder() if ladder is None else ladder
 
     def _session(session_id: str) -> ViewerSession:
@@ -225,7 +244,7 @@ def create_app(
                 sessions.mark_seen(current.session_id, released[-1].display_at_clock)
             for entry in queues.released(current.session_id, sent):
                 sent += 1
-                event = "catch_up" if isinstance(entry, CatchUp) else "card"
+                event = _event_name(entry)
                 yield ServerSentEvent(data=entry, event=event, id=f"{seq}:{sent}")
 
     if producer is not None:
@@ -245,9 +264,53 @@ def create_app(
             async for snapshot in producer.follow():
                 yield ServerSentEvent(data=snapshot, event="lenses")
 
+        async def intervene(body: Intervention, mute: bool) -> ProducerAction:
+            """Mute or unmute a lens at the live match clock, log it, and tell its viewers.
+
+            The match clock is not touched: a mute is a fact about later cards, not a pause.
+            """
+            try:
+                lenses.get(body.lens_id)
+            except KeyError:
+                raise HTTPException(status.HTTP_404_NOT_FOUND, "unknown lens") from None
+            act = mutes.mute if mute else mutes.unmute
+            try:
+                action = act(body.lens_id, max(0, hub.clock_ms), body.actor, body.reason)
+            except (AlreadyMuted, NotMuted) as refused:
+                said = "already muted" if isinstance(refused, AlreadyMuted) else "not muted"
+                raise HTTPException(status.HTTP_409_CONFLICT, f"{body.lens_id} is {said}") from None
+            router.notify(Notice.of(action))
+            producer.changed()
+            return action
+
+        @app.post("/producer/mute", status_code=status.HTTP_201_CREATED)
+        async def mute_lens(body: Intervention) -> ProducerAction:
+            """Stop a lens's cards from now on (P2). Cards already queued still release."""
+            return await intervene(body, mute=True)
+
+        @app.post("/producer/unmute", status_code=status.HTTP_201_CREATED)
+        async def unmute_lens(body: Intervention) -> ProducerAction:
+            """Let a lens's cards through again from now on. What was stopped is not back-filled."""
+            return await intervene(body, mute=False)
+
+        @app.get("/producer/actions")
+        def producer_actions() -> list[ProducerAction]:
+            """Every mute and unmute, in the order they were made."""
+            return mutes.actions()
+
     hidden = frozenset() if producer is not None else PRODUCER_FILES
     app.mount("/static", _Files(directory=web_dir, hidden=hidden), name="static")
     return app
+
+
+def _event_name(entry: Card | CatchUp | Notice) -> str:
+    match entry:
+        case CatchUp():
+            return "catch_up"
+        case Notice():
+            return "notice"
+        case Card():
+            return "card"
 
 
 def _resume_point(last_event_id: str | None) -> tuple[int | None, int | None]:

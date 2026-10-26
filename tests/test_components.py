@@ -26,7 +26,7 @@ COMPONENTS = {
     "Delivery": ("matchlens.delivery", ["ReleaseQueues.enqueue", "ReleaseQueues.release_due"]),
     "Session Clock": ("matchlens.delivery.session_clock", ["viewer_position"]),
     "Lens Registry": ("matchlens.lenses", ["get", "all_lenses"]),
-    "Control": ("matchlens.control", ["mute", "is_muted"]),
+    "Control": ("matchlens.control", ["Mutes.mute", "Mutes.is_muted"]),
     "Audit": ("matchlens.audit", ["record"]),
 }
 

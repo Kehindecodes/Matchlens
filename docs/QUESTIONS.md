@@ -24,6 +24,46 @@ Newest at the top. Kehinde answers inline and moves the resolved ones to `docs/D
 
 ---
 
+## Q44 · Where a mute is enforced and recorded, what "later cards" means, what the viewer is told, and who can mute  [ticket: P2]  [blocking: yes]
+
+**What I need to know:** four things P2's brief leaves open. The brief's three properties (later cards only, one lens at a time, a viewer who had cards is told) are not in doubt.
+
+**What exists today:**
+- `control.mute` raises and `control.is_muted` returns False. `CardRouter.receive` is the only caller: it asks `is_muted(lens_id, card.display_at_clock)` and drops the card.
+- The pipeline never asks Control. `select`'s docstring says `muted` "belongs to Control, which decides before Selection runs", but nothing does. A card the router drops leaves **no suppressed rendition**, so invariant 11 does not hold for a mute. P1's producer view shows what the pipeline reported, so it would read **Spoke** for a muted lens whose card nobody received.
+- With a model, a moment's card is published up to 10 s (writer) or 15 s (explainer) of wall time after the moment's clock: 4 to 6 match minutes at 25×. A card for a moment before a mute click can therefore arrive after it.
+- There is no stream message for a notice. `last_seen_clock` is set when a card is released to the session, and is None until then.
+- Nothing on the delivery app is authenticated (scope guard). The deployed demo has the producer view on (Q43: 4B), and the "Kill the model" button on `/` is public (Q41: 4A).
+
+**Why I cannot decide it:** (1) touches invariant 11 and adds a Pipeline→Control call. (2) and (3) change what a viewer sees and when. (4) is a product and security call. All are Kehinde's (CLAUDE.md: stop and ask).
+
+**Options as I see them:**
+
+*(1) Where a mute is enforced, and whether it leaves a record*
+- 1A: **Both.** Before Selection, the pipeline asks Control, and a muted lens gets a suppressed rendition with reason `muted` (invariant 11). The producer view then reads "a producer switched this lens off", and the lens's rate-limit count does not tick. The router's drop stays as the backstop for a card already past Selection when the click lands. Costs: the pipeline now calls Control, which `select`'s docstring already assumes. A card the backstop drops is still unrecorded; I would log it.
+- 1B: **Router only**, as the brief's seam. Smallest. Costs: no `muted` rendition is ever stored, so invariant 11 is broken for mutes, and the producer view says **Spoke** for a muted lens.
+
+*(2) What "later cards" means for a card still in flight*
+- 2A: **By the moment's clock only**, as the seam is wired. A mute covers `[mute clock, unmute clock)` on the match clock, and a card is muted if its `display_at_clock` is in a window. Deterministic. Costs: a card for a moment before the click can arrive after it and still show, so the mute looks like it missed one.
+- 2B: **By clock, and by arrival.** A card is muted if its moment is in a window, or if the lens is muted when the card arrives. The click stops everything not yet delivered, and a moment from inside a mute window that arrives after the unmute is still not back-filled. Costs: whether an in-flight card is muted depends on timing, so a mute mid-run is not byte-for-byte replayable. The seed is still.
+
+*(3) What the viewer is told, and when*
+- 3A: **A line in the viewer's own card list, through their release queue, both ways.** "Insights paused · from 51:09" at the mute's match clock, released when that viewer's video reaches it. It follows any cards they are still owed and respects their delay, and is kept in their log so a reconnect resumes. "Had cards" is judged at release from `last_seen_clock`. An unmute is told the same way ("Insights resumed"), only to a viewer who was told of the pause. It shows on every page that has a panel. Wording is yours. Costs: a new entry type in D1's release log and one new stream event.
+- 3B: **Immediate, mute only.** Every session on the lens with a `last_seen_clock` is told the moment the producer clicks, with no resume line. Costs: a viewer 45 s behind is told "paused" before the cards they are still owed, and is never told it ended.
+
+*(4) Who can mute, and who the actor is*
+- 4A: **The same switch as the view (Q43: 4B), open when it is on.** `POST /producer/mute` and `/producer/unmute` exist only with the view. The producer page gets a Mute and an Unmute button per lens, a required reason box and an actor box (default "producer"). Actor is whatever is typed, since there are no accounts. Costs: on the deployed demo anyone with the URL can mute a lens for everyone watching, as with the kill button.
+- 4B: **A second switch for controls**, off in the deployed demo. Judges can read the producer view but not touch it. A mute is shown in the video from a local run. Costs: "a mute mid-demo" cannot be clicked on the deployed URL.
+- 4C: **A shared key** typed once on the page. Costs: judges need it handed to them.
+
+**Decided by me, so you can reverse it:** mute is a `ProducerAction` with `action=suppress` and unmute `action=release`, both with a lens `Ref` as the target. RELATIONSHIPS says the target's kind is what tells muting a lens from suppressing a rendition or pinning a moment, so no enum value is added. The log is in-process like sessions, and is read at `GET /producer/actions` and shown on the producer page. P2's buttons live on P1's producer page, which is not merged, so I would branch `ticket/P2-mute-circuit-breaker` from `ticket/P1-producer-view` unless you say otherwise.
+
+**What I would do if forced:** 1A, 2B, 3A, 4A. Not done.
+
+**Answer:** 1A, 2B, 3A, 4A. Kehinde, 25 Oct.
+
+---
+
 ## Q43 · Where the producer view's internals come from, what "broken" means, the rung before A5, and who can reach the page  [ticket: P1]  [blocking: yes]
 
 **What I need to know:** four things P1's brief leaves open. Q24 settled how the cards are fed (three sessions, three `EventSource`s); none of what P1 adds on top of that exists on the delivery side today.
