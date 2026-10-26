@@ -57,7 +57,7 @@ Newest at the top. Kehinde answers inline and moves the resolved ones to `docs/D
 
 **What I would do if forced:** C, and Part 2 B. C is the only option that gives a judge a match from kickoff with no wait and no explanation, and it fixes the warm-container case under scale-to-zero as well. Until it is answered I would not run `main.bicep`. The repo default of `minReplicas` is 1, which the ticket asks for, and the Deploy workflow never applies it, so merging changes nothing live. I have not done C.
 
-**Answer:**
+**Answer:** Kehinde, 26 Oct: closed for now, not needed for the demo. Nothing was built for Part 1 (arrival after the final whistle) or Part 2 (the producer view). What stands is what is committed on `ticket/X4-judging-hardening`: `minReplicas` defaults to 1 and `producerView` to `'true'` in `main.bicep`, and neither reaches the live app until someone runs the file against it. Not moved to `DECISIONS.md`.
 
 ---
 
