@@ -20,6 +20,7 @@ from matchlens.control import Mutes
 from matchlens.control.ladder import Ladder
 from matchlens.delivery.http import create_app
 from matchlens.delivery.hub import MatchStateHub
+from matchlens.delivery.limits import Limiter
 from matchlens.delivery.producer import ProducerFeed
 from matchlens.delivery.release import ReleaseQueues
 from matchlens.delivery.sessions import SessionStore
@@ -59,6 +60,7 @@ class LiveServer:
         queues: ReleaseQueues | None = None,
         producer: ProducerFeed | None = None,
         mutes: Mutes | None = None,
+        limits: Limiter | None = None,
     ):
         self.hub = hub
         self.sessions = SessionStore()
@@ -78,6 +80,7 @@ class LiveServer:
                 ladder=self.ladder,
                 producer=producer,
                 mutes=mutes,
+                limits=limits,
                 lifespan=lifespan,
             ),
             host="127.0.0.1", port=0, log_level="warning", timeout_graceful_shutdown=1,

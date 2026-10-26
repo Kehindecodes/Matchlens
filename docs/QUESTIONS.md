@@ -24,6 +24,83 @@ Newest at the top. Kehinde answers inline and moves the resolved ones to `docs/D
 
 ---
 
+## Q47 · What a visitor sees after the final whistle, and whether min-1 may go live before that is settled  [ticket: X4]  [blocking: yes]
+
+**What I need to know:** two things. Min replicas 1 is sized and fits the budget (`infra/README.md`), but it changes what almost every visitor sees, which the ticket's cost question does not cover.
+
+1. **What does a visitor see when they arrive after the match has ended?** The container plays the one match in the 3 min 47 s after it boots (measured on the live URL, 26 Oct). With scale-to-zero, the first visitor wakes it and gets that match from kickoff, after a cold start of 27.8 s. With min-1 it boots once, at deploy, and **every later visitor arrives to a finished match.** I loaded the page that way (a fresh tab, long after the whistle) and read the code:
+   - The header says `RIV 2 – 1 RED · 94:44 · 2nd half`, with a green "live · 3 of 3 lenses". Nothing says full time.
+   - Each panel says `0 cards` and "Watching · nothing worth saying yet · 94:44". Above that is the catch-up (D4) with the three goals, headed **"THE MATCH SO FAR · TO 137:22"**. That number is the live clock, which keeps running after the whistle at the replay speed. At 25× it reads 1,500:00 an hour after boot and about **576,000:00** by 10 November.
+   - The only way to see the match in motion is "Watch from kickoff". I checked it on the live URL: it works, restarts that visitor from 0:00, and nobody else is disturbed (D33).
+   So with min-1 the ticket's *"a cold browser reaches a working match with no explanation"* fails for nearly everyone, and the default experience gets worse than scale-to-zero, not better.
+2. **Running `main.bicep` against the live stack also turns the producer view on.** The running app has no `MATCHLENS_PRODUCER_VIEW`, so `/producer` and its mute controls are off. The file's default is `'true'`, so applying it for min-1 makes `/producer`, `/producer/mute` and `/producer/unmute` public to anyone with the URL. Is that wanted for judging?
+
+**Why I cannot decide it:** Part 1 changes what a viewer sees and when (CLAUDE.md, "stop and ask"), and one option changes the page for a whole class of visitor. Part 2 is a product decision about a control that mutes a lens for every viewer.
+
+**Options as I see them:**
+
+*Part 1, arrival after full time*
+- A: **Leave it, min-1 on.** Costs: the failure above for nearly every visitor, and the heading number climbs all window. README would have to tell visitors to press "Watch from kickoff".
+- B: **A, plus wording only.** The catch-up stops at the final whistle ("to 94:44") and the header says "Full time" when the last state is the end. Costs: still no match in motion; changes what a visitor reads.
+- C: **A page that arrives after the final whistle starts "Watching from kickoff" by itself**, per viewer, with the sessions D33 already makes (the page does what the button does). A visitor arriving mid-match is live as now. The server would say whether the match has ended (a field on `/playback`), and B's wording applies. Costs: a late visitor never sees "live", and replays take 3 min 47 s at 25×.
+- D: **The match restarts itself** after it has been over for some minutes with no stream open, which is what scale-to-zero gives for free. Costs: every singleton (hub, router, queues, pipeline) must be rebuilt, and D33 rejected restarting for everyone. Large for a day before submission.
+- E: **Do not set min-1.** Scale-to-zero stays and the 28 s first load is documented, as the ticket allows. Costs: a judge who finds a warm container after another visitor still meets a finished match, so C is wanted anyway.
+
+*Part 2, producer view*
+- A: leave the default `'true'`; the controls are public for judging.
+- B: keep the live setting (off) by running Bicep with `-p producerView=false`, or changing the default.
+
+**What does not need you** (it changes nothing a viewer sees; done on `ticket/X4-judging-hardening`):
+- Per-client rate limits, a cap on open streams and on sessions, and a `429`/`503` with `Retry-After` when a limit is hit. Measured: an open stream costs 0.43% of a core while the match plays at 25× (1.6% with none, 44.5% with 100, 98.9% with 300), so the stream cap is 40. A session is 2.8 KiB, so the ceiling is 10,000. They are settings, changeable on the running app without a rebuild.
+- `minReplicas` as a Bicep parameter, default 1. It only applies when someone runs the file, not on deploy.
+- Measured cold start and full replay in the README, the cost table and the checks of 26 Oct in `infra/README.md`.
+
+**What I would do if forced:** C, and Part 2 B. C is the only option that gives a judge a match from kickoff with no wait and no explanation, and it fixes the warm-container case under scale-to-zero as well. Until it is answered I would not run `main.bicep`. The repo default of `minReplicas` is 1, which the ticket asks for, and the Deploy workflow never applies it, so merging changes nothing live. I have not done C.
+
+**Answer:** Kehinde, 26 Oct: closed for now, not needed for the demo. Nothing was built for Part 1 (arrival after the final whistle) or Part 2 (the producer view). What stands is what is committed on `ticket/X4-judging-hardening`: `minReplicas` defaults to 1 and `producerView` to `'true'` in `main.bicep`, and neither reaches the live app until someone runs the file against it. Not moved to `DECISIONS.md`.
+
+---
+
+## Q46 · What a full-time recap says, where it is shown, and whether it is a new entity  [ticket: X1]  [blocking: yes]
+
+**What I need to know:** three things. X1's brief and Q30's answer disagree, and the brief does not say where a recap appears.
+
+**Where it stands.** D4 already built `catchup.summarise(lens, cards, from_clock, to_clock)`, and D34 says X1 is that function with `to_clock` at the whistle. Run on seed 1 over 0 to full time it works today, with no change. Each lens gets three goal lines in its own words (casual 6 cards shown, team 20, analyst 44; all three summarise to 18', 35' and 78'). The match ended 2–1 to Riverside Athletic, **and no line of any recap says so.**
+
+1. **What does the recap say?** Q30 (your answer, 24 Oct) is *"every viewer should just get only goals, what caused it, how it was scored"*, and it replaced the D4 ticket's "analyst gets the shape of the half". X1's brief asks for something else: casual gets *"the goals and the result"*, the analyst *"the shape of the match in numbers"*, the team lens *"consequence for its side"*. Q30 part 2 (what grouping the analyst reads) was answered for a 68th-minute joiner and not for a whole match.
+2. **Where and when is it shown?** The brief says only *"at the whistle, each lens produces a recap"*. Nothing in delivery fires at the whistle today: the last `MatchState` is the whistle, and then the hub only advances the clock for viewers who are behind. `catch_up` is the only summary message and `panel.js` shows it once, above the cards.
+3. **Is it a new entity?** `DATA-MODEL.md` lists `Recap` (T3, "may not be built": `recap_id`, `match_id`, `lens_id`, `length_variant`, `body`, `moment_ids`). `CatchUp` is a stream message, "sent, never stored". Building `Recap` is a new entity (CLAUDE.md), and D38 says v1 stores nothing.
+
+**Why I cannot decide it:** Part 1 changes what a viewer reads, and adding a result line or analyst numbers is new wording that no card has said. Part 2 changes when they see it (invariant 8 applies: a viewer 45 s behind must not see the recap before their own whistle). Part 3 is a new entity.
+
+**Options as I see them:**
+
+*Part 1, content*
+- A: **Q30's rule unchanged.** The recap is the goal lines (or the top 3 moments with no goals). No new wording. Costs: no line states the result or that it is over, and the analyst recap is three goal cards, not "the shape in numbers". The brief's "key narratives" is three goals.
+- B: **A, plus one closing line per lens stating the result**, from template rows keyed on depth and scope, never on a lens (invariant 10). Casual: "Riverside Athletic won 2–1". Team: the same told as consequence for its side (D31). Analyst: the score with the scorers' count. The score is derived from the goal events, and the line cites them. Costs: one new sentence type, and a draw and a goalless match need their own rows.
+- C: **B, plus a line of match numbers for the analyst** (shots, `shot_quality`, share of the passes, from `SignalReading`s over the whole match). Costs: new wording, a choice of which numbers (Q30 part 2 again), and every figure must cite its readings. This is the only option that answers "shape of the match in numbers", and the most work.
+
+*Part 2, surface*
+- A: **A `recap` stream message in the panel**, shaped like `CatchUp`, sent once per session at that viewer's own full-time position (so 45 s behind means 45 s after the whistle). The demo page already has one panel per lens on its own session, so all three recaps appear side by side with no new page. Costs: a new SSE event name and a small `panel.js` change.
+- B: **A, plus a page that lists the three recaps** from the router's kept cards, for the video. Costs: a new page, and it can show a recap before a delayed viewer's whistle, so it would be a producer view only.
+
+*Part 3, entity*
+- A: **Reuse `CatchUp`'s shape; do not build `Recap`.** Nothing stored, nothing to keep append-only. `DATA-MODEL.md` keeps `Recap` marked as not built.
+- B: **Build `Recap` as a stored row.** Costs: a store D38 says does not exist, and a rule for what a re-run on the same seed does to the rows.
+
+**What does not need you** (it changes nothing a viewer sees, so I build it once you answer):
+- The full-time clock comes from the log (the last `period_end`), not a constant, so the recap and the mid-match summary stay one function with a different `to_clock` (invariant 2, D34).
+- Tests that every line and every figure in a recap cites a stored moment or claim, that the same function at an earlier clock gives the mid-match summary, and that seed 1 gives a byte-identical recap twice (invariant 9). No model call.
+- A lens that showed nothing gets no recap rather than an invented one. A lens that showed little gets a short one.
+- No dependency on A3 (D34). The recap does not say "verified"; the claims survived Selection (Q30).
+- The walkthrough at `docs/walkthroughs/X1.md` (📝).
+
+**What I would do if forced:** 1B, 2A, 3A. It is the smallest change that makes the recap say the one thing it is missing, the result, and it does not invent a numbers rule the night before submission. It leaves "shape in numbers" for the analyst out, and I would say so in the walkthrough rather than quietly call it done. I have not done it.
+
+**Answer:**
+
+---
+
 ## Q45 · Where the verdicts are kept for the rejected-claims view, and which verifications it lists  [ticket: P3]  [blocking: yes]
 
 **What I need to know:** two things P3's brief leaves open. The brief says "the data is already shaped for it" and "this view has nothing to compute; it displays what A3 already had to record". The shape is there (`Verification.checks`, `CheckResult` refusing a `FAILED` without a reason). **The recording is not.**
