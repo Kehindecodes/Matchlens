@@ -89,7 +89,7 @@ Two things the limits do not do. They do not stop one visitor changing the speed
 
 ## Checked on 26 October
 
-- **The budget** `matchlens-monthly` is live: $15 a month, from 1 October 2026 to 30 September 2027, alerting at 50, 80 and 100 per cent. All three go to `oluwawafunmi1@gmail.com` and to no one else. Nothing here can show whether that inbox is read, so someone who reads it needs to look before 10 November.
+- **The budget** `matchlens-monthly` is live: $15 a month, from 1 October 2026 to 30 September 2027, alerting at 50, 80 and 100 per cent. All three go to one address, the one on the subscription's owner account, and to no one else (`az consumption budget list` shows it). Nothing here can show whether that inbox is read, so someone who reads it needs to look before 10 November.
 - **The deploy identity's roles** are in place: `matchlens-github-deploy` has Contributor on `rg-matchlens` and AcrPush on the registry, and the app's pull identity has AcrPull. They sit on the group and the registry, so deleting the group takes them with it.
 - **The producer view is off on the live app**: the running app has no `MATCHLENS_PRODUCER_VIEW`, and the default in `main.bicep` is `'true'`. Running the file against the live stack therefore turns on `/producer`, including its mute controls, for anyone with the URL.
 
