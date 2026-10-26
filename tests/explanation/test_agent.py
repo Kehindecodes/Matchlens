@@ -14,6 +14,7 @@ import pytest
 
 from apps import pipeline
 from matchlens import explanation
+from matchlens.audit import Audit
 from matchlens.explanation import Answer, Proposer, agent
 from matchlens.models import Claim, ClaimType, Metric, Verdict
 from matchlens.source import simulate
@@ -381,13 +382,13 @@ def _run(proposer: Proposer | None, monkeypatch=None) -> tuple[list[str], dict[s
     """Seed 1 through the pipeline: every card, as JSON, and every verdict Audit was handed."""
     verdicts: dict[str, Verdict] = {}
     if monkeypatch is not None:
-        real = pipeline.audit.record
+        real = Audit.record
 
-        def record(moment, claims, verifications, renditions):
+        def record(self, moment, claims, verifications, renditions):
             verdicts.update({v.claim_id: v.verdict for v in verifications})
-            real(moment, claims, verifications, renditions)
+            real(self, moment, claims, verifications, renditions)
 
-        monkeypatch.setattr(pipeline.audit, "record", record)
+        monkeypatch.setattr(Audit, "record", record)
     cards: list[str] = []
     the_pipeline = pipeline.Pipeline(proposer, lambda c: cards.append(_card(c)))
     try:

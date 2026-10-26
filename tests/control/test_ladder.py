@@ -10,6 +10,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from apps import pipeline
+from matchlens.audit import Audit
 from matchlens.config import settings
 from matchlens.control import ladder as ladder_module
 from matchlens.control.ladder import Ladder, Rung
@@ -288,15 +289,15 @@ def test_a_moment_rendering_fails_on_is_suppressed_as_degraded_and_the_next_one_
             raise RuntimeError("a template that does not format")
         return real(moment, *args, **kwargs)
 
-    real_record = pipeline.audit.record
+    real_record = Audit.record
 
-    def record(moment, claims, verifications, renditions):
+    def record(self, moment, claims, verifications, renditions):
         recorded.extend(renditions)
         rungs.append(ladder.rung)
-        real_record(moment, claims, verifications, renditions)
+        real_record(self, moment, claims, verifications, renditions)
 
     monkeypatch.setattr(pipeline, "render", render)
-    monkeypatch.setattr(pipeline.audit, "record", record)
+    monkeypatch.setattr(Audit, "record", record)
     ladder = Ladder()
     cards, _ = _run(writer=Echo(), ladder=ladder)
 

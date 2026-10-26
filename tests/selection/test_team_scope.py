@@ -11,6 +11,7 @@ import pytest
 
 from apps import pipeline
 from matchlens import lenses
+from matchlens.audit import Audit
 from matchlens.config import settings
 from matchlens.models import (
     Claim,
@@ -71,7 +72,7 @@ def demo() -> Demo:
     run = Demo()
     every = (CASUAL, ANALYST, UNWEIGHTED, *SIDES)
     with pytest.MonkeyPatch.context() as mp:
-        mp.setattr(pipeline.audit, "record", run.record)
+        mp.setattr(Audit, "record", run.record)
         mp.setattr(pipeline.lenses, "all_lenses", lambda: list(every))
         pipeline.run(settings.match_seed, lambda card: None)
     return run

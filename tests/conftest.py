@@ -13,3 +13,14 @@ def _no_live_model():
         mp.setattr(settings, "model_name", "")
         mp.setattr(settings, "explainer_cache_path", "")
         yield
+
+
+@pytest.fixture(scope="session")
+def played():
+    """Seed 1 played through to the end once: its moments, their claims and their records.
+
+    For the tests that need real claims and the real verifier's verdicts on them (P3).
+    """
+    from tests.verification.test_verify import _play
+
+    return _play()

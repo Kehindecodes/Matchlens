@@ -1,0 +1,55 @@
+/* The rejected-claims page (P3). A rejection must be unmistakable and a check that did not apply
+   must not look like a pass, so the three check states differ in more than colour: the mark, the
+   border, and the type. */
+:root { --reject: #f28b82; --reject-tint: #2a1a1b; }
+
+header h1 { font-size: 1.2rem; margin: 0; }
+header p { margin: 6px 0 0; }
+.summary { font-size: 0.95rem; color: var(--fg); }
+.only { display: inline-block; margin-top: 8px; font-size: 0.85rem; color: var(--muted); }
+.only input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+main { max-width: 960px; margin: 0 auto; padding: 16px; display: grid; gap: 20px; }
+.moment { display: grid; gap: 10px; }
+.moment h2 { font-size: 0.9rem; margin: 0; color: var(--muted); text-transform: uppercase;
+             letter-spacing: 0.04em; font-variant-numeric: tabular-nums; }
+
+.claim { background: var(--card); border: 1px solid var(--line); border-left-width: 4px;
+         border-radius: 10px; padding: 12px 14px; display: grid; gap: 8px; min-width: 0; }
+.claim.pass { border-left-color: var(--accent); }
+.claim.fail { border-color: var(--reject); background: var(--reject-tint); }
+.claim-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+.claim .verdict { font-weight: 700; }
+.claim.pass .verdict { color: var(--accent); }
+.claim.fail .verdict { color: var(--reject); }
+.claim .type { color: var(--muted); font-size: 0.85rem; }
+.claim .id { color: var(--faint); font-size: 0.75rem; overflow-wrap: anywhere; }
+
+.operand { margin: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 12px; font-size: 0.92rem; }
+.operand .subject { font-weight: 600; }
+.operand .what { color: var(--muted); }
+.figures { display: inline-flex; gap: 12px; font-variant-numeric: tabular-nums; color: var(--muted); }
+/* Where A3 failed the value check, the two figures it compared are the first thing to read. */
+.figures.value-failed { font-size: 1rem; font-weight: 700; }
+.figures.value-failed .claimed { color: var(--reject); }
+.figures.value-failed .recomputed { color: var(--fg); }
+
+.checks { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; font-size: 0.85rem; }
+.check { display: grid; grid-template-columns: 1.4em 7.5em 1fr; gap: 2px 8px; align-items: baseline;
+         padding: 4px 8px; border-radius: 6px; border: 1px solid transparent; }
+.check .mark { text-align: center; font-weight: 700; }
+.check .name { text-transform: capitalize; }
+.check .status { color: var(--muted); }
+.check .reason { grid-column: 2 / -1; color: var(--fg); line-height: 1.4; overflow-wrap: anywhere; }
+
+.check.passed .mark { color: var(--accent); }
+.check.failed { border-color: var(--reject); background: var(--reject-tint); }
+.check.failed .mark, .check.failed .status { color: var(--reject); font-weight: 700; }
+/* Ran, with nothing to judge: dashed and slanted, and no tick. */
+.check.not_applicable { border-style: dashed; border-color: var(--line); color: var(--faint); }
+.check.not_applicable .mark, .check.not_applicable .status { color: var(--faint); font-style: italic; }
+
+.provenance { margin: 0; color: var(--faint); font-size: 0.78rem; }
+
+.only-rejected .claim.pass { display: none; }
+.only-rejected .moment:not(:has(.claim.fail)) { display: none; }

@@ -26,7 +26,14 @@ from tests.delivery.test_http import LiveServer, _fields
 
 MOMENT_CLOCK_MS = 51 * 60_000 + 9_000
 
-PRODUCER_FILES = ("producer.html", "producer.js", "producer.css")
+PRODUCER_FILES = (
+    "producer.html",
+    "producer.js",
+    "producer.css",
+    "claims.html",
+    "claims.js",
+    "claims.css",
+)
 
 
 def _rendition(lens_id: str, reason: SuppressionReason | None = None) -> Rendition:

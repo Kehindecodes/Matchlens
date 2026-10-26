@@ -40,7 +40,8 @@ from typing import Any
 
 from opentelemetry import context, trace
 
-from matchlens import audit, explanation, lenses, selection, verification
+from matchlens import explanation, lenses, selection, verification
+from matchlens.audit import Audit
 from matchlens.config import settings
 from matchlens.control import Mutes
 from matchlens.control.ladder import Breaker, Ladder, Rung
@@ -110,6 +111,7 @@ class Pipeline:
         queue_limit: int | None = None,
         report: Report | None = None,
         mutes: Mutes | None = None,
+        audit: Audit | None = None,
     ) -> None:
         """`proposer` is A2's model and `writer` A4's. With neither, `process` returns each
         moment's cards.
@@ -129,6 +131,10 @@ class Pipeline:
         `mutes` is where a producer's mutes are kept (P2). A lens muted for a moment, by its
         clock or by being muted when the moment is handled, is suppressed as `muted` before
         Selection runs, so the silence is a record (invariant 11).
+
+        `audit` is where each moment's trail is kept (P3): its claims, their verdicts and what
+        every lens did with it. A fresh one if none is given. A model's answer asked for only to
+        be scored, because the model is down the ladder, is not in it (Q45: 2A).
         """
         self._waits = proposer is not None or writer is not None
         if self._waits and publish is None:
@@ -145,6 +151,7 @@ class Pipeline:
         self._publish = publish
         self._report = report
         self._mutes = Mutes() if mutes is None else mutes
+        self.audit = Audit() if audit is None else audit
         self._writer = self.ladder.guard(writer)
         self._queue_limit = queue_limit
         self._shadows: list[_Shadow] = []  # models asked while down, scored at the next moment
@@ -170,6 +177,7 @@ class Pipeline:
         if isinstance(item, MatchSetup):
             self._names = {team.team_id: team.name for team in item.match.teams}
             self._names |= {player.player_id: player.name for player in item.players}
+            self.audit.introduce(self._names)
             return iter(())
         readings = self._understanding.observe(item)
         self._readings.extend(readings)
@@ -308,7 +316,7 @@ class Pipeline:
                         )
                     )
             self.ladder.rendered(unrendered)
-            audit.record(moment, claims, verifications, renditions)
+            self.audit.record(moment, claims, verifications, renditions)
             self._tell(
                 moment,
                 [

@@ -147,7 +147,7 @@ Update the **Status** column when a ticket moves. Statuses: `todo`, `wip`, `done
 |---|---|---|---|---|---|---|
 | P1 | Producer view: all lenses live, idle vs broken | 1 | L4 | T2 | done | ✅ |
 | P2 | Mute circuit breaker, ProducerAction log, viewer notice | 1 | D1 | T2 | done | ✅ |
-| P3 | Rejected-claims view with reasons | 0.5 | A3, P1 | T2 | todo | ✅ |
+| P3 | Rejected-claims view with reasons | 0.5 | A3, P1 | T2 | done | ✅ |
 | 📝 P4 | Archetype regression check in CI | 1 | R2, U3 | T2 | todo | ✅ |
 | P5 | Post-match report, produced unasked | 0.5 | A3, P4 | T2 | todo | ✅ |
 
@@ -161,10 +161,10 @@ Update the **Status** column when a ticket moves. Statuses: `todo`, `wip`, `done
 
 | ID | Ticket | Est | Deps | Tier | Status | Brief |
 |---|---|---|---|---|---|---|
-| X1 | Recap per lens — **same mechanism as D4, merge them (D34)** | 1 | A3 | T3 | todo | — |
-| X2 | Second language via LexiconEntry | 1 (0.5 lite) | A4 | T3 | todo | — |
-| X3 | Demo video, README, pitch | 1.5 | all | T1 | todo | — |
-| X4 | Judging-window hardening | 0.5 | S5 | T1 | todo | — |
+| X1 | Recap per lens — **same mechanism as D4, merge them (D34)** | 1 | A3 | T3 | todo | ✅ |
+| X2 | Second language via LexiconEntry | 1 (0.5 lite) | A4 | T3 | todo | ✅ |
+| X3 | Demo video, README, pitch | 1.5 | all | T1 | todo | ✅ |
+| X4 | Judging-window hardening | 0.5 | S5 | T1 | todo | ✅ |
 
 **X3** — the silent-lens moment is the shot the video is built around.
 **X4** — Delivery at min-1 replica, endpoint rate limited, demo renditions cached, budget alert live (J2).
