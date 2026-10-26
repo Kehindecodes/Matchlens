@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Parallax · claims and their checks</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <link rel="stylesheet" href="/static/claims.css">
+</head>
+<body>
+  <header>
+    <h1>Claims and their checks</h1>
+    <p class="views"><a href="/producer">← Producer view</a></p>
+    <p class="summary" id="summary" role="status">Waiting for the first moment…</p>
+    <label class="only"><input id="only-rejected" type="checkbox"> Show rejected claims only</label>
+    <div class="status" id="feed-status">claims feed: connecting…</div>
+  </header>
+  <main id="moments" aria-live="polite"></main>
+  <script src="/static/claims.js"></script>
+</body>
+</html>

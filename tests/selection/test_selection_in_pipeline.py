@@ -6,6 +6,7 @@ import pytest
 
 from apps import pipeline
 from matchlens import lenses
+from matchlens.audit import Audit
 from matchlens.models import Depth, Rendition, SuppressionReason
 from matchlens.rendering import Card
 
@@ -15,7 +16,11 @@ def demo():
     renditions: list[Rendition] = []
     published: list[Card] = []
     with pytest.MonkeyPatch.context() as mp:
-        mp.setattr(pipeline.audit, "record", lambda m, c, v, r: renditions.extend(r))
+        mp.setattr(
+            Audit,
+            "record",
+            lambda audit, moment, claims, verdicts, rendered: renditions.extend(rendered),
+        )
         pipeline.run(1, published.append)
     return renditions, published
 

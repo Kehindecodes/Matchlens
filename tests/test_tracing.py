@@ -23,6 +23,7 @@ from opentelemetry.sdk.trace.export import SimpleSpanProcessor
 from opentelemetry.sdk.trace.export.in_memory_span_exporter import InMemorySpanExporter
 
 from apps import pipeline
+from matchlens.audit import Audit
 from matchlens.models import Verification
 from matchlens.rendering import Card
 
@@ -48,13 +49,13 @@ def traced(monkeypatch_module):
     _exporter.clear()
 
     verifications: list[Verification] = []
-    real_record = pipeline.audit.record
+    real_record = Audit.record
 
-    def record(moment, claims, verdicts, renditions):
+    def record(self, moment, claims, verdicts, renditions):
         verifications.extend(verdicts)
-        real_record(moment, claims, verdicts, renditions)
+        real_record(self, moment, claims, verdicts, renditions)
 
-    monkeypatch_module.setattr(pipeline.audit, "record", record)
+    monkeypatch_module.setattr(Audit, "record", record)
 
     published: list[tuple[Card, int]] = []
     # A collection is not pipeline work, but it lands in whichever gap between spans is open

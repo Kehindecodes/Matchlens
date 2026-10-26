@@ -24,6 +24,42 @@ Newest at the top. Kehinde answers inline and moves the resolved ones to `docs/D
 
 ---
 
+## Q45 · Where the verdicts are kept for the rejected-claims view, and which verifications it lists  [ticket: P3]  [blocking: yes]
+
+**What I need to know:** two things P3's brief leaves open. The brief says "the data is already shaped for it" and "this view has nothing to compute; it displays what A3 already had to record". The shape is there (`Verification.checks`, `CheckResult` refusing a `FAILED` without a reason). **The recording is not.**
+
+**What exists today:**
+- A3's backlog line says "Verdicts and reasons persist as data (P3)". They do not. `Pipeline._editorial` builds the `Verification`s, uses them to pick the passing claims, hands all four lists to `audit.record(moment, claims, verifications, renditions)`, and that function is a stub that keeps nothing. After the moment, every verdict and every failure reason is gone.
+- `audit.record` is already called with exactly what P3 needs, on the editorial thread, in the same process as Delivery (`apps/delivery.py` runs the pipeline in-process until S5).
+- P1's report (`MomentOutcome`) carries renditions and lens importance, no claims and no verifications.
+- Verifications are made in two places. On the card path, `_editorial` verifies every claim of the moment (L7's, plus A2's if it answered within its deadline). While A2 is down the ladder, `_score_shadows` verifies the answers it asked for anyway, only to score them, and drops them. A claim A2 proposes that fails the schema gate is dropped at source (invariant 5) and never gets a `Verification`, so it cannot appear in any view.
+- P1 is built, so the brief's "its dependency on P1 is probably avoidable — ask" is moot: the producer page and its switch (Q43: 4B) already exist.
+- A6's drawer (Q42) lists the claims a card *kept*. It does not list rejected ones, and it is built from the card, not from a store of verdicts.
+
+**Why I cannot decide it:** (1) chooses where a derived record is stored and which component owns it, and 1B settles **O4** (Audit in-process or a Function), which DECISIONS lists as OPEN. (2) decides what the view says was checked, and leaving a rejection out of a view whose point is "rejections are not hidden" is a cut. Both are Kehinde's (CLAUDE.md: stop and ask).
+
+**Options as I see them:**
+
+*(1) Where the verdicts are kept*
+- 1A: **A producer-only report, like P1's.** The pipeline publishes, per moment, the claims and their verifications beside `MomentOutcome`. `ProducerFeed` keeps them in memory and serves them. Audit stays a stub. Costs: a second thing the pipeline pushes out; the store lives and dies with the producer switch; P5 still has to make Audit real later, and would then hold the same data twice.
+- 1B: **Make `audit.record` keep the trail, in memory, in-process.** An `Audit` object is built in `apps/delivery.py` and handed to the pipeline, as `Mutes` and `Ladder` are. It keeps each moment with its claims, verifications and renditions, append-only (invariant 2), and offers read methods. P3's route reads it; P5 reads the same store. Costs: it settles O4 as in-process by implication; Audit becomes the owner of the trail, so a later Postgres-backed one goes behind the same interface (D19); it is lost on restart, as sessions are. Smaller than it sounds, because the pipeline already makes the call.
+
+*(2) Which verifications the page lists*
+- 2A: **The ones on the card path** (what `_editorial` verifies). Every row is a claim Selection saw, so every rejection is one that could have reached a card. Costs: while A2 is down the page shows none of A2's rejections, though they were made and scored.
+- 2B: **Also the shadow-scored ones**, marked "asked while the model was off the rung; never could have reached a card". Costs: a second call into Audit from `_score_shadows`, a row type to explain, and rejections that no viewer was ever exposed to.
+
+**Decided by me, so you can reverse it:**
+- **Who can reach it.** The same switch as the producer view (Q43: 4B) and the same reasoning as Q44's 4A. The route and its script exist only where `MATCHLENS_PRODUCER_VIEW` is on, and nothing on `index`, `watch` or `delay` links to it.
+- **Raw values.** It is an audit surface, so it prints the record as it is, calibrated values included, on the same footing as A6's drawer (Q42: 1A). A viewer never gets it.
+- **Where it sits.** A page of its own at `/producer/claims`, linked from the producer page, not a section inside it. The brief asks for "a page", and P2's uncommitted changes are in `producer.html` and `producer.js`, so a separate page keeps the two tickets from colliding.
+- **No computing in the browser.** The server resolves a claim's subject and metric to labels before sending; the browser prints fields and never derives one. `NOT_APPLICABLE` gets its own label and colour, never a tick.
+
+**What I would do if forced:** 1B and 2A. The pipeline already hands Audit these four lists, and 1B is what P5 needs, so it removes a later rewrite. It does decide O4 for you, which is why I have not done it. Not done.
+
+**Answer:** 1B and 2A. Kehinde, 26 Oct.
+
+---
+
 ## Q44 · Where a mute is enforced and recorded, what "later cards" means, what the viewer is told, and who can mute  [ticket: P2]  [blocking: yes]
 
 **What I need to know:** four things P2's brief leaves open. The brief's three properties (later cards only, one lens at a time, a viewer who had cards is told) are not in doubt.

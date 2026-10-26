@@ -13,6 +13,7 @@ from fastapi import FastAPI
 
 from apps.pipeline import Pipeline, Publish, Report
 from matchlens import lenses
+from matchlens.audit import Audit
 from matchlens.config.settings import settings
 from matchlens.control import Mutes
 from matchlens.control.ladder import Ladder
@@ -69,6 +70,7 @@ hub = MatchStateHub()
 sessions = SessionStore()
 queues = ReleaseQueues()
 mutes = Mutes()  # P2: the producer's mutes, read by the router, the pipeline and the view
+audit = Audit()  # P3: the pipeline writes each moment's trail, the claims page reads it
 router = CardRouter(
     sessions, queues, mutes
 )  # Delivery's end of the bus: the pipeline publishes to receive
@@ -111,6 +113,7 @@ async def _lifespan(_: FastAPI):
         queue_limit=settings.ladder_queue_limit,
         report=_reporter(loop, producer),
         mutes=mutes,
+        audit=audit,
     )
     foundry.warm(proposer)
     foundry.warm(writer)
@@ -123,5 +126,13 @@ async def _lifespan(_: FastAPI):
 
 
 app = create_app(
-    hub, sessions, queues, router, ladder, producer=producer, mutes=mutes, lifespan=_lifespan
+    hub,
+    sessions,
+    queues,
+    router,
+    ladder,
+    producer=producer,
+    mutes=mutes,
+    audit=audit,
+    lifespan=_lifespan,
 )

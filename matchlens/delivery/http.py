@@ -1,9 +1,9 @@
 """The delivery HTTP surface: the page, viewer sessions, and the SSE stream.
 
 With a `ProducerFeed` it also serves the producer view (P1, Q43: 4B) and the controls on it: mute
-and unmute (P2, Q44: 4A). Without one, the page, its stream, its files and the controls do not
-exist: a deployment that has not switched it on has nothing to find, and a viewer has nothing to
-call.
+and unmute (P2, Q44: 4A), and the rejected-claims page and its data (P3). Without one, the page,
+its stream, its files, the controls and the claims do not exist: a deployment that has not
+switched it on has nothing to find, and a viewer has nothing to call.
 """
 
 from collections.abc import AsyncIterator
@@ -19,6 +19,8 @@ from starlette.responses import Response
 from starlette.types import Scope
 
 from matchlens import lenses
+from matchlens.audit import Audit
+from matchlens.audit.claims import ClaimsPage, claims_page
 from matchlens.catchup import CatchUp
 from matchlens.config.settings import settings
 from matchlens.control import AlreadyMuted, Mutes, Notice, NotMuted
@@ -35,7 +37,9 @@ from matchlens.rendering import Card
 WEB_DIR = Path(__file__).resolve().parents[2] / "web"
 
 # The files only the producer view uses. Lower case, since the check is not case-sensitive.
-PRODUCER_FILES = frozenset({"producer.html", "producer.js", "producer.css"})
+PRODUCER_FILES = frozenset(
+    {"producer.html", "producer.js", "producer.css", "claims.html", "claims.js", "claims.css"}
+)
 
 
 class _Files(StaticFiles):
@@ -109,12 +113,14 @@ def create_app(
     *,
     producer: ProducerFeed | None = None,
     mutes: Mutes | None = None,
+    audit: Audit | None = None,
     web_dir: Path = WEB_DIR,
     lifespan=None,
 ) -> FastAPI:
     app = FastAPI(title="MatchLens delivery", lifespan=lifespan)
     queues = ReleaseQueues() if queues is None else queues
     mutes = Mutes() if mutes is None else mutes
+    audit = Audit() if audit is None else audit
     router = CardRouter(sessions, queues, mutes) if router is None else router
     ladder = Ladder() if ladder is None else ladder
 
@@ -297,6 +303,20 @@ def create_app(
         def producer_actions() -> list[ProducerAction]:
             """Every mute and unmute, in the order they were made."""
             return mutes.actions()
+
+        @app.get("/producer/claims", include_in_schema=False)
+        def claims_html() -> FileResponse:
+            """Every claim of the match with its verdict and its six checks (P3)."""
+            return FileResponse(web_dir / "claims.html")
+
+        @app.get("/producer/claims/data")
+        def claims_data(after: Annotated[int, Query(ge=0)] = 0) -> ClaimsPage:
+            """The claims of the moments Audit recorded after the `after`-th, and the totals.
+
+            Read from the trail as it is: nothing is checked or recomputed here. Live, like the
+            producer's stream, and never reachable from a viewer's page.
+            """
+            return claims_page(audit, after)
 
     hidden = frozenset() if producer is not None else PRODUCER_FILES
     app.mount("/static", _Files(directory=web_dir, hidden=hidden), name="static")
