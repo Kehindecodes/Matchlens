@@ -54,7 +54,7 @@ class Player(_Record):
     shirt: int
     name: str
     position: str
-    is_starter: bool  # whether they started the match
+    is_starter: bool
 
 
 class Match(_Record):
@@ -106,7 +106,7 @@ class Frame(_Record):
     phase: Phase
     ball_x: float
     ball_y: float
-    ball_z: float  # height
+    ball_z: float
     ball_speed: Annotated[float, Field(ge=0)]  # m/s
     carrier: str | None  # null if the ball is loose or in flight
     players: tuple[PlayerPosition, ...]

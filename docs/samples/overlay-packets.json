@@ -1,43 +1,43 @@
 [
   {
-    "packet_id": "moment-m-1-epoch0-pressing_intensity-m-1-home-780000:match_analyst:overlay",
-    "rendition_id": "moment-m-1-epoch0-pressing_intensity-m-1-home-780000:match_analyst",
-    "display_at_clock": 780000,
+    "packet_id": "moment-m-1-e1116:match_analyst:overlay",
+    "rendition_id": "moment-m-1-e1116:match_analyst",
+    "display_at_clock": 3288035,
     "duration_ms": 5000,
-    "template": "stat_bar",
-    "payload": {
-      "headline": "Tactical shift: Riverside Athletic",
-      "clock": "13:00",
-      "label": "opponent passes allowed per defensive action",
-      "team": "Riverside Athletic",
-      "value": "10.7",
-      "other": "Redfern United",
-      "other_value": "7"
-    }
-  },
-  {
-    "packet_id": "moment-m-1-e595:match_analyst:overlay",
-    "rendition_id": "moment-m-1-e595:match_analyst",
-    "display_at_clock": 1825035,
-    "duration_ms": 5750,
     "template": "lower_third",
     "payload": {
-      "headline": "Chance: Redfern United",
-      "clock": "30:25",
-      "body": "Redfern United took a shot rated as a chance that was not a goal, at 30:25. A big chance."
+      "headline": "Chance: Riverside Athletic",
+      "clock": "54:48",
+      "body": "Won in midfield, a patient move: 15 passes over 34 s, from 3.9 m."
     }
   },
   {
-    "packet_id": "moment-m-1-e701:team_engaged:overlay",
-    "rendition_id": "moment-m-1-e701:team_engaged",
-    "display_at_clock": 2134035,
+    "packet_id": "moment-m-1-epoch4-possession_control-m-1-home-3600000:match_analyst:overlay",
+    "rendition_id": "moment-m-1-epoch4-possession_control-m-1-home-3600000:match_analyst",
+    "display_at_clock": 3600000,
+    "duration_ms": 5500,
+    "template": "stat_bar",
+    "payload": {
+      "headline": "Riverside Athletic are seeing more of the ball than their norm.",
+      "clock": "60:00",
+      "label": "share of the passes",
+      "team": "Riverside Athletic",
+      "value": "73%",
+      "other": "Redfern United",
+      "other_value": "27%"
+    }
+  },
+  {
+    "packet_id": "moment-m-1-e1795:team_engaged:overlay",
+    "rendition_id": "moment-m-1-e1795:team_engaged",
+    "display_at_clock": 5358535,
     "duration_ms": 5000,
     "template": "team_card",
     "payload": {
-      "headline": "Riverside Athletic score",
-      "clock": "35:34",
+      "headline": "Riverside Athletic take the lead",
+      "clock": "89:18",
       "team": "Riverside Athletic",
-      "body": "A goal for Riverside Athletic. Level at 1–1."
+      "body": "Riverside Athletic lead 3–2."
     }
   }
 ]

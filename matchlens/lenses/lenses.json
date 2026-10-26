@@ -1,5 +1,5 @@
 {
-  "calibrated_against": "seed 1 comeback demo match: 52 moments (3 goals, 17 chances, 32 tactical shifts), importance 0.10 to 1.00, median 0.26. Thresholds admit 6 (casual), 19 (engaged, raw: team scope reweights before L2 applies it, D2) and 52 (analyst). Recalibrate when M1b's weights or thresholds move.",
+  "calibrated_against": "seed 1 on the old comeback demo match: 52 moments (3 goals, 17 chances, 32 tactical shifts). Not recalibrated for the remontada (3-2 from 0-2 down), which the thresholds were not tuned on: check what each lens shows there before changing a threshold.",
   "lenses": [
     {
       "lens_id": "match_casual",
@@ -10,8 +10,8 @@
       "depth": "casual",
       "importance_threshold": 0.45,
       "max_cards_per_10min": 3,
-      "allowed_claim_types": ["descriptive", "interpretive"],
-      "detail_level": "minimal",
+      "allowed_claim_types": ["descriptive", "comparative", "interpretive"],
+      "detail_level": "standard",
       "language": "en",
       "focus_team": null,
       "focus_player": null
@@ -38,7 +38,7 @@
       "scope": "team",
       "breakthrough_types": ["goal"],
       "depth": "engaged",
-      "importance_threshold": 0.3,
+      "importance_threshold": 0.35,
       "max_cards_per_10min": 5,
       "allowed_claim_types": ["descriptive", "comparative", "interpretive"],
       "detail_level": "standard",

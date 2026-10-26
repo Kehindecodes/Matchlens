@@ -106,7 +106,6 @@ class EpochTrigger(StrEnum):
 
 
 # --- group C: editorial output -------------------------------------------------------------------
-# `Verdict` and `CheckName` belong to the `Claim` / six-check design and land with it.
 
 
 class MomentType(StrEnum):
@@ -128,6 +127,9 @@ class Metric(StrEnum):
     POSSESSION_CONTROL = "possession_control"
     PRESSING_INTENSITY = "pressing_intensity"
     CHANCE_QUALITY = "chance_quality"
+    BALL_WON_THIRD = "ball_won_third"  # 1 to 3 from the winner's own third: where it was won
+    BALL_LOST = "ball_lost"  # 1 for the player who gave the ball away to a move
+    SHOT_DISTANCE = "shot_distance"  # metres from the centre of the goal attacked
 
 
 class ClaimType(StrEnum):

@@ -29,6 +29,7 @@ from matchlens.source import MatchSetup, simulate
 from matchlens.source.archetypes import ARCHETYPES
 from matchlens.spotting import Spotter
 from matchlens.understanding import Understanding
+from matchlens.understanding.buildup import BALL_WINNING, shot_distance, win_third
 from matchlens.understanding.shot_value import is_shot, value
 
 SIGNALS = {Metric.TERRITORY, Metric.POSSESSION_CONTROL, Metric.PRESSING_INTENSITY,
@@ -123,6 +124,17 @@ def _recount(operand, played: Played) -> float:
         return float(sum(value(e, match).value >= 0.25 for e in cited))
     if operand.metric is Metric.BUILD_UP_PASSES:
         return float(sum(e.action is Action.PASS for e in cited))
+    if operand.metric is Metric.BALL_WON_THIRD:
+        [win] = cited
+        assert win.action in BALL_WINNING and win.team == operand.subject.id
+        return float(win_third(match, win))
+    if operand.metric is Metric.BALL_LOST:
+        [lost] = cited
+        assert lost.player == operand.subject.id
+        return 1.0
+    if operand.metric is Metric.SHOT_DISTANCE:
+        [shot] = cited
+        return shot_distance(match, shot)
     raise AssertionError(operand.metric)
 
 
@@ -214,7 +226,7 @@ def test_the_same_seed_makes_identical_claims(seed_1):
 def test_every_claim_says_which_rules_made_it(seed_1):
     for x in seed_1.explained:
         for claim in x.claims:
-            assert (claim.model, claim.model_version) == ("deterministic", "claims-2")
+            assert (claim.model, claim.model_version) == ("deterministic", "claims-4")
 
 
 @pytest.mark.slow

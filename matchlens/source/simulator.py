@@ -20,7 +20,7 @@ from matchlens.models import (
     PlayerPosition,
     Team,
 )
-from matchlens.source.archetypes import COMEBACK, ArchetypeParams, interpolate
+from matchlens.source.archetypes import DEMO, ArchetypeParams, interpolate
 from matchlens.source.squads import PITCH_LENGTH_M, PITCH_WIDTH_M, Slot, build_squads
 from matchlens.source.stream import MatchSetup, StreamItem
 
@@ -1112,7 +1112,7 @@ class _Engine:
 
 def simulate(
     seed: int | None = None,
-    archetype: ArchetypeParams = COMEBACK,
+    archetype: ArchetypeParams = DEMO,
     *,
     frame_rate_hz: int | None = None,
 ) -> Iterator[StreamItem]:

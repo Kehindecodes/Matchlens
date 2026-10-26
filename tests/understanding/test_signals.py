@@ -12,6 +12,7 @@ from matchlens.ingest import Ingest, RecordReader
 from matchlens.ingest.events import InMemoryEventRepository
 from matchlens.models import Event, Outcome, Signal
 from matchlens.source import simulate
+from matchlens.source.archetypes import COMEBACK
 from matchlens.understanding import signals
 from matchlens.understanding.epochs import detect
 from matchlens.understanding.signals import (
@@ -125,7 +126,7 @@ def test_every_reading_sits_inside_one_epoch(readings, epochs):
 
 
 def test_the_same_seed_gives_the_same_readings(readings, played):
-    again = split(list(simulate(1)))
+    again = split(list(simulate(1, COMEBACK)))
     ingest = Ingest()
     for item in again.items:
         ingest.accept(item)

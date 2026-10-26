@@ -244,11 +244,14 @@ class Panel {
     li.className = "card";
     const time = document.createElement("time");
     time.textContent = mmss(card.display_at_clock);
-    const h3 = document.createElement("h3");
-    h3.textContent = card.rendition.headline;
+    // One line that reads alone: the headline is its first clause, run in to the body.
     const p = document.createElement("p");
-    p.textContent = card.rendition.body;
-    li.append(time, h3, p);
+    const lead = document.createElement("strong");
+    const body = card.rendition.body;
+    lead.textContent = card.rendition.headline + (body && !/[.!?]$/.test(card.rendition.headline) ? "." : "");
+    p.append(lead);
+    if (body) p.append(" ", body);
+    li.append(time, p);
     this.cards.prepend(li); // newest first
     this.count += 1;
     this.lastSpoke = card.display_at_clock;

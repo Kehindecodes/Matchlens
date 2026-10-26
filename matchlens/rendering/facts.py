@@ -29,17 +29,19 @@ def sentence(
     language: str,
     names: Mapping[str, str],
     focus: str | None = None,
+    pick: int = 0,
 ) -> str | None:
     """`claim` as one sentence at `depth`, or None if it is not one this depth speaks.
 
-    `focus` is the team id a lens follows, if it follows one.
+    `focus` is the team id a lens follows, if it follows one. `pick` chooses among the row's
+    variants (`templates.variant_for`).
     """
-    claim = told_from(claim, focus)
+    claim = _leader_first(told_from(claim, focus))
     read = _read(claim, language)
     if read is None:
         return None
     form, values = read
-    text = templates.fact(language, claim.operands[0].metric, form, depth)
+    text = templates.fact(language, claim.operands[0].metric, form, depth, pick)
     if text is None:
         return None
     filled = {**_fields(claim, language, names), **values}
@@ -59,6 +61,16 @@ def told_from(claim: Claim, focus: str | None) -> Claim:
     return claim.model_copy(update={"operands": (second, first)})
 
 
+def _leader_first(claim: Claim) -> Claim:
+    """A comparison of the two sides' big chances, read from the side with more of them."""
+    if len(claim.operands) != 2 or claim.operands[0].metric is not Metric.CHANCES:
+        return claim
+    first, second = claim.operands
+    if second.value <= first.value:
+        return claim
+    return claim.model_copy(update={"operands": (second, first)})
+
+
 def _read(claim: Claim, language: str) -> tuple[str, Mapping[str, str | None]] | None:
     """The form `claim` reads as, and any words the form brings, or None if it has none."""
     subject, *other = claim.operands
@@ -73,14 +85,25 @@ def _read(claim: Claim, language: str) -> tuple[str, Mapping[str, str | None]] |
         if subject.subject.kind is RefKind.PLAYER:
             return ("scorer_first" if value == 1 else "scorer_again"), {}
         return "team_goals", {}
+    if metric is Metric.BALL_WON_THIRD:
+        return {3: "won_high", 2: "won_middle", 1: "won_deep"}[int(value)], {}
+    if metric is Metric.BALL_LOST:
+        return "lost", {}
+    if metric is Metric.SHOT_DISTANCE:
+        close, far = settings.wording_close_range_m, settings.wording_long_range_m
+        return ("close" if value <= close else "long" if value >= far else "mid"), {}
     if metric is Metric.SHOT_QUALITY:
         return ("big" if value >= settings.spotter_chance_quality else "hard"), {}
     if metric is Metric.CHANCES:
+        if other:  # the run set against the other side's: only a clear edge is worth saying
+            ratio = settings.wording_chance_edge_ratio
+            clear = value >= settings.wording_chance_run and value >= ratio * other[0].value
+            return ("edge", {}) if clear else None
         return ("run", {}) if value >= settings.wording_chance_run else None
     if metric is Metric.BUILD_UP_PASSES:
         width = subject.window.end_ms - subject.window.start_ms
         if width <= settings.wording_quick_attack_ms:
-            return "quick", {}
+            return ("quick_single" if value == 1 else "quick"), {}
         return ("patient", {}) if value >= settings.wording_patient_passes else None
     return None
 

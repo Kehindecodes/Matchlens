@@ -9,6 +9,7 @@ from matchlens.ingest import Ingest, RecordReader
 from matchlens.ingest.events import InMemoryEventRepository
 from matchlens.models import Action, Event, Outcome, Phase, Possession, PossessionOutcome, Zone
 from matchlens.source import simulate
+from matchlens.source.archetypes import COMEBACK
 from matchlens.understanding.possession import sequence
 from tests.source.helpers import Played, split
 
@@ -146,7 +147,7 @@ def test_a_possession_needs_at_least_one_event():
 
 
 def test_the_same_seed_gives_the_same_possessions_byte_for_byte(possessions):
-    again = _possessions(split(list(simulate(1))))
+    again = _possessions(split(list(simulate(1, COMEBACK))))
     assert [p.model_dump_json() for p in again] == [p.model_dump_json() for p in possessions]
 
 

@@ -22,7 +22,7 @@ class Settings(BaseSettings):
     baseline_k_minutes_after_break: int = 15  # D26: the same cold start, tuned separately
     match_seed: int = 1  # the demo match: the video and the tests run on this seed (F3)
 
-    # Spotting (M1b). Calibrated on the demo match; the 30-60 moments band holds there and not on
+    # Spotting (M1b). Calibrated on the demo match; the 20-60 moments band holds there and not on
     # every seed.
     spotter_z_threshold: float = 1.25  # |z_match| a tactical shift must reach
     spotter_confidence_floor: float = 0.3  # below this a large z is noise
@@ -35,6 +35,12 @@ class Settings(BaseSettings):
     importance_goal: float = 1.0  # type weights: importance = weight * magnitude * confidence
     importance_chance: float = 0.8
     importance_tactical_shift: float = 0.7
+    # A goal's magnitude by what it does to the score (M1b): a goal that changes who is ahead, or
+    # levels it, is full; one that only stretches or trims a gap is less; one that makes a rout
+    # worse is least, which is what lets a lens that wants meaning leave it out.
+    goal_magnitude_gap: float = 0.7  # a goal that leaves one side ahead by two, or trims a gap
+    goal_magnitude_rout: float = 0.4  # a goal that leaves one side ahead by three or more
+    chance_run_magnitude: float = 0.6  # a big chance that is one of a run is worth at least this
 
     # Claims and the words they allow (D30). Standard values, not tuned per match. The big-chance
     # bar is `spotter_chance_quality` and plain interpretive wording `spotter_z_threshold`.
@@ -43,6 +49,13 @@ class Settings(BaseSettings):
     wording_chance_run: int = 3  # a run of big chances is spoken from the third
     wording_quick_attack_ms: int = 20_000  # ball won in open play to the shot
     wording_patient_passes: int = 10
+    wording_close_range_m: float = 12.0  # a shot from this close or closer is close range
+    wording_long_range_m: float = 25.0  # a shot from this far or further is long range
+    # One side's big chances at least this many times the other's is worth saying.
+    wording_chance_edge_ratio: float = 2.0
+    # A card is read in seconds, so the lens that wants it all hears this many claims (D4's
+    # catch-up still speaks every one).
+    claims_spoken_full: int = 3
 
     # Verification (A3)
     value_rel_tolerance: float = 1e-6  # Q35: counts are exact, every other value within this

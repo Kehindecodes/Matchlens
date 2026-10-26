@@ -4,8 +4,10 @@ Each moment type gets the claims D30 lists for it, in the order a lens that spea
 them should hear them:
 
 - goal: the scorer's goals, the score (or the team's goals while the other side has none, Q26
-  2a), the build-up, the shot's quality
-- chance: the run of big chances, the shot's quality
+  2a), how it came about (the build-up, where the ball was won, who gave it away, how far out the
+  shot was), the shot's quality
+- chance: the run of big chances, the run set against the opponent's over the same window when
+  they had one too, how it came about, the shot's quality
 - tactical shift: the signal that fired, read as a judgement, then compared with the same team
   in the previous epoch and with the opponent at the same clock
 
@@ -19,7 +21,6 @@ from collections.abc import Sequence
 from matchlens.config import settings
 from matchlens.ingest.roster import pitch_window
 from matchlens.models import (
-    Action,
     Claim,
     ClaimType,
     Epoch,
@@ -36,14 +37,12 @@ from matchlens.models import (
     SignalReading,
     Window,
 )
+from matchlens.understanding.buildup import BALL_WINNING, ball_loser, shot_distance, win_third
 from matchlens.understanding.possession import from_events
 from matchlens.understanding.shot_value import is_shot, value
 
 MODEL = "deterministic"
-MODEL_VERSION = "claims-2"  # bump by hand whenever a rule below changes (invariant 7)
-
-# How a possession wins the ball in open play; a restart is not winning it (D30).
-_BALL_WINNING = frozenset({Action.TACKLE, Action.INTERCEPTION, Action.AERIAL_DUEL})
+MODEL_VERSION = "claims-4"  # bump by hand whenever a rule below changes (invariant 7)
 
 
 def explain_moment(
@@ -165,51 +164,98 @@ def _goal(
     assert team is not None
     specs.append(_comparative(team, against) if against is not None else _descriptive(team))
 
-    if (build_up := _build_up(goal, events, match)) is not None:
-        specs.append(_descriptive(build_up))
+    specs.extend(_descriptive(operand) for operand in _how(goal, events, match))
     specs.append(_descriptive(_shot_quality(goal, match)))
     return specs
 
 
-def _build_up(shot: Event, events: Sequence[Event], match: Match) -> Operand | None:
-    """The passes in the move that ended in `shot`, if the move began by winning the ball.
+def _how(shot: Event, events: Sequence[Event], match: Match) -> list[Operand]:
+    """How `shot` came about, as the facts the log can recount: the move that ended in it, where
+    that move won the ball, who gave the ball away, and how far out the shot was struck.
 
-    A move begun by a restart has no claim: "a quick attack" reads the move's duration, which
-    from a corner or a throw-in is not an attack's (D30).
+    A move begun by a restart has no first three: "a quick attack" reads the move's duration,
+    which from a corner or a throw-in is not an attack's, and there is no loss to point at (D30).
     """
+    operands: list[Operand] = []
     move = next((p for p in from_events(match, events) if shot.event_id in p.event_ids), None)
-    if move is None:
-        return None
-    first = next(e for e in events if e.event_id == move.event_ids[0])
-    if first.action not in _BALL_WINNING:
-        return None
-    return Operand(
-        subject=_team(move.team),
-        metric=Metric.BUILD_UP_PASSES,
-        window=Window(start_ms=move.start_clock_ms, end_ms=shot.clock_ms),
-        value=float(move.pass_count),
-        evidence_ids=tuple(Ref(kind=RefKind.EVENT, id=i) for i in move.event_ids),
+    if move is not None:
+        first = next(e for e in events if e.event_id == move.event_ids[0])
+        if first.action in BALL_WINNING:
+            operands.append(
+                Operand(
+                    subject=_team(move.team),
+                    metric=Metric.BUILD_UP_PASSES,
+                    window=Window(start_ms=move.start_clock_ms, end_ms=shot.clock_ms),
+                    value=float(move.pass_count),
+                    evidence_ids=tuple(Ref(kind=RefKind.EVENT, id=i) for i in move.event_ids),
+                )
+            )
+            operands.append(
+                Operand(
+                    subject=_team(move.team),
+                    metric=Metric.BALL_WON_THIRD,
+                    window=Window(start_ms=first.clock_ms, end_ms=first.clock_ms),
+                    value=float(win_third(match, first)),
+                    evidence_ids=_events([first]),
+                )
+            )
+            if (lost := ball_loser(match, events, move)) is not None:
+                assert lost.player is not None  # `ball_loser` only returns an event with a player
+                operands.append(
+                    Operand(
+                        subject=Ref(kind=RefKind.PLAYER, id=lost.player),
+                        metric=Metric.BALL_LOST,
+                        window=Window(start_ms=lost.clock_ms, end_ms=lost.clock_ms),
+                        value=1.0,
+                        evidence_ids=_events([lost]),
+                    )
+                )
+    operands.append(
+        Operand(
+            subject=_team(shot.team or ""),
+            metric=Metric.SHOT_DISTANCE,
+            window=Window(start_ms=shot.clock_ms, end_ms=shot.clock_ms),
+            value=shot_distance(match, shot),
+            evidence_ids=_events([shot]),
+        )
     )
+    return operands
 
 
-def _chance(shot: Event, events: Sequence[Event], match: Match) -> list[_Spec]:
+def _big_chances(
+    team_id: str, shot: Event, events: Sequence[Event], match: Match
+) -> Operand | None:
+    """`team_id`'s big chances over the chances window ending at `shot`, citing each, or None."""
     start = max(0, shot.clock_ms - settings.claim_chance_window_ms)
     big = [
         e
         for e in events
         if is_shot(e)
-        and e.team == shot.team
+        and e.team == team_id
         and start < e.clock_ms <= shot.clock_ms
         and value(e, match).value >= settings.spotter_chance_quality
     ]
-    run = Operand(
-        subject=_team(shot.team or ""),
+    if not big:
+        return None  # a count of nothing cites nothing (Q26 2a)
+    return Operand(
+        subject=_team(team_id),
         metric=Metric.CHANCES,
         window=Window(start_ms=start, end_ms=shot.clock_ms),
         value=float(len(big)),
         evidence_ids=_events(big),
     )
-    return [_descriptive(run), _descriptive(_shot_quality(shot, match))]
+
+
+def _chance(shot: Event, events: Sequence[Event], match: Match) -> list[_Spec]:
+    team_id = shot.team or ""
+    run = _big_chances(team_id, shot, events, match)
+    assert run is not None  # the shot that fired this moment is one of them
+    specs = [_descriptive(run)]
+    if (theirs := _big_chances(_opponent(match, team_id), shot, events, match)) is not None:
+        specs.append(_comparative(run, theirs))
+    specs.extend(_descriptive(operand) for operand in _how(shot, events, match))
+    specs.append(_descriptive(_shot_quality(shot, match)))
+    return specs
 
 
 # --- tactical shifts -----------------------------------------------------------------------------

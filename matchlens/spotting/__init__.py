@@ -20,7 +20,7 @@ from matchlens.models import (
     RefKind,
     SignalReading,
 )
-from matchlens.spotting.importance import importance, shift_magnitude
+from matchlens.spotting.importance import goal_magnitude, importance, shift_magnitude
 from matchlens.spotting.suppression import Suppression
 from matchlens.understanding.shot_value import is_shot, value
 
@@ -94,12 +94,12 @@ class Spotter:
         if event.team is None:
             return None
         if event.outcome is Outcome.GOAL:
-            type_, magnitude = MomentType.GOAL, 1.0
+            type_, magnitude = MomentType.GOAL, self._goal_magnitude(event)
         elif is_shot(event):
             quality = value(event, self._record().match).value
             if quality < settings.spotter_chance_quality:
                 return None
-            type_, magnitude = MomentType.CHANCE, quality
+            type_, magnitude = MomentType.CHANCE, max(quality, self._run_magnitude(event, quality))
         else:
             return None
 
@@ -115,6 +115,27 @@ class Spotter:
             model=MODEL,
             model_version=MODEL_VERSION,
         )
+
+    def _run_magnitude(self, shot: Event, quality: float) -> float:
+        """What a big chance is worth when it is one of a run: the side has had several in ten
+        minutes, which is something the viewer has not been told. Alone it is worth its quality."""
+        record = self._record()
+        start = max(0, shot.clock_ms - settings.claim_chance_window_ms)
+        run = sum(
+            is_shot(e)
+            and e.team == shot.team
+            and value(e, record.match).value >= settings.spotter_chance_quality
+            for e in record.events_between(start + 1, shot.clock_ms + 1)
+        )
+        return settings.chance_run_magnitude if run >= settings.wording_chance_run else quality
+
+    def _goal_magnitude(self, goal: Event) -> float:
+        """How much `goal` matters, from the score it leaves, read from the log before it."""
+        before = [
+            e for e in self._record().events_between(0, goal.clock_ms) if e.outcome is Outcome.GOAL
+        ]
+        scored = sum(e.team == goal.team for e in before) + 1
+        return goal_magnitude(scored, len(before) - (scored - 1))
 
     @staticmethod
     def _result(moment: Moment) -> SpotterResult:

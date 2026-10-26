@@ -4,8 +4,9 @@
 
 `magnitude` is 0–1 and says how far from ordinary the thing is, in a unit that does not depend on
 which signal it came from: a shift's z-scores saturate at `importance_z_saturation`, a chance is
-its shot quality, a goal is full. `confidence` is the reading's, and 1 for an event. So a 3σ
-territory shift and a 3σ pressing shift score the same at the same confidence.
+its shot quality, a goal is full or less by what it does to the score. `confidence` is the
+reading's, and 1 for an event. So a 3σ territory shift and a 3σ pressing shift score the same at
+the same confidence.
 """
 
 from matchlens.config import settings
@@ -29,3 +30,19 @@ def shift_magnitude(reading: SignalReading) -> float:
     unusual = min(abs(reading.z_prior) / saturation, 1.0)
     prior_weight = settings.importance_prior_weight
     return (1 - prior_weight) * changed + prior_weight * unusual
+
+
+def goal_magnitude(scored: int, conceded: int) -> float:
+    """How much a goal matters, from the score it leaves: `scored` is the scorer's goals after it.
+
+    A goal that opens the scoring, levels it, or puts the scorer ahead by one is full: someone's
+    match has just changed. One that leaves the scorer ahead by two, or still behind, moves a
+    gap and is worth less. One that leaves them three or more ahead adds nothing a viewer needs
+    told, so a lens that wants meaning can leave it out.
+    """
+    lead = scored - conceded
+    if lead < 0 or lead == 2:
+        return settings.goal_magnitude_gap
+    if lead >= 3:
+        return settings.goal_magnitude_rout
+    return 1.0

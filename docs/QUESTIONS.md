@@ -24,6 +24,35 @@ Newest at the top. Kehinde answers inline and moves the resolved ones to `docs/D
 
 ---
 
+## Q46 · Card wording: variants, the mirrored possession shift, and a Remontada-shaped demo match  [ticket: none, 26 Oct]  [blocking: no]
+
+**What changed, so you can reverse it:** Kehinde asked for all of it on 26 Oct, so this is a record, not a request.
+- Template rows carry `variants`, picked from the card's own id (`templates.variant_for`), so a repeat of a moment type does not repeat its words and the seed still says the same thing. Bodies no longer restate their headline. `MODEL_VERSION` is `templates-4`.
+- The writer prompt says each fact once, bans the stock openings, and has an example per depth. `PROMPT_VERSION` is `writer-5`.
+- `Suppression` fires one tactical shift for a pair of possession-share readings on the same clock, because possession is zero-sum and both sides' cards said the same thing.
+- `REMONTADA` is the demo archetype (`DEMO`), the default of `simulate` and `Replay.from_seed`. `ARCHETYPES` is unchanged, so every test that names an archetype reads what it did. Seed 1 now plays Redfern United 2–0 up, Riverside Athletic pulling one back at 57:59, levelling at 76:41 and winning it at 89:18 on a quick attack won by an interception (8 passes, 20 s). Teams and players stay invented.
+
+- The casual lens's `detail_level` is now `standard`, not `minimal`: it speaks one fact after the opening line (a scorer, a goal count, a quick attack), in words and never a number. This is Q25 part 2, which D30 listed as still open: Kehinde answered it on 26 Oct, that casual viewers get facts too. `full` is a one-word change in `lenses.json` if one fact is too few. Casual still allows only descriptive and interpretive claims, so it hears no score comparison.
+
+- The spotter's moment band is now 25–60, not 30–60. The mirror rule removes 5–7 moments a match (comeback 52→46, one_sided 50→45, scrappy 32→27, tight 44→37), and scrappy fell under the old floor. Kehinde chose to keep the rule and lower the floor on 26 Oct.
+- **A card says what the viewer cannot see, not what they are watching (26 Oct).** A goal is headlined by what it did to the score (`opener`, `took_lead`, `equaliser`, `extended`, `pulled_back`), read in `rendering/state.py` from the verified score claim and the scorer, so it adds no fact a claim does not already hold. A run of three big chances is headlined as a run. Those headlines replace the template's opening line, which is gone from every card: no card says "scored" or carries a time any more (the overlay has its own `clock`). A card that has no state falls back to the old rows.
+- **Cards are short.** A lens at `full` detail speaks two claims (`claims_spoken_full`), not all of them; catch-up still speaks them all. The claims are heard in the order that says most: a goal's build-up, then the score (the score first for a lens that follows a side); a shift's judgement, then against the other side, then against itself earlier. The earlier-window comparison no longer names its boundary ("before 63:00" is "was 58%"), which weakens D30's "names the boundary" wording rule.
+- **New match-state claim:** a chance moment also claims the run of big chances set against the other side's over the same window, when both had one (`claims-3`). It is said only for a clear edge (`wording_chance_edge_ratio`, 2×) and from the side with more.
+- **Casual hears comparisons now.** `match_casual` allows `comparative` claims, so it can be told what a goal did to the score, in words and with no number. This reverses a preset that tests pinned ("casual drops comparative claims"); `test_lenses` and `test_selection` now say every depth hears them.
+- **A goal's importance follows the score it leaves** (`goal_magnitude`): opening, levelling or taking the lead is full, a two-goal lead or a goal that only trims a gap is 0.7, a lead of three or more is 0.4. Casual's threshold is 0.45, so it leaves out a goal that makes a rout worse; on this match nothing is left out.
+- **Prompts:** `writer-6` asks for at most 20 words, never says that the goal or shot happened, and says each fact once. `claims-3` changes the explainer's digest, so its cache misses too.
+- **Cards read alone, in one line (26 Oct, second pass).** The page now runs the headline in to the body as one paragraph; the headline is the card's first clause and carries the news. A tactical shift has no separate headline: its first fact is the headline, then one line against the other side. The label-and-number pairs that repeated a label are gone.
+- **How a goal or a chance came about, from the log (`claims-4`).** Three new metrics, each recounted by the verifier from `understanding/buildup.py`, the same function the builder uses: `ball_won_third` (1–3 from the winner's own third), `ball_lost` (the player whose event gave the ball away: a turnover possession's last on-ball event, recounted over the whole record because the loss is only one once the other side takes the ball), and `shot_distance` (metres). All 139 claims on the demo pass A3. Casual is told one thing, rotating with the moment (where it was won, or how far out); the analyst is told where it was won, how fast, how far out (`claims_spoken_full` is now 3); a lens that follows a side is told only where its side stands. Catch-up still speaks every claim.
+- **Territory shifts are mirrored too** (`_MIRRORED`): both teams' territory shifts on the same minute are one fact. Scrappy falls to 22 moments, so the moment band is now **20–60**. Kehinde asked for the card changes; the band floor moved with them and is his to put back.
+- **A chance's importance now counts a run** (`chance_run_magnitude`, 0.6 when it is the third big chance in ten minutes) and `team_engaged`'s threshold is 0.35, so a chance that is only a chance no longer earns the supporter a card.
+- **Not built:** substitution and red-card before/after comparisons ("since", never "because"). They need a moment type that fires after the change and a new before/after metric with its verifier recount; that is the next piece of work.
+
+**What I did not do, and it is yours to decide:** the five near-identical chance cards in the My team column come from `max_cards_per_10min` (5) in `lenses.json`, not from wording. Collapsing them, or lowering that number, changes what a viewer sees.
+
+**Cost you will meet:** the explainer cache is keyed on the prompt, so the new match, the new sentences and the new writer prompt all miss it. Rebuild with `python -m matchlens.explanation.cache 1` before the demo, or the delivery app falls back to template words at 25x.
+
+**Answer:**
+
 ## Q45 · Where the verdicts are kept for the rejected-claims view, and which verifications it lists  [ticket: P3]  [blocking: yes]
 
 **What I need to know:** two things P3's brief leaves open. The brief says "the data is already shaped for it" and "this view has nothing to compute; it displays what A3 already had to record". The shape is there (`Verification.checks`, `CheckResult` refusing a `FAILED` without a reason). **The recording is not.**

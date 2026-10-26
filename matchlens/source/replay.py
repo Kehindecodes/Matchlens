@@ -20,7 +20,7 @@ from collections.abc import Callable, Iterable, Iterator, Sequence
 
 from matchlens.config.settings import settings
 from matchlens.models import Action, Event, Frame, Outcome
-from matchlens.source.archetypes import COMEBACK, ArchetypeParams
+from matchlens.source.archetypes import DEMO, ArchetypeParams
 from matchlens.source.simulator import simulate
 from matchlens.source.stream import MatchSetup, StreamItem
 
@@ -75,7 +75,7 @@ class Replay:
     def from_seed(
         cls,
         seed: int | None = None,
-        archetype: ArchetypeParams = COMEBACK,
+        archetype: ArchetypeParams = DEMO,
         *,
         frame_rate_hz: int | None = None,
         **kwargs,

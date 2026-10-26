@@ -17,14 +17,19 @@ from matchlens.models import MomentType, SuppressionReason
 from matchlens.rendering import Card, LensOutcome, MomentOutcome
 from matchlens.selection.outcome import TEN_MINUTES_MS
 from matchlens.source import simulate
+from matchlens.source.archetypes import COMEBACK
 from tests.rendering.test_writer import Echo
 
-# The first 50 minutes of seed 1: goals, chances and shifts, at half the cost of a whole match.
+# The first 50 minutes of seed 1 on the comeback: goals, chances and shifts, at half the cost of a
+# whole match. It is the match these tests were written on, and the one that crowds a lens enough
+# to rate-limit it; the remontada demo is a quieter night and exercises fewer of the reasons.
 _UNTIL_MS = 50 * 60_000
 
 
 def _items():
-    return itertools.takewhile(lambda item: getattr(item, "clock_ms", 0) < _UNTIL_MS, simulate(1))
+    return itertools.takewhile(
+        lambda item: getattr(item, "clock_ms", 0) < _UNTIL_MS, simulate(1, COMEBACK)
+    )
 
 
 def _content(card: Card) -> str:

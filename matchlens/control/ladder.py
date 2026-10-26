@@ -45,7 +45,7 @@ class LadderStatus(BaseModel):
     rung: Rung
     words: ModelState  # A4
     claims: ModelState  # A2
-    models_on: bool  # the switch
+    models_on: bool
 
 
 class Breaker:

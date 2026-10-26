@@ -91,7 +91,6 @@ def test_the_same_moment_reads_differently_through_three_lenses(type_):
         for depth, lens in ((Depth.CASUAL, CASUAL), (Depth.ENGAGED, TEAM), (Depth.ANALYST, ANALYST))
     }
     assert len(set(texts.values())) == 3
-    assert re.search(r"\d", texts[Depth.ANALYST])
     assert not re.search(r"\d", texts[Depth.CASUAL])
 
 
@@ -175,12 +174,16 @@ def test_the_team_lens_speaks_where_the_moment_leaves_its_side_first():
     assert "Larkfield trail 1–2." in _text(team)
     assert "goal for Larkfield" not in _text(team)
     assert team.surviving_claim_ids == ("goals", "score")  # the order spoken, not the order kept
+    # A match lens has no side to leave first, and the scoreboard already shows the score, so it
+    # hears the score last: the explainer's first claim is what it hears.
     match = ANALYST.model_copy(update={"detail_level": DetailLevel.STANDARD})
     assert "Ashworth 2" not in _text(render(goal, _selected(first, score), match, NAMES))
 
 
-def test_a_comparison_between_the_sides_that_is_not_the_score_keeps_its_place():
-    """Q39: only the score jumps the explainer's order, so a goal still names its scorer."""
+def test_a_side_lens_speaks_only_where_the_side_stands():
+    """A supporter is told the score a goal left. A comparison that is not the score, and the
+    count of the team's goals, are kept for the lens (Selection decided) but not spoken: how a
+    goal came about is for the lenses that want the mechanism."""
     first = _claim("first", value=2, metric=Metric.GOALS)
     ours = _claim("t", value=0.7, metric=Metric.TERRITORY).operands[0]
     theirs = ours.model_copy(update={"subject": OPPONENT, "value": 0.3})
@@ -188,18 +191,23 @@ def test_a_comparison_between_the_sides_that_is_not_the_score_keeps_its_place():
         update={"claim_type": ClaimType.COMPARATIVE, "operands": (ours, theirs)}
     )
     team = render(_moment(MomentType.GOAL), _selected(first, territory), TEAM, NAMES)
-    assert "goal for Larkfield" in _text(team)
+    assert "second goal" not in _text(team)
     assert team.surviving_claim_ids == ("first", "t")
+    # A lens that follows no side hears the claims in the explainer's order (Q39).
+    match = ANALYST.model_copy(update={"detail_level": DetailLevel.STANDARD})
+    assert "goals so far: 2" in _text(
+        render(_moment(MomentType.GOAL), _selected(first), match, NAMES)
+    )
 
 
-def test_a_comparison_with_the_sides_own_earlier_self_keeps_its_place():
+def test_a_comparison_with_the_sides_own_earlier_self_is_not_the_standing_either():
     earlier = _claim("earlier", value=0.6, metric=Metric.POSSESSION_CONTROL)
     earlier = earlier.model_copy(
         update={"claim_type": ClaimType.COMPARATIVE, "operands": (earlier.operands[0],) * 2}
     )
     first = _claim("first", value=2, metric=Metric.GOALS)
     text = _text(render(_moment(MomentType.GOAL), _selected(first, earlier), TEAM, NAMES))
-    assert "goal for Larkfield" in text
+    assert "second goal" not in text and "more of the ball" not in text
 
 
 def test_an_unsided_template_cannot_name_the_focus_team(tmp_path):

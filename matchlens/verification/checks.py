@@ -26,13 +26,21 @@ from matchlens.models import (
     RefKind,
     SignalReading,
 )
+from matchlens.understanding.buildup import (
+    BALL_WINNING,
+    losses,
+    shot_distance,
+    win_third,
+)
 from matchlens.understanding.possession import from_events
 from matchlens.understanding.shot_value import is_shot, value
 from matchlens.verification.record import Record
 
 PASSED = CheckResult(status=CheckStatus.PASSED)
 
-_COUNTS = frozenset({Metric.GOALS, Metric.CHANCES, Metric.BUILD_UP_PASSES})
+_COUNTS = frozenset(
+    {Metric.GOALS, Metric.CHANCES, Metric.BUILD_UP_PASSES, Metric.BALL_WON_THIRD, Metric.BALL_LOST}
+)
 _SIGNALS = frozenset(
     {Metric.TERRITORY, Metric.POSSESSION_CONTROL, Metric.PRESSING_INTENSITY, Metric.CHANCE_QUALITY}
 )
@@ -144,7 +152,23 @@ def recompute(o: Operand, record: Record) -> list[float]:
                 )
             )
         ]
+    if o.metric is Metric.BALL_LOST:
+        return [_ball_lost(o, record)]
     team = _team_only(o)
+    if o.metric is Metric.BALL_WON_THIRD:
+        wins = [
+            e
+            for e in record.events
+            if e.team == team and e.action in BALL_WINNING and e.clock_ms == end == start
+        ]
+        if not wins:
+            raise _Unrecomputable(f"{team} won no ball at {end} ms")
+        return [float(win_third(match, e)) for e in wins]
+    if o.metric is Metric.SHOT_DISTANCE:
+        shots = [e for e in record.events if is_shot(e) and e.team == team and e.clock_ms == end]
+        if start != end or not shots:
+            raise _Unrecomputable(f"no shot by {team} at {end} ms")
+        return [shot_distance(match, e) for e in shots]
     if o.metric is Metric.CHANCES:
         bar = settings.spotter_chance_quality
         return [
@@ -185,6 +209,20 @@ def recompute(o: Operand, record: Record) -> list[float]:
     if not readings:
         raise _Unrecomputable(f"no {o.metric} reading for {team} over {start}–{end} ms")
     return [r.value for r in readings]
+
+
+def _ball_lost(o: Operand, record: Record) -> float:
+    """1 if the record says `o`'s player gave the ball away at its clock, else 0."""
+    if o.subject.kind is not RefKind.PLAYER:
+        raise _Unrecomputable(f"{o.metric} is a player's, not a {o.subject.kind}'s")
+    end = o.window.end_ms
+    # The whole record, not the events up to the loss: a loss is only one when the other side
+    # takes the ball next, and that event comes after it.
+    gave = (
+        lost.player == o.subject.id and lost.clock_ms == end
+        for _, lost in losses(record.match, record.events)
+    )
+    return float(any(gave))  # two moves can follow one loss; it is still one loss
 
 
 def value_(claim: Claim, record: Record) -> tuple[CheckResult, tuple[float, ...]]:
@@ -245,6 +283,22 @@ def _supports(o: Operand, record: Record) -> str | None:
         if off:
             return f"cites events that are not {subject}'s goals in the window: {', '.join(off)}"
         counted = float(len(events))
+    elif o.metric is Metric.BALL_LOST:
+        if len(events) != 1 or events[0].player != subject or events[0].clock_ms != end:
+            return f"a loss cites that one event by {subject} at {end} ms"
+        counted = 1.0
+    elif o.metric is Metric.BALL_WON_THIRD:
+        if len(events) != 1 or events[0].team != subject or events[0].action not in BALL_WINNING:
+            return f"a win cites that one ball-winning event by {subject}"
+        if events[0].clock_ms != end:
+            return "cites a win at another clock"
+        counted = float(win_third(record.match, events[0]))
+    elif o.metric is Metric.SHOT_DISTANCE:
+        if len(events) != 1 or not is_shot(events[0]) or events[0].team != subject:
+            return f"a shot's distance cites that one shot by {subject}"
+        if events[0].clock_ms != end:
+            return "cites a shot at another clock"
+        counted = shot_distance(record.match, events[0])
     elif o.metric is Metric.CHANCES:
         bar = settings.spotter_chance_quality
         off = [e.event_id for e in events

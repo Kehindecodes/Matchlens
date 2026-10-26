@@ -169,14 +169,17 @@ def test_the_reasons_follow_the_enum_order():
     )
 
 
-def test_casual_drops_comparative_claims_and_keeps_the_rest():
+DESCRIPTIVE_ONLY = CASUAL.model_copy(update={"allowed_claim_types": (ClaimType.DESCRIPTIVE,)})
+
+
+def test_a_lens_drops_the_claim_types_it_does_not_allow_and_keeps_the_rest():
     claims = [_claim(ClaimType.COMPARATIVE, "cmp"), _claim(ClaimType.DESCRIPTIVE, "desc")]
-    outcome = _select(_moment(0.9), CASUAL, claims)
+    outcome = _select(_moment(0.9), DESCRIPTIVE_ONLY, claims)
     assert [c.claim_id for c in outcome.claims] == ["desc"]
 
 
 def test_a_lens_that_drops_every_claim_is_claims_filtered_out_not_verification_failed():
-    outcome = _select(_moment(0.9), CASUAL, [_claim(ClaimType.COMPARATIVE)])
+    outcome = _select(_moment(0.9), DESCRIPTIVE_ONLY, [_claim(ClaimType.COMPARATIVE)])
     assert outcome.suppression_reason is SuppressionReason.CLAIMS_FILTERED_OUT
 
 

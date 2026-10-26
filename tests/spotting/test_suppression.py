@@ -108,8 +108,8 @@ def test_the_cooldown_is_per_signal_and_team(wiring):
     first = spotter.consider([_reading(38, OVER)], quiet)
     others = [
         _reading(39, OVER, team="away"),
-        _reading(39, OVER, signal=Signal.TERRITORY),
-        _reading(39, OVER, signal=Signal.TERRITORY, team="away"),
+        _reading(39, OVER, signal=Signal.CHANCE_QUALITY),
+        _reading(39, OVER, signal=Signal.CHANCE_QUALITY, team="away"),
     ]
     assert len(first) == 1
     assert len(spotter.consider(others, quiet)) == 3
@@ -193,3 +193,29 @@ def test_two_spotters_share_no_suppression_state(wiring):
     one, other = fresh(), fresh()
     assert len(one.consider([_reading(38, OVER)], quiet)) == 1
     assert len(other.consider([_reading(39, OVER)], quiet)) == 1  # inside one's cooldown
+
+
+# --- mirror ------------------------------------------------------------------------------------
+
+
+def test_possession_shifts_that_mirror_each_other_fire_once(wiring):
+    """One side seeing less of the ball is the other seeing more: that is one shift to tell."""
+    fresh, quiet, _ = wiring
+    spotter = fresh()
+    possession = Signal.POSSESSION_CONTROL
+    readings = [
+        _reading(60, -OVER, possession, "home"),
+        _reading(60, OVER, possession, "away"),
+    ]
+    results = spotter.consider(readings, quiet)
+    assert [r.moment.subject.id for r in results] == ["home"]
+
+
+def test_a_signal_that_is_not_zero_sum_fires_for_both_sides(wiring):
+    fresh, quiet, _ = wiring
+    spotter = fresh()
+    readings = [
+        _reading(60, -OVER, Signal.PRESSING_INTENSITY, "home"),
+        _reading(60, OVER, Signal.PRESSING_INTENSITY, "away"),
+    ]
+    assert len(spotter.consider(readings, quiet)) == 2

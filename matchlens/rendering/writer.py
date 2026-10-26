@@ -31,7 +31,7 @@ from matchlens.rendering import templates
 
 logger = logging.getLogger(__name__)
 
-PROMPT_VERSION = "writer-4"  # bump by hand whenever the instructions or the prompt change
+PROMPT_VERSION = "writer-7"  # bump by hand whenever the instructions or the prompt change
 
 # The abbreviation invariant 12 bans, spelt so that no file here contains it: the model has to
 # be told the word it may not use, and the check has to look for it.
@@ -54,19 +54,17 @@ class _Response(BaseModel):
 
 _REGISTERS = {
     Depth.CASUAL: (
-        "Casual: a viewer who wants to know what happened, in plain words. Short, warm, no "
+        "Casual: a viewer who wants to know what is going on, in plain words. Short, warm, no "
         "statistics vocabulary. Never a number, as digits or in words."
     ),
     Depth.ENGAGED: (
-        "Engaged: a viewer who follows the game closely. Sounds like a commentator's line, "
-        "not a list: one or two flowing sentences, every number kept, no jargon beyond the "
-        "sentences' own."
+        "Engaged: a viewer who follows the game closely. Sounds like a commentator's aside, "
+        "not a list: one short sentence, every number kept, no jargon beyond the sentences' own."
     ),
     Depth.ANALYST: (
-        "Analyst: a viewer who wants the mechanism and the numbers. Reads like a sharp "
-        "analyst's note, not a stat sheet: say how the goal or chance came about, then who and "
-        "the score, then the context, grouping related numbers into one sentence where they "
-        "belong together. Every number exactly as given, each with its label."
+        "Analyst: a viewer who wants the mechanism and the numbers, in as few words as "
+        "possible: a label and its figures, not a paragraph. Every number exactly as given, "
+        "each with its label."
     ),
 }
 
@@ -90,6 +88,11 @@ Rules. A passage that breaks one is thrown away and the viewer gets the sentence
 - Third person always. Never "we", "us", "our" or "ours": you are not on either side. Where a
   sentence is told from one side, keep that side first.
 - Write in the language given. Keep it at most as long as the sentences together.
+- This is an overlay on a live picture, up for a few seconds, and the viewer is watching the
+  match: they have seen the goal or the shot, and a headline above your words already says what
+  it did. Never say that it happened, and never repeat the headline. Say only what the
+  sentences add to it, as one sentence of at most 20 words. A sentence that is already short
+  and natural can be left as it is.
 
 How to write it. These are freedoms, and the rules above still bind every one of them.
 - Do not just join the sentences. Rewrite them as connected prose in the register below.
@@ -104,15 +107,23 @@ How to write it. These are freedoms, and the rules above still bind every one of
   "against the run of play". Say what happened, not how good it was.
 - Every sentence you write must be grammatical English on its own. Never paste a fragment
   such as "goals so far: 1" into the middle of a sentence; say it as prose instead.
+- Say each fact once. If two sentences say the same thing, for instance both call the shot a
+  big chance, say it once. If two sentences share a label, say the label once and give both
+  figures under it. Every number still appears.
+- Do not open on a stock formula such as "X had a clear chance and did not take it" or "X took
+  a shot rated as a chance". Do not begin two sentences in a row with the same word. Once a
+  team is named, "they" or "their" is better than the name again.
+- Read it back as a commentator would say it. If it sounds like a form being filled in, merge
+  and reorder until it does not.
 
 An example, with invented teams, players and numbers that are not this match's:
-  sentences: ["Scorer: Ana Velt, his first of the match.", "Ostby 2, Calder 1.",
-              "A quick attack: 5 passes in 12 s from winning the ball.",
-              "Shot quality 0.31.", "Possession share: Ostby 0.61, Calder 0.39."]
-  analyst: "A quick attack, 5 passes in 12 s from winning the ball, ended with a shot of
-  quality 0.31 and Ana Velt's first of the match, making it Ostby 2, Calder 1. Ostby have the
-  larger possession share, 0.61 to Calder's 0.39."
+  analyst, from ["Ball won in own third.", "Quick attack: 5 passes in 12 s.", "Shot from 14.2 m."]:
+  "Won in their own third, 5 passes in 12 s, a shot from 14.2 m."
   engaged, from ["Calder trail 1–2."]: "Calder now trail 1–2."
+  engaged, from ["The third big chance for Ostby in ten minutes.", "A big chance."]:
+  "That is Ostby's third big chance in ten minutes." (the second sentence added nothing)
+  casual, from ["Won back deep in their own half."]: "Won back deep in their own half."
+  (one short fact that already reads well is left alone)
 The example shows the kind of rewriting wanted; its words are not to be reused.
 
 Register:

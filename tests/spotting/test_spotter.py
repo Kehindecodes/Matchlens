@@ -162,7 +162,7 @@ def test_each_team_and_signal_is_its_own_series(started):
     readings = [
         _reading(team=team, signal=signal)
         for team in ("home", "away")
-        for signal in (Signal.TERRITORY, Signal.PRESSING_INTENSITY)
+        for signal in (Signal.CHANCE_QUALITY, Signal.PRESSING_INTENSITY)
     ]
     assert len(_fire(started, *readings)) == 4
 
@@ -227,8 +227,11 @@ def _mean(values) -> float:
 # --- the match ----------------------------------------------------------------------------------
 
 
-def test_there_are_between_30_and_60_moments(spotted):
-    assert 30 <= len(spotted.moments) <= 60, len(spotted.moments)
+def test_there_are_between_20_and_60_moments(spotted):
+    # The floor was 30 until the mirror rule (M2) stopped telling one possession swing, or one
+    # territory swing, as two shifts; the scrappy match, where both flip most, went from 32 to
+    # 22 (Q46).
+    assert 20 <= len(spotted.moments) <= 60, len(spotted.moments)
 
 
 def test_only_goals_chances_and_shifts_are_emitted(spotted):

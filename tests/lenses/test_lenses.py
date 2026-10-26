@@ -89,10 +89,12 @@ def test_breakthrough_types_are_goals_only():
         assert lens.breakthrough_types == (MomentType.GOAL,)
 
 
-def test_casual_drops_comparative_claims_and_the_other_depths_keep_them():
-    by_depth = _by_depth()
-    assert ClaimType.COMPARATIVE not in by_depth[Depth.CASUAL].allowed_claim_types
-    assert ClaimType.COMPARATIVE in by_depth[Depth.ANALYST].allowed_claim_types
+def test_every_depth_hears_comparisons():
+    """Casual used to drop them. It hears them now, because the score is a comparison and the
+    casual viewer is told what a goal did to it, in words (26 Oct); what casual says of a
+    comparison still carries no number."""
+    for lens in _by_depth().values():
+        assert ClaimType.COMPARATIVE in lens.allowed_claim_types
 
 
 # --- invariant 10 --------------------------------------------------------------------------------

@@ -242,6 +242,6 @@ def test_cli_replays_a_seed_and_prints_the_goals(capsys):
     code = main(["--seed", "1", "--speed", "1000000", "--hz", "1", "--key-only"])
     out = capsys.readouterr().out
     assert code == 0
-    assert out.count("GOAL") == 3
+    assert out.count("GOAL") == 5  # the demo is the remontada: 0–2 down and a 3–2 win
     assert out.count("Added time announced") == 2  # one per half
     assert "Full time" in out
