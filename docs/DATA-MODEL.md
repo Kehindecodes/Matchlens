@@ -343,10 +343,12 @@ Volumes differ by orders of magnitude, so storage should too.
 
 | Tier | Entities | Per match | Where |
 |---|---|---|---|
-| Hot, high volume | `Frame` | ~10,800 at 2 Hz (~54,000 at 10 Hz — rate still open) | **In-memory buffer**, optionally a compressed blob per match. Never a row per frame |
+| Hot, high volume | `Frame` | ~10,800 at 2 Hz (D13) | **In-memory buffer**, optionally a compressed blob per match. Never a row per frame |
 | Warm | `Event`, `Possession`, `SignalReading` | ~2,500 | Database, indexed by clock |
 | Small and valuable | `Moment`, `Claim`, `Verification`, `Rendition` | ~200 | Database, keep indefinitely |
 | Configuration | `Lens`, `SignalPrior`, `MatchArchetype` | tens | Database or files |
+
+⚠️ **In v1 none of this is a database (D38).** Groups A–C regenerate from the seed on every cold start, and configuration ships as files in the image. The table above describes where each entity belongs **once the source is a real feed and the record can no longer be reproduced** — at which point the event log is the one tier that has to be durable, and B and C remain cache.
 
 ## Rules that make verification possible
 

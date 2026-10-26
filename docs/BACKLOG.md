@@ -164,7 +164,7 @@ Update the **Status** column when a ticket moves. Statuses: `todo`, `wip`, `done
 | X1 | Recap per lens — **same mechanism as D4, merge them (D34)** | 1 | A3 | T3 | todo | ✅ |
 | X2 | Second language via LexiconEntry | 1 (0.5 lite) | A4 | T3 | todo | ✅ |
 | X3 | Demo video, README, pitch | 1.5 | all | T1 | todo | ✅ |
-| X4 | Judging-window hardening | 0.5 | S5 | T1 | todo | ✅ |
+| X4 | Judging-window hardening | 0.5 | S5 | T1 | wip | ✅ |
 
 **X3** — the silent-lens moment is the shot the video is built around.
 **X4** — Delivery at min-1 replica, endpoint rate limited, demo renditions cached, budget alert live (J2).

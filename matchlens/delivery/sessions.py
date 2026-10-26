@@ -16,13 +16,18 @@ class UnknownSession(KeyError):
     """No session has this id, for example after a delivery restart."""
 
 
+class SessionsFull(RuntimeError):
+    """The store holds as many sessions as it may. Nothing evicts one, so it refuses a new one."""
+
+
 class LensRefused(ValueError):
     """A switch the session cannot make: an unknown lens, or a team lens with no team."""
 
 
 class SessionStore:
-    def __init__(self) -> None:
+    def __init__(self, *, max_sessions: int | None = None) -> None:
         self._sessions: dict[str, ViewerSession] = {}
+        self._max_sessions = max_sessions
 
     def create(
         self,
@@ -32,7 +37,12 @@ class SessionStore:
         *,
         stream_offset_ms: int = 0,
     ) -> ViewerSession:
-        """A new session. With no lens it gets the default, whole match at casual depth (V1)."""
+        """A new session. With no lens it gets the default, whole match at casual depth (V1).
+
+        Raises `SessionsFull` at the ceiling, if there is one: every session stays in memory.
+        """
+        if self._max_sessions is not None and len(self._sessions) >= self._max_sessions:
+            raise SessionsFull(f"{len(self._sessions)} sessions")
         session = ViewerSession(
             session_id=uuid.uuid4().hex,
             lens_id=settings.default_lens_id if lens_id is None else lens_id,

@@ -19,6 +19,7 @@ from matchlens.control import Mutes
 from matchlens.control.ladder import Ladder
 from matchlens.delivery.http import create_app
 from matchlens.delivery.hub import MatchStateHub
+from matchlens.delivery.limits import Limiter
 from matchlens.delivery.producer import ProducerFeed
 from matchlens.delivery.release import ReleaseQueues
 from matchlens.delivery.router import CardRouter
@@ -67,7 +68,7 @@ def _follow_speed(hub: MatchStateHub, replay: Replay) -> None:
 
 
 hub = MatchStateHub()
-sessions = SessionStore()
+sessions = SessionStore(max_sessions=settings.max_sessions)  # X4
 queues = ReleaseQueues()
 mutes = Mutes()  # P2: the producer's mutes, read by the router, the pipeline and the view
 audit = Audit()  # P3: the pipeline writes each moment's trail, the claims page reads it
@@ -134,5 +135,6 @@ app = create_app(
     producer=producer,
     mutes=mutes,
     audit=audit,
+    limits=Limiter.from_settings(),  # X4
     lifespan=_lifespan,
 )

@@ -26,11 +26,17 @@ from matchlens.config.settings import settings
 from matchlens.control import AlreadyMuted, Mutes, Notice, NotMuted
 from matchlens.control.ladder import Ladder, LadderStatus
 from matchlens.delivery.hub import MatchStateHub
+from matchlens.delivery.limits import Limiter, LimitsMiddleware
 from matchlens.delivery.producer import ProducerFeed
 from matchlens.delivery.release import ReleaseQueues
 from matchlens.delivery.router import CardRouter
 from matchlens.delivery.session_clock import viewer_position
-from matchlens.delivery.sessions import LensRefused, SessionStore, UnknownSession
+from matchlens.delivery.sessions import (
+    LensRefused,
+    SessionsFull,
+    SessionStore,
+    UnknownSession,
+)
 from matchlens.models import ClockMs, Lens, OverlayPacket, ProducerAction, ViewerSession
 from matchlens.rendering import Card
 
@@ -114,10 +120,13 @@ def create_app(
     producer: ProducerFeed | None = None,
     mutes: Mutes | None = None,
     audit: Audit | None = None,
+    limits: Limiter | None = None,
     web_dir: Path = WEB_DIR,
     lifespan=None,
 ) -> FastAPI:
     app = FastAPI(title="MatchLens delivery", lifespan=lifespan)
+    if limits is not None:  # X4: the deployed app is limited; a test's app is not unless it asks
+        app.add_middleware(LimitsMiddleware, limiter=limits)
     queues = ReleaseQueues() if queues is None else queues
     mutes = Mutes() if mutes is None else mutes
     audit = Audit() if audit is None else audit
@@ -142,9 +151,16 @@ def create_app(
     @app.post("/session", status_code=status.HTTP_201_CREATED)
     def create_session(body: NewSession | None = None) -> ViewerSession:
         body = body or NewSession()
-        session = sessions.create(
-            body.lens_id, body.language, body.focus_team, stream_offset_ms=body.stream_offset_ms
-        )
+        try:
+            session = sessions.create(
+                body.lens_id, body.language, body.focus_team, stream_offset_ms=body.stream_offset_ms
+            )
+        except SessionsFull:
+            raise HTTPException(
+                status.HTTP_503_SERVICE_UNAVAILABLE,
+                "the demo is full: try again shortly",
+                headers={"Retry-After": "60"},
+            ) from None
         router.join(session, hub.clock_ms)
         return session
 

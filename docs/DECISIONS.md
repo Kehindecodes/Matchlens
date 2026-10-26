@@ -243,6 +243,8 @@ Resolves O1. **The database is Azure Database for PostgreSQL (Flexible Server).*
 - The Postgres client library is not chosen here. It is a new pinned dependency, so S5 asks before adding one.
 - The free tier is for new Azure accounts and lasts 12 months. Check it covers the whole judging window to 10 November before provisioning, and set the budget alert first, as S5 already says.
 
+**Superseded in practice by D38 (25 Oct):** no database was ever provisioned, because v1's source is a seed and the whole record regenerates from it. This decision remains the answer to O1 for the day one is needed.
+
 ---
 
 ## D20 · S4 is 🤝 — Claude Code wires it, Kehinde owns the call-path assertions — SETTLED 17 Oct
@@ -776,6 +778,46 @@ The README says in one line that the package name is historical. That is cheaper
 ### Naming, for the record
 
 Avoided on purpose: `Match*`, `*Lens`, `*Vision`, `*IQ`, `Pitch*`, `Smart*`, `*AI`. Those are the crowded patterns, and the collision came from following one of them. The alternatives considered were Refract, Cadence, Facet and Aspect; **Vantage was dropped** because Vantage Sports was an NBA analytics company, a collision in exactly this domain.
+
+---
+
+## D38 · v1 has no database; determinism substitutes for persistence — SETTLED 25 Oct
+
+**S5 deployed no database, and that is correct rather than an omission.** Seven resources: the container registry, Log Analytics, Application Insights, the Container Apps environment, the pull identity, its role assignment, and the app. `settings.database_connection` is an empty string nothing reads.
+
+### Why nothing needs storing
+
+| Group | Why no store |
+|---|---|
+| **A** match record | **Regenerated from the seed** (invariant 9). Determinism replaces persistence |
+| **B** derived understanding | a pure function of A; recomputing is cheaper than storing |
+| **C** editorial output | the same, and D23's cold start already regenerates from kickoff |
+| **D** sessions | per connection and disposable; a reconnect makes a new one |
+| **E** reference data | files in the image — `signal_priors.json`, the lens rows, the archetypes |
+
+A database here would cache a computation that is cheaper to redo. D23's cold start is precisely the path a database would have served.
+
+The one input genuinely **not** reproducible is **A2's model claims**, since a model is not deterministic. D36 already caches those to a file for the 25× replay, and a cache file is not a database.
+
+### What production needs, and why
+
+> **v1 needs no database because the source is a seed. Production needs one because the source is a feed.**
+
+A provider feed cannot be regenerated — Saturday's match is gone once it has passed. So in production:
+
+- the **event log** becomes the one thing that must be persisted, and D18 already names Ingest its sole writer
+- groups B and C stay recomputable from that log, so they are **cache**, not storage
+- the **verification log** is the record a platform would contractually require retained
+- session state needs a shared store only once more than one replica runs — D23's later split
+
+### What this supersedes
+
+- **D19 chose Postgres and it was never provisioned.** That choice stands as the answer to O1 *if and when* a database is needed. It is not live infrastructure, and D19 is annotated to say so.
+- **`CLAUDE.md`'s pinned stack was wrong twice** — it listed Service Bus, taken off the path by D23, and Azure Database for PostgreSQL, never deployed. Corrected. This mattered beyond tidiness: Claude Code reads that row as pinned truth, and could reasonably have added a Postgres client and a connection string on the strength of a line describing infrastructure that does not exist.
+
+### For the pitch
+
+State it as event sourcing doing its job, not as something skipped. One deterministic source, every derived layer a pure function of it, configuration as files in the image — and name the one component production adds. That is a stronger answer than a provisioned database sitting idle.
 
 ---
 

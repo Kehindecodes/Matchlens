@@ -76,6 +76,18 @@ class Settings(BaseSettings):
     overlay_min_ms: int = 5_000
     overlay_max_ms: int = 12_000
 
+    # Limits on the public endpoints, per client per minute (X4), with room for several judges
+    # behind one office address. A page opens 3 streams. While the match plays at 25x an open
+    # stream costs 0.43% of a core (measured locally: 1.6% with none, 44.5% with 100), and the
+    # allocation is 0.5 vCPU, so 40 streams is about 43% of it if the cloud core is 2.5x slower.
+    limit_new_sessions_per_min: int = 30
+    limit_changes_per_min: int = 30  # the speed, the model switch, a lens or a mute: all shared
+    limit_reads_per_min: int = 600
+    limit_streams_per_client: int = 15
+    limit_streams_total: int = 40
+    max_sessions: int = 10_000  # nothing evicts a session, so the store has a ceiling: 2.8 KiB each
+    trust_forwarded_for: bool = False  # on only behind the Container Apps ingress
+
     # Models
     model_name: str = ""
     foundry_endpoint: str = ""

@@ -1,12 +1,10 @@
 # Parallax
 
-**A personalization layer for live football streaming.** One match is understood **once**, then told differently to a casual fan, an analyst and a supporter of one team — with every claim checked against the match record before it reaches anyone.
+**A personalisation layer for live football streaming.** One match is understood **once**, then told differently to a casual fan, an analyst and a supporter of one team — with every claim checked against the match record before it reaches anyone.
 
 Solo entry to the Microsoft Premier League Hackathon ("Inside the Game").
 
 **Live demo → https://matchlens.gentletree-f24e197c.uksouth.azurecontainerapps.io**
-
-> **On the name:** the product is **Parallax** — the same object appears to shift depending on where you stand. The Python package, the environment prefix and the Azure resources are still called `matchlens` from an earlier name, left that way deliberately (D37).
 
 ---
 
@@ -24,7 +22,7 @@ flowchart LR
 
 End to end, that is nine steps:
 
-1. **Feed** — a seeded generator produces a full match, event by event, in real time. Synthetic data is what the challenge requires; the seed makes every run byte-identical.
+1. **Feed** — a seeded generator produces a full match, event by event, in real time. The seed makes every run byte-identical.
 2. **Record** — events and frames are appended to an immutable log. Everything downstream cites it by ID.
 3. **Understanding** — possessions, shot quality and four team signals (territory, possession control, pressing intensity, chance quality), each measured against the match's own rolling baseline.
 4. **Spotting** — goals, big chances and tactical shifts are picked out and scored for importance.
@@ -33,8 +31,6 @@ End to end, that is nine steps:
 7. **Selection** — the fan-out. Each lens decides independently whether this moment is worth telling *its* viewer. This is where one match becomes three.
 8. **Rendering** — each lens gets its own words: a plain story, a tactical read, or a supporter's view.
 9. **Delivery** — cards and overlays are released per viewer, on that viewer's own clock, so someone thirty seconds behind the live edge is never spoiled.
-
-**The fan-out is at step 7, not step 1.** The match is analysed once; only the telling is per viewer. That is what makes three genuine experiences affordable, and it is why every lens inherits the same verified facts.
 
 ## The three lenses
 
@@ -93,7 +89,7 @@ Two AI agents, one deterministic adjudicator between them, and a designed failur
 3. **The writer agent** turns the surviving claims into words, once per lens, and only for the lens it was called for.
 4. **If the explainer is slow, wrong or down**, Rendering drops a rung and the card still ships from templates. Agent failure is a path through the system, not an exception out of it.
 
-**The adjudicator is deliberately not a model.** A model-based verifier is itself unverifiable, and the whole point of the pattern is that one party in the loop cannot hallucinate. That is the trade: fewer agents, and an output a platform could actually put on screen.
+**The adjudicator is not a model. ** Because a model-based verifier is itself unverifiable, and the whole point of the pattern is that one party in the loop cannot hallucinate. That is the trade: fewer agents, and an output a platform could actually put on screen.
 
 ### If the model goes down
 
@@ -145,17 +141,6 @@ There is **no database**. v1 needs none, because the source is a seed and the ru
 
 ---
 
-## The deployed demo
-
-One container on Azure Container Apps (UK South), playing the seeded match at 25×.
-
-- **Full match in 3 min 47 s.** The final whistle, 94:44 of match clock, arrives 227 s after kickoff.
-- **Cold start about 28 seconds** (27.8 s measured, 26 October 2026) — the container booting and generating the match from kickoff. Instant after that.
-- **The verifier rejects 3 of the demo match's 51 claims.** They are visible at `/producer/claims`.
-- **Public endpoints are rate limited per client.** Over the limit returns `429` with `Retry-After`; a full demo returns `503`. Sizing is in [`infra/README.md`](infra/README.md).
-
-**The model's claims in the demo are pre-computed.** On the live path the explainer calls the model once per goal and chance, and a card waits up to 15 s for the answer inside the viewer's stream delay. A 25× replay compresses that budget 25-fold, so the demo serves the model's answers from a cache built offline over the same seed ([`matchlens/explanation/claims-cache.json`](matchlens/explanation/claims-cache.json)). The match is byte-identical from its seed, so each cached answer was given to exactly the prompt the live path would send — and every cached claim still goes through the verifier (D36).
-
 ## Microsoft and Azure technologies
 
 | | |
@@ -206,17 +191,7 @@ Decisions are recorded as they were made, with their reasons, in [`docs/DECISION
 
 Named rather than hidden, because each was a decision:
 
-- **Player focus.** `Scope.PLAYER` and `focus_player` exist in the model; the lens ships as a config row once the per-player measures do (D1).
-- **Defensive line height.** The one signal that needs positional frames rather than events, deferred — which is why nothing reads a `Frame` in v1 (D24).
-- **Multi-language.** `Lens.language` and the lexicon are modelled; one language ships.
+- **Player focus.**
+- **Defensive line height.**
+- **Multi-language.**
 - **A real event feed.** The pipeline consumes a stream; swapping the generator for a live feed means persisting the record, since a feed cannot be replayed from a seed.
-
-## What Parallax explains next
-
-A viewer can see a goal. What they cannot easily see is what caused it. v1 explains moments from four team-level signals; next, in order:
-
-1. **How a goal came about** — who gave the ball away and where, how fast it was punished, where the shot came from. Every fact countable from the event log, so it stays verifiable.
-2. **What changed after a substitution or a red card** — comparing the stretch before with the stretch after. Parallax will say *since*, never *because*: a timing it can check, not a cause it cannot.
-3. **Shape and style** — width, crossing, a team's attacking pattern, and what changes when a particular player comes on.
-
-Throughout, a viewer is never shown a calibrated value: no shot rating, no standard deviations. Cards say "a hard chance" and "pressing much harder than their norm", and show only counts, percentages and metres.

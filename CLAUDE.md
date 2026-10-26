@@ -134,7 +134,7 @@ Pinned. Do not substitute without asking.
 | Tests | pytest |
 | Lint and format | ruff |
 | Frontend | Plain HTML and JS. No framework, no build step. |
-| Infra | Bicep, Azure Container Apps, Service Bus, Azure Database for PostgreSQL (D19) |
+| Infra | Bicep, Azure Container Apps, Application Insights. **No Service Bus (D23) and no database (D38)** — v1 regenerates the whole record from the seed. Postgres is the choice if one is ever needed (D19) |
 
 SSE rather than WebSocket because nothing the viewer sends needs duplex: lens switches, position reports and playback controls are low-frequency POSTs. SSE gives reconnection and `Last-Event-ID` for free, and `Last-Event-ID` maps onto the release buffer.
 
