@@ -408,16 +408,16 @@ def test_a_ruled_out_goal_that_had_put_its_side_ahead_is_told_as_a_cancelled_lea
     ruled_out, score = _moment(MomentType.GOAL_DISALLOWED, SIDE), _score(SIDE, 2, OPPONENT, 2)
     casual = render(ruled_out, _selected(_claim(), score), CASUAL, NAMES)
     assert casual.headline == "Larkfield's lead is cancelled"
-    assert "Level again." in casual.body
+    assert casual.body is not None and "Level again." in casual.body
     engaged = render(ruled_out, _selected(_claim(), score), NEUTRAL_ENGAGED, NAMES)
-    assert "Back to 2–2." in engaged.body
+    assert engaged.body is not None and "Back to 2–2." in engaged.body
 
 
 def test_a_ruled_out_equaliser_is_told_as_one_and_the_lead_as_still_standing():
     ruled_out, score = _moment(MomentType.GOAL_DISALLOWED, SIDE), _score(SIDE, 1, OPPONENT, 2)
     rendition = render(ruled_out, _selected(_claim(), score), NEUTRAL_ENGAGED, NAMES)
     assert rendition.headline == "VAR rules out Larkfield's equaliser"
-    assert "Ashworth still lead 2–1." in rendition.body
+    assert rendition.body is not None and "Ashworth still lead 2–1." in rendition.body
 
 
 def test_a_ruled_out_goal_against_the_focus_side_is_told_from_that_side():
@@ -440,6 +440,6 @@ def test_a_ruled_out_goal_names_the_clock_of_the_goal_it_took_away():
     names = NAMES | {"p9": "Tom Brack"}
     ruled_out = _moment(MomentType.GOAL_DISALLOWED, SIDE)
     analyst = render(ruled_out, _selected(claim), ANALYST, names)
-    assert "Tom Brack's goal at 84:11" in analyst.body
+    assert analyst.body is not None and "Tom Brack's goal at 84:11" in analyst.body
     casual = render(ruled_out, _selected(claim), CASUAL, names)
     assert not re.search(r"\d", f"{casual.headline} {casual.body}")
