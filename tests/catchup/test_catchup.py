@@ -168,7 +168,7 @@ def test_the_team_summary_tells_each_goal_by_what_it_did_to_the_match(seed_one):
 
 def test_the_team_summary_says_where_a_goal_leaves_the_side_before_who_scored(seed_one):
     *_, trimmed = _summary(seed_one, "team_engaged").lines
-    assert trimmed.body.startswith("Riverside Athletic trail 1–2")
+    assert trimmed.body.startswith("Riverside Athletic trail 2–1")
 
 
 def test_with_no_goals_yet_a_joiner_is_told_the_most_important_moments(seed_one):

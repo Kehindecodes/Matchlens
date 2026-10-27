@@ -11,6 +11,10 @@ and the same seed still says the same words (invariant 9).
 
 A state row says what a moment did to the match: the score a goal left, a run of chances.
 
+A score row says the score a goal or a ruled-out goal left, keyed on its form (who leads, from
+the side a lens follows if it follows one) and the depth. A casual row says it in words, by how
+many goals in it (`margins`), never in figures (L3).
+
 A fact row phrases one claim: it is keyed on the claim's metric, the form Rendering reads the
 claim as (D30's wording rules), and the depth. The four signal metrics share the `signal` rows
 and differ by the phrase their `signals` row gives. A claim whose form has no row is not
@@ -29,7 +33,7 @@ from matchlens.models import Depth, Metric, MomentType
 TEMPLATES_PATH = Path(__file__).with_name("templates.json")
 
 MODEL = "templates"  # what a rendition's words came from when no model wrote them (invariant 7)
-MODEL_VERSION = "templates-7"  # bump by hand whenever a row below changes what a card says
+MODEL_VERSION = "templates-8"  # bump by hand whenever a row below changes what a card says
 
 SIGNAL_ROWS = "signal"  # the fact rows the four signal metrics share
 
@@ -38,11 +42,13 @@ _SIDED_FIELDS = _HEADLINE_FIELDS | {"focus"}  # a sided row may also name the fo
 SIDES = ("for", "against")
 _FACT_FIELDS = frozenset(
     {"name", "other", "value", "other_value", "ordinal", "phrase", "label"}
-    | {"minutes", "seconds", "until"}
+    | {"minutes", "seconds", "until", "at"}
 )
 # What a casual fact may say: names and words, never a number (L3).
 CASUAL_FACT_FIELDS = frozenset({"name", "other", "ordinal", "phrase", "label"})
 _PHRASES = ("up", "strong_up", "down", "strong_down")
+_SCORE_FIELDS = frozenset({"leader", "focus", "margin", "high", "low"})
+CASUAL_SCORE_FIELDS = _SCORE_FIELDS - {"high", "low"}  # in words only (L3)
 
 
 @dataclass(frozen=True)
@@ -68,6 +74,9 @@ class Templates:
     signals: dict[tuple[str, Metric], SignalWords]
     ordinals: dict[str, tuple[str, ...]]
     number_words: dict[str, frozenset[str]]  # words that say a number, which A4 may not invent
+    # language, form, depth: the score a goal left, said one way
+    scores: dict[tuple[str, str, Depth], str]
+    margins: dict[str, tuple[str, ...]]  # "one goal", "two goals": a lead in words
 
 
 def fields(template: str) -> set[str]:
@@ -123,7 +132,13 @@ def load(path: Path = TEMPLATES_PATH) -> Templates:
         )
         for row in data.get("states", [])
     }
-    return Templates(headlines, states, facts, signals, ordinals, number_words)
+    scores = {}
+    for row in data.get("scores", []):
+        depth = Depth(row["depth"])
+        allowed = CASUAL_SCORE_FIELDS if depth is Depth.CASUAL else _SCORE_FIELDS
+        scores[(row["language"], row["form"], depth)] = _checked(row["text"], allowed)
+    margins = {lang: tuple(words) for lang, words in data.get("margins", {}).items()}
+    return Templates(headlines, states, facts, signals, ordinals, number_words, scores, margins)
 
 
 _TEMPLATES = load()
@@ -188,6 +203,17 @@ def ordinal(language: str, n: float) -> str | None:
     """ "first" for 1, and so on, or None where there is no word for `n`."""
     words = _TEMPLATES.ordinals.get(language, ())
     return words[int(n) - 1] if n.is_integer() and 1 <= n <= len(words) else None
+
+
+def score_line(language: str, form: str, depth: Depth) -> str | None:
+    """How to say the score a goal left in `form` at `depth`, or None if nobody has said."""
+    return _TEMPLATES.scores.get((language, form, depth))
+
+
+def margin(language: str, goals: int) -> str | None:
+    """ "one goal" for 1, and so on, or None where there is no word for `goals`."""
+    words = _TEMPLATES.margins.get(language, ())
+    return words[goals - 1] if 1 <= goals <= len(words) else None
 
 
 def number_words(language: str) -> frozenset[str] | None:

@@ -140,7 +140,7 @@ def test_each_lens_is_shown_only_the_sentences_it_would_speak():
     }
     # Told from the focus side and spoken first (D31, Q28: B), then who scored.
     team_sentences = json.loads(team)["sentences"]
-    assert team_sentences[0] == "Larkfield trail 1–2."
+    assert team_sentences[0] == "Larkfield trail 2–1."
     assert any("Tom Brack" in sentence for sentence in team_sentences)  # who scored
     assert analyst_instructions != team_instructions
     for prompt in (analyst, team):
