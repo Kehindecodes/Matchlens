@@ -24,7 +24,26 @@ Newest at the top. Kehinde answers inline and moves the resolved ones to `docs/D
 
 ---
 
-## Q49 · A goal ruled out by VAR in the remontada, told differently by each lens  [ticket: none, 27 Oct]  [blocking: no, one item open]
+## Q50 · The slow archetype-separation test fails since the decoy runs  [ticket: none, 27 Oct]  [blocking: no]
+
+**What I need to know:** how to make the comeback and one-sided archetypes separate again, after the deadline.
+
+**What happened:** `test_every_pair_of_archetypes_separates_beyond_seed_variance` (slow, CI only) fails since `generator-2` (Q48). The decoy runs cost the one-sided side some of its possession, so its home pass share (0.575, 0.585, 0.59 over seeds 1–3) no longer clears the comeback's (0.566, 0.574, 0.586) by more than both seed spreads: short by 0.009. Goals tie at 3 a match, and shots and fouls do not separate either. Nothing in the demo is affected. Kehinde chose to merge #51 with it red and fix it after.
+
+**Why I cannot decide it:** every fix changes an archetype or the decoy runs, and so the signal priors (built from all four archetypes), and so the demo's tactical-shift readings, its cards and the cache.
+
+**Options as I see them:**
+- A: raise one-sided `home_retention` from 0.8 to 1.0, its maximum. Separates by only 0.011 over seeds 1–3.
+- B: shorter or rarer decoy runs. Fewer decoy runs in the demo (likely 1–2).
+- C: a fifth metric the test can separate on, such as the away side's share of shots, if it says what the archetype is meant to mean.
+
+**What I would do if forced:** C, then A if C is not enough: it keeps the demo's decoy runs.
+
+**Answer:**
+
+---
+
+## Q49 · A goal ruled out by VAR in the remontada, told differently by each lens  [ticket: none, 27 Oct]  [blocking: no]
 
 **What changed, so you can reverse it:** Kehinde asked for it on 27 Oct and chose each option below. Branch `feat/var-overturn`, on top of `feat/position-mechanisms`.
 
