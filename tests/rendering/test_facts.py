@@ -186,8 +186,10 @@ def test_a_chance_quality_comparison_is_said_without_a_number():
     ours = _operand(Metric.CHANCE_QUALITY, 1.42, end_ms=2_400_000)
     theirs = _operand(Metric.CHANCE_QUALITY, 0.04, subject=AWAY, end_ms=2_400_000)
     text = _said(_claim(ours, theirs), Depth.ANALYST)
-    assert "creating better chances than" in text
+    assert text == "Chance quality: ahead of Ostbridge."  # not the shift headline's phrase again
     assert not re.search(r"\d", text)
+    behind = _said(_claim(theirs, ours), Depth.ANALYST)
+    assert behind.startswith("Chance quality: behind ")
 
 
 def test_a_share_is_a_percentage_and_pressing_is_passes_per_defensive_action():

@@ -11,9 +11,9 @@ and the same seed still says the same words (invariant 9).
 
 A state row says what a moment did to the match: the score a goal left, a run of chances.
 
-A score row says the score a goal or a ruled-out goal left, keyed on its form (who leads, from
-the side a lens follows if it follows one) and the depth. A casual row says it in words, by how
-many goals in it (`margins`), never in figures (L3).
+A score row says the score a goal or a ruled-out goal left, keyed on its form (whether the
+scoring side leads or trails, or from the side a lens follows if it follows one) and the depth.
+A casual row says it in words, by how many goals in it (`margins`), never in figures (L3).
 
 A fact row phrases one claim: it is keyed on the claim's metric, the form Rendering reads the
 claim as (D30's wording rules), and the depth. The four signal metrics share the `signal` rows
@@ -33,7 +33,7 @@ from matchlens.models import Depth, Metric, MomentType
 TEMPLATES_PATH = Path(__file__).with_name("templates.json")
 
 MODEL = "templates"  # what a rendition's words came from when no model wrote them (invariant 7)
-MODEL_VERSION = "templates-8"  # bump by hand whenever a row below changes what a card says
+MODEL_VERSION = "templates-9"  # bump by hand whenever a row below changes what a card says
 
 SIGNAL_ROWS = "signal"  # the fact rows the four signal metrics share
 
@@ -41,13 +41,15 @@ _HEADLINE_FIELDS = frozenset({"team", "window"})
 _SIDED_FIELDS = _HEADLINE_FIELDS | {"focus"}  # a sided row may also name the focus team
 SIDES = ("for", "against")
 _FACT_FIELDS = frozenset(
-    {"name", "other", "value", "other_value", "ordinal", "phrase", "label"}
+    {"name", "other", "value", "other_value", "ordinal", "phrase", "against", "label", "focus"}
     | {"minutes", "seconds", "until", "at"}
 )
 # What a casual fact may say: names and words, never a number (L3).
-CASUAL_FACT_FIELDS = frozenset({"name", "other", "ordinal", "phrase", "label"})
+CASUAL_FACT_FIELDS = frozenset({"name", "other", "ordinal", "phrase", "against", "label", "focus"})
 _PHRASES = ("up", "strong_up", "down", "strong_down")
-_SCORE_FIELDS = frozenset({"leader", "focus", "margin", "high", "low"})
+# Optional: how a side stands against the other on a signal said in words only ("ahead of").
+_AGAINST = ("against_up", "against_down")
+_SCORE_FIELDS = frozenset({"team", "leader", "focus", "margin", "high", "low"})
 CASUAL_SCORE_FIELDS = _SCORE_FIELDS - {"high", "low"}  # in words only (L3)
 
 
@@ -60,7 +62,7 @@ class Words:
 @dataclass(frozen=True)
 class SignalWords:
     label: str
-    phrases: dict[str, str]  # up, strong_up, down, strong_down
+    phrases: dict[str, str]  # up, strong_up, down, strong_down, and maybe against_up, against_down
 
 
 @dataclass(frozen=True)
@@ -117,7 +119,9 @@ def load(path: Path = TEMPLATES_PATH) -> Templates:
         )
     signals = {
         (row["language"], Metric(row["metric"])): SignalWords(
-            row["label"], {phrase: row[phrase] for phrase in _PHRASES}
+            row["label"],
+            {phrase: row[phrase] for phrase in _PHRASES}
+            | {phrase: row[phrase] for phrase in _AGAINST if phrase in row},
         )
         for row in data.get("signals", [])
     }

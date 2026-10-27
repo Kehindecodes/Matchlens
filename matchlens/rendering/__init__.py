@@ -1,6 +1,7 @@
 """Turns one lens's selected claims into a rendition"""
 
 from collections.abc import Mapping
+from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import Any
 
@@ -81,22 +82,24 @@ def render(
     side (D31, Q28: B). Any other comparison keeps the explainer's order (Q39). The claims are
     the same ones.
 
+    Where the moment leaves the match, the score or who kept the shot out, is said in the
+    template's words (`_Body`): first for a viewer asking what happened or what it means for
+    their side, last for one asking how it came about.
+
     `written` is what `write` got from a model for this selection (A4). It takes the place of
-    the spoken claims' sentences, after the template's opening line, and the rendition says
-    which model wrote it. Without it, the words are L3's alone: the seam A5 falls back on.
+    the other spoken claims' sentences, and the rendition says which model wrote it. Without
+    it, the words are L3's alone: the seam A5 falls back on.
     """
     calltrace.entered("Rendering")
     if selection.suppression_reason is not None:
         return _suppressed(moment, lens, selection.suppression_reason)
 
-    headline, opening, spoken = _words(moment, selection, lens, names, _spoken(lens))
-    if (line := _score_line(moment, selection.claims, spoken, lens, names)) is not None:
-        opening = _joined(opening, [line])
+    headline, card = _card(moment, selection, lens, names)
     if written is None:
-        body = _joined(opening, [text for _, text in spoken])
+        body = card.text([text for _, text in card.worded])
         model, version = templates.MODEL, templates.MODEL_VERSION
     else:
-        body = _joined(opening, [written.text])
+        body = card.text([written.text])
         model, version = written.model, written.model_version
     return Rendition(
         **_base(moment, lens, tuple(claim.claim_id for claim in selection.claims)),
@@ -153,13 +156,14 @@ def write(
     `Failure` of an answer the writer does not keep.
 
     The model is given those claims' sentences and nothing else, so a claim this lens dropped,
-    or would leave unspoken, never reaches it. None, without a call, for a suppressed selection
-    or one that speaks no claim.
+    or would leave unspoken, never reaches it. Nor does where the moment leaves the match,
+    which the card says in the template's words. None, without a call, for a suppressed
+    selection or one with nothing else to say.
     """
     if selection.suppression_reason is not None:
         return None
-    _, _, spoken = _words(moment, selection, lens, names, _spoken(lens))
-    return writer.write([text for _, text in spoken], lens, names, model)
+    _, card = _card(moment, selection, lens, names)
+    return writer.write([text for _, text in card.worded], lens, names, model)
 
 
 def in_full(moment: Moment, selection: Selection, lens: Lens, names: Mapping[str, str]) -> str:
@@ -172,14 +176,10 @@ def in_full(moment: Moment, selection: Selection, lens: Lens, names: Mapping[str
     """
     if selection.suppression_reason is not None:
         return ""
-    _, opening, spoken = _words(moment, selection, lens, names, None)
-    _, _, on_card = _words(moment, selection, lens, names, _spoken(lens))
-    if (line := _score_line(moment, selection.claims, on_card, lens, names)) is not None:
-        # The card said the score in its opening, so the line does too, and not again after.
-        opening = _joined(opening, [line])
-        said = state.score(moment, selection.claims)
-        spoken = [(claim, text) for claim, text in spoken if said is None or claim != said.claim]
-    return _joined(opening, [text for _, text in spoken])
+    _, card = _card(moment, selection, lens, names)
+    _, _, every = _words(moment, selection, lens, names, None)
+    more = [text for claim, text in every if claim.claim_id not in card.covered]
+    return _joined(card.text([text for _, text in card.worded]), more)
 
 
 def overlay_packet(
@@ -203,6 +203,61 @@ def overlay_packet(
 def _joined(opening: str, sentences: list[str]) -> str:
     """The opening line, if there is one, then the sentences, as one body."""
     return " ".join(part for part in (opening, *sentences) if part)
+
+
+@dataclass(frozen=True)
+class _Body:
+    """A card's body before its words are chosen.
+
+    `before` and `after` say where the moment leaves the match: the score a goal left, who saved
+    or blocked the shot. They are always the template's words, because a model shortening
+    "Saved by X" to "X", or dropping the score, loses the one thing the card is for. `worded` are
+    the other spoken claims, which a model may reword. `covered` is every claim the card says,
+    the score too when its line says it.
+    """
+
+    opening: str
+    before: list[str]
+    worded: list[tuple[Claim, str]]
+    after: list[str]
+    covered: frozenset[str]
+
+    def text(self, middle: list[str]) -> str:
+        """The body, with `middle` as the words for `worded`."""
+        return _joined(self.opening, [*self.before, *middle, *self.after])
+
+
+def _card(
+    moment: Moment, selection: Selection, lens: Lens, names: Mapping[str, str]
+) -> tuple[str, _Body]:
+    """The headline and the body parts of `moment`'s card for `lens`.
+
+    Each lens leads with its viewer's question. A casual viewer asks what happened and a
+    supporter what it means for their side, so the score comes first; an analyst asks how it
+    came about, so the build-up comes first and the score closes the card. A save or a block is
+    how a chance ended, so it closes the card for every viewer. The order follows depth and
+    focus, never a lens (invariant 10).
+    """
+    headline, opening, spoken = _words(moment, selection, lens, names, _spoken(lens))
+    line = _score_line(moment, selection.claims, lens, names)
+    left = state.score(moment, selection.claims) if line is not None else None
+    scores = [] if line is None else [line]
+    worded, stops = [], []
+    for claim, text in spoken:
+        if left is not None and claim == left.claim:
+            continue  # the line says it
+        if _is_score(claim):
+            scores.append(text)
+        elif claim.operands[0].metric in _STOPPERS:
+            stops.append(text)
+        else:
+            worded.append((claim, text))
+    covered = {claim.claim_id for claim, _ in spoken}
+    if left is not None:
+        covered.add(left.claim.claim_id)
+    if lens.focus_team is not None or lens.depth is not Depth.ANALYST:
+        return headline, _Body(opening, scores, worded, stops, frozenset(covered))
+    return headline, _Body(opening, [], worded, [*scores, *stops], frozenset(covered))
 
 
 def _words(
@@ -272,27 +327,28 @@ def _words(
 def _score_line(
     moment: Moment,
     claims: tuple[Claim, ...],
-    spoken: list[tuple[Claim, str]],
     lens: Lens,
     names: Mapping[str, str],
 ) -> str | None:
     """The score a goal or a ruled-out goal left, said at the lens's depth and from its side,
-    or None if no claim holds it, a claim the card speaks already says it, or nobody has said
-    the form. It goes after the card's opening line: the scoreboard may be off screen, and the
-    score is what the moment changed.
+    or None if no claim holds it or nobody has said the form. The scoreboard may be off screen,
+    and the score is what the moment changed.
 
-    It is read from the score claim Selection kept, so it says nothing the claims do not.
+    A lens that follows a side hears it from that side. Any other hears it from the side that
+    scored, the side its headline names: "Riverside pull one back. Riverside are one goal down",
+    not "Redfern are one goal up". It is read from the score claim Selection kept, so it says
+    nothing the claims do not.
     """
     if moment.type not in (MomentType.GOAL, MomentType.GOAL_DISALLOWED):
         return None
     left = state.score(moment, claims)
-    if left is None or any(claim == left.claim for claim, _ in spoken):
+    if left is None:
         return None
     still = "still_" if moment.type is MomentType.GOAL_DISALLOWED else ""
     level = left.mine == left.theirs
     focus = lens.focus_team
     if focus is None:
-        form = "level" if level else "lead"
+        form = "level" if level else "lead" if left.mine > left.theirs else "trail"
     else:
         ours, theirs = (
             (left.mine, left.theirs) if moment.subject.id == focus else (left.theirs, left.mine)
@@ -303,6 +359,7 @@ def _score_line(
         return None
     leader = moment.subject.id if left.mine > left.theirs else left.other
     filled = {
+        "team": names[moment.subject.id],
         "leader": None if level or leader is None else names[leader],
         "focus": None if focus is None else names[focus],
         "margin": templates.margin(lens.language, abs(left.mine - left.theirs)),

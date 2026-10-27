@@ -155,7 +155,7 @@ def test_an_opponent_lead_is_told_as_the_focus_side_trailing():
     text = _text(render(_moment(MomentType.GOAL, OPPONENT), _selected(claim), TEAM, NAMES))
     assert "Larkfield trail 2–1." in text
     match = _text(render(_moment(MomentType.GOAL, OPPONENT), _selected(claim), ANALYST, NAMES))
-    assert "Ashworth 2, Larkfield 1." in match  # a match lens reads the claim as it is made
+    assert "Ashworth lead 2–1." in match  # a match lens hears it from the side that scored
 
 
 def test_reading_from_the_focus_side_leaves_the_claim_as_it_was_made():
@@ -413,11 +413,11 @@ def test_a_ruled_out_goal_that_had_put_its_side_ahead_is_told_as_a_cancelled_lea
     assert "Back to 2–2." in engaged.body
 
 
-def test_a_ruled_out_equaliser_is_told_as_one_and_the_lead_as_still_standing():
+def test_a_ruled_out_equaliser_is_told_as_one_and_from_the_side_still_behind():
     ruled_out, score = _moment(MomentType.GOAL_DISALLOWED, SIDE), _score(SIDE, 1, OPPONENT, 2)
     rendition = render(ruled_out, _selected(_claim(), score), NEUTRAL_ENGAGED, NAMES)
     assert rendition.headline == "VAR rules out Larkfield's equaliser"
-    assert "Ashworth still lead 2–1." in rendition.body
+    assert rendition.body is not None and rendition.body.startswith("Larkfield still trail 2–1.")
 
 
 def test_a_ruled_out_goal_against_the_focus_side_is_told_from_that_side():
@@ -443,3 +443,65 @@ def test_a_ruled_out_goal_names_the_clock_of_the_goal_it_took_away():
     assert "Tom Brack's goal at 84:11" in analyst.body
     casual = render(ruled_out, _selected(claim), CASUAL, names)
     assert not re.search(r"\d", f"{casual.headline} {casual.body}")
+
+
+# --- each lens leads with its viewer's question ---------------------------------------------------
+
+
+def test_a_match_lens_hears_the_score_from_the_side_that_scored():
+    # "Larkfield pull one back. Larkfield are one goal down", not "Ashworth are one goal up".
+    goal, score = _moment(MomentType.GOAL, SIDE), _score(SIDE, 1, OPPONENT, 2)
+    casual = render(goal, _selected(_claim(), score), CASUAL, NAMES)
+    assert casual.body is not None and casual.body.startswith("Larkfield are one goal down.")
+    engaged = render(goal, _selected(_claim(), score), NEUTRAL_ENGAGED, NAMES)
+    assert engaged.body is not None and engaged.body.startswith("Larkfield trail 2–1.")
+
+
+def test_the_analyst_hears_how_a_goal_came_about_before_the_score():
+    goal, score = _moment(MomentType.GOAL, SIDE), _score(SIDE, 2, OPPONENT, 1)
+    analyst = render(goal, _selected(_claim(), score), ANALYST, NAMES)
+    assert analyst.body == "A high-quality chance. Larkfield lead 2–1."
+    casual = render(goal, _selected(_claim(), score), NEUTRAL_ENGAGED, NAMES)
+    assert casual.body is not None and casual.body.startswith("Larkfield lead 2–1.")
+
+
+def _saved_by(keeper: str = "k1") -> Claim:
+    operand = Operand(
+        subject=Ref(kind=RefKind.PLAYER, id=keeper), metric=Metric.SHOT_SAVED_BY,
+        window=Window(start_ms=2_052_000, end_ms=2_052_000), value=1.0,
+        evidence_ids=(Ref(kind=RefKind.EVENT, id="ev"),),
+    )  # fmt: skip
+    return Claim(
+        claim_id="saved", moment_id="m", claim_type=ClaimType.DESCRIPTIVE, operands=(operand,),
+        backing_reading=None, threshold=None, model="m", model_version="v",
+    )  # fmt: skip
+
+
+def test_a_save_closes_a_chance_card_for_every_viewer():
+    names = NAMES | {"k1": "Dale Drustow"}
+    chance = _moment(MomentType.CHANCE, SIDE)
+    analyst = render(chance, _selected(_saved_by(), _claim()), ANALYST, names)
+    assert analyst.body is not None and analyst.body.endswith("Saved by Dale Drustow.")
+    assert analyst.body.startswith("A high-quality chance.")
+    casual = render(chance, _selected(_saved_by(), _claim()), CASUAL, names)
+    assert casual.body is not None and casual.body.endswith("Saved by Dale Drustow.")
+
+
+def test_a_supporter_hears_a_shift_by_the_other_side_as_against_their_own():
+    operand = Operand(
+        subject=OPPONENT, metric=Metric.PRESSING_INTENSITY,
+        window=Window(start_ms=1_752_000, end_ms=2_052_000), value=12.0,
+        evidence_ids=(Ref(kind=RefKind.READING, id="r"),),
+    )  # fmt: skip
+    judged = Claim(
+        claim_id="shift", moment_id="m", claim_type=ClaimType.INTERPRETIVE, operands=(operand,),
+        backing_reading=Ref(kind=RefKind.READING, id="r"), threshold=2.0, model="m",
+        model_version="v",
+    )  # fmt: skip
+    shift = _moment(MomentType.TACTICAL_SHIFT, OPPONENT)
+    theirs = render(shift, _selected(judged), TEAM, NAMES)
+    assert theirs.headline is not None and "against Larkfield" in theirs.headline.replace(
+        "Against Larkfield", "against Larkfield"
+    )
+    neutral = render(shift, _selected(judged), NEUTRAL_ENGAGED, NAMES)
+    assert neutral.headline is not None and "Larkfield" not in neutral.headline

@@ -50,7 +50,7 @@ def sentence(
     )
     if text is None:
         return None
-    filled = {**_fields(claim, language, names), **values}
+    filled = {**_fields(claim, language, names, focus), **values}
     if any(filled.get(name) is None for name in templates.fields(text)):
         return None  # e.g. no word for the twelfth: say nothing rather than a number in words
     said = text.format(**filled)
@@ -151,12 +151,17 @@ def _signal(
     if not other or other[0].value == subject.value:
         return None  # no difference has no direction to say
     way = "up" if subject.value > other[0].value else "down"
-    form = "vs_earlier" if other[0].subject == subject.subject else "vs_opponent"
-    return form, label | {"phrase": words.phrases[way]}
+    if other[0].subject == subject.subject:
+        return "vs_earlier", label | {"phrase": words.phrases[way]}
+    against = words.phrases.get(f"against_{way}")  # "ahead of": not the headline's phrase again
+    return "vs_opponent", label | {"phrase": words.phrases[way], "against": against}
 
 
-def _fields(claim: Claim, language: str, names: Mapping[str, str]) -> dict[str, str | None]:
-    """What every form may use: names, values and the windows, as the claim holds them."""
+def _fields(
+    claim: Claim, language: str, names: Mapping[str, str], focus: str | None = None
+) -> dict[str, str | None]:
+    """What every form may use: names, values and the windows, as the claim holds them, and the
+    side a lens follows, if it follows one."""
     subject, *other = claim.operands
     width = subject.window.end_ms - subject.window.start_ms
     filled: dict[str, str | None] = {
@@ -169,6 +174,8 @@ def _fields(claim: Claim, language: str, names: Mapping[str, str]) -> dict[str, 
         "other": None,
         "other_value": None,
         "until": None,
+        "focus": None if focus is None else names[focus],
+        "against": None,
     }
     if other:
         filled |= {

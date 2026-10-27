@@ -236,6 +236,9 @@
     {"language": "en", "metric": "signal", "form": "judged", "depth": "casual", "text": "{name} are {phrase}.", "variants": ["{name} are now {phrase}."]},
     {"language": "en", "metric": "signal", "form": "judged", "depth": "engaged", "text": "{name} are {phrase} than earlier.", "variants": ["{name} are {phrase} than they were earlier."]},
     {"language": "en", "metric": "signal", "form": "judged", "depth": "analyst", "text": "{name} are {phrase} than earlier in this match."},
+    {"language": "en", "metric": "signal", "form": "judged_against", "depth": "casual", "text": "{name} are {phrase} against {focus}.", "variants": ["Against {focus}, {name} are now {phrase}."]},
+    {"language": "en", "metric": "signal", "form": "judged_against", "depth": "engaged", "text": "{name} are {phrase} against {focus} than earlier.", "variants": ["Against {focus}, {name} are {phrase} than they were earlier."]},
+    {"language": "en", "metric": "signal", "form": "judged_against", "depth": "analyst", "text": "{name} are {phrase} against {focus} than earlier in this match."},
     {"language": "en", "metric": "signal", "form": "vs_earlier", "depth": "casual", "text": "{name} are {phrase} than before.", "variants": ["{name} are {phrase} than they were."]},
     {"language": "en", "metric": "signal", "form": "vs_earlier", "depth": "engaged", "text": "{name} are {phrase} than before.", "variants": ["{name} are {phrase} than they were."]},
     {"language": "en", "metric": "signal", "form": "vs_earlier", "depth": "analyst", "text": "{label}: {name} {value} (was {other_value})."},
@@ -243,13 +246,16 @@
     {"language": "en", "metric": "signal", "form": "vs_opponent", "depth": "engaged", "text": "{name} are {phrase} than {other}.", "variants": ["{name} are {phrase} than {other} are."]},
     {"language": "en", "metric": "signal", "form": "vs_opponent", "depth": "analyst", "text": "{label}: {name} {value}, {other} {other_value}."},
     {"language": "en", "metric": "chance_quality", "form": "vs_earlier", "depth": "analyst", "text": "{name} are {phrase} than before."},
-    {"language": "en", "metric": "chance_quality", "form": "vs_opponent", "depth": "analyst", "text": "{name} are {phrase} than {other}."}
+    {"language": "en", "metric": "chance_quality", "form": "vs_opponent", "depth": "analyst", "text": "Chance quality: {against} {other}."}
   ],
 
   "scores": [
     {"language": "en", "form": "lead", "depth": "casual", "text": "{leader} are {margin} up."},
     {"language": "en", "form": "lead", "depth": "engaged", "text": "{leader} lead {high}–{low}."},
     {"language": "en", "form": "lead", "depth": "analyst", "text": "{leader} lead {high}–{low}."},
+    {"language": "en", "form": "trail", "depth": "casual", "text": "{team} are {margin} down."},
+    {"language": "en", "form": "trail", "depth": "engaged", "text": "{team} trail {high}–{low}."},
+    {"language": "en", "form": "trail", "depth": "analyst", "text": "{team} trail {high}–{low}."},
     {"language": "en", "form": "level", "depth": "casual", "text": "It's all square."},
     {"language": "en", "form": "level", "depth": "engaged", "text": "Level at {high}–{low}."},
     {"language": "en", "form": "level", "depth": "analyst", "text": "Level at {high}–{low}."},
@@ -262,6 +268,9 @@
     {"language": "en", "form": "still_lead", "depth": "casual", "text": "{leader} are still {margin} up."},
     {"language": "en", "form": "still_lead", "depth": "engaged", "text": "{leader} still lead {high}–{low}."},
     {"language": "en", "form": "still_lead", "depth": "analyst", "text": "{leader} still lead {high}–{low}."},
+    {"language": "en", "form": "still_trail", "depth": "casual", "text": "{team} are still {margin} down."},
+    {"language": "en", "form": "still_trail", "depth": "engaged", "text": "{team} still trail {high}–{low}."},
+    {"language": "en", "form": "still_trail", "depth": "analyst", "text": "{team} still trail {high}–{low}."},
     {"language": "en", "form": "still_level", "depth": "casual", "text": "Level again."},
     {"language": "en", "form": "still_level", "depth": "engaged", "text": "Back to {high}–{low}."},
     {"language": "en", "form": "still_level", "depth": "analyst", "text": "Back to {high}–{low}."},
@@ -281,7 +290,7 @@
     {"language": "en", "metric": "pressing_intensity", "label": "opponent passes allowed per defensive action", "up": "pressing less", "strong_up": "pressing much less", "down": "pressing harder", "strong_down": "pressing much harder"},
     {"language": "en", "metric": "possession_control", "label": "share of the passes", "up": "seeing more of the ball", "strong_up": "seeing much more of the ball", "down": "seeing less of the ball", "strong_down": "seeing much less of the ball"},
     {"language": "en", "metric": "territory", "label": "attacks reaching a final third", "up": "playing further up the pitch", "strong_up": "playing much further up the pitch", "down": "playing deeper", "strong_down": "playing much deeper"},
-    {"language": "en", "metric": "chance_quality", "label": "chance quality", "up": "creating better chances", "strong_up": "creating far better chances", "down": "creating worse chances", "strong_down": "creating far worse chances"}
+    {"language": "en", "metric": "chance_quality", "label": "chance quality", "up": "creating better chances", "strong_up": "creating far better chances", "down": "creating worse chances", "strong_down": "creating far worse chances", "against_up": "ahead of", "against_down": "behind"}
   ],
 
   "ordinals": {
