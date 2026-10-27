@@ -1,5 +1,5 @@
 [project]
-name = "matchlens"
+name = "parallax"
 version = "0.1.0"
 description = "A personalization layer for streaming platforms: one match, understood once, rendered as three experiences."
 requires-python = ">=3.12,<3.13"
