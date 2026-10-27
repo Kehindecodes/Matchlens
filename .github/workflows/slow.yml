@@ -1,0 +1,32 @@
+name: Slow tests
+
+# The tests that simulate many matches, in parallel with CI so the default run stays under two
+# minutes. Their own workflow, so a red slow suite is seen on every push without holding back the
+# deploy, which follows CI alone (Q50).
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: slow-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  slow:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        with:
+          enable-cache: true
+
+      - name: Install (locked)
+        run: uv sync --locked
+
+      - name: Slow tests
+        run: uv run --no-sync pytest -m slow
