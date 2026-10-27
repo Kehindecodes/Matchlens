@@ -3,12 +3,15 @@
 The model is shown the sentences L3 would speak for this lens, one per claim, and the lens's
 depth and language. Nothing else: not the moment, not its importance, not another lens's claims,
 not the claims L3 would leave unspoken. The headline and the opening line stay the template's
-(Q38: 1A), so the model only ever words claims.
+(Q38: 1A), and so do the score a goal left and who saved or blocked a shot, so the model only
+ever words how a moment came about.
 
 What it answers is checked before it can reach a card (Q38: 2A), because nothing downstream will
 (D22): every number, every number word and every name it writes must already be in the sentences
-it was given, it never names shot quality by its abbreviation (invariant 12), and it never
-speaks as a side, "we" or "our" (D31). An answer that fails any of these, or does not parse,
+it was given, it never names shot quality by its abbreviation (invariant 12), it never speaks
+as a side, "we" or "our" (D31), and no sentence of it is a name alone, which says nothing: told
+never to say what happened, a model once cut "Saved by X" to "X.". An answer that fails any of
+these, or does not parse,
 or never comes, gives no text, and the card keeps L3's words. It is also a failure the
 ladder scores (A5): one takes the writer down until it answers well twice in a row.
 
@@ -31,7 +34,7 @@ from matchlens.rendering import templates
 
 logger = logging.getLogger(__name__)
 
-PROMPT_VERSION = "writer-8"  # bump by hand whenever the instructions or the prompt change
+PROMPT_VERSION = "writer-9"  # bump by hand whenever the instructions or the prompt change
 
 # The abbreviation invariant 12 bans, spelt so that no file here contains it: the model has to
 # be told the word it may not use, and the check has to look for it.
@@ -93,6 +96,9 @@ Rules. A passage that breaks one is thrown away and the viewer gets the sentence
   it did. Never say that it happened, and never repeat the headline. Say only what the
   sentences add to it, as one sentence of at most 20 words. A sentence that is already short
   and natural is returned as it is. Never answer with an empty passage.
+- Who scored, set it up, saved or blocked it is something the sentences add. Keep what the
+  person did with their name ("Ivo Marr with the goal", "saved by Ivo Marr"), never the name
+  alone: "Ivo Marr." on its own says nothing.
 
 How to write it. These are freedoms, and the rules above still bind every one of them.
 - Do not just join the sentences. Rewrite them as connected prose in the register below.
@@ -163,13 +169,26 @@ def write(
     except ValidationError as failure:
         logger.warning("writer: non-conforming answer for %s: %s", lens.lens_id, failure)
         return Failure("an answer that does not parse")
-    untraced = untraceable(text, sentences, names, lens.language)
+    untraced = untraceable(text, sentences, names, lens.language) or name_alone(text, names)
     if untraced is not None:
         logger.warning(
             "writer: dropped %s's text from %s: %s", lens.lens_id, answer.model, untraced
         )
         return Failure(f"text that does not trace: {untraced}")
     return Written(text, answer.model, f"{answer.model_version}+{PROMPT_VERSION}")
+
+
+_SENTENCE_END = re.compile(r"(?<=[.!?;])\s+")
+
+
+def name_alone(text: str, names: Mapping[str, str]) -> str | None:
+    """A sentence of `text` that is only a team's or a player's name, or None if there is none."""
+    known = set(names.values())
+    for said in _SENTENCE_END.split(text):
+        bare = said.strip().rstrip(".!?;,").strip()
+        if bare in known:
+            return f"a name alone {bare!r}"
+    return None
 
 
 _NUMBER = re.compile(r"\d+(?:\.\d+)?(?:st|nd|rd|th)?")  # "2nd" is not "2"

@@ -24,6 +24,25 @@ Newest at the top. Kehinde answers inline and moves the resolved ones to `docs/D
 
 ---
 
+## Q51 · What a shift card shows as "earlier in this match"  [ticket: none, 27 Oct]  [blocking: no]
+
+**What I need to know:** which number an analyst shift card shows as its baseline, and how much of the match must have been played before a card may say "earlier in this match". This is rule 2 of the card review ("each analytical comparison must show its baseline"). Rules 1 and 3 are done on `feat/card-rendering-rules`.
+
+**What happens now:** the 5:00 analyst card says "Riverside Athletic are pressing less than earlier in this match." Five minutes in, there is almost no earlier: the reading's baseline is still mostly the offline prior (`w = n / (n + k)`, D11). The card's body then compares Riverside with Redfern (12.5 against 8.3), not with that baseline, so the headline's comparison is never shown. Every `SignalReading` stores its `baseline`, but the interpretive claim carries only the current value: the baseline is behind its evidence link, where Rendering cannot read it.
+
+**Why I cannot decide it:** showing it means a shift claim gains an operand, which changes what an interpretive claim means, and it changes what a viewer sees (CLAUDE.md). It also changes the A2 claims, so the demo cache's claims and words both need recording again.
+
+**Options as I see them:**
+- A: a second operand holding the plain mean of this match's earlier readings in the epoch, citing those readings. Card: "Pressing: 12.5 over the last 10 min, against 8.0 earlier in this match (6 readings)." Exact and checkable, but it is not the number the z-score was judged against, which blends in the prior.
+- B: a second operand holding the reading's blended `baseline`, worded as "the usual level" rather than "earlier in this match". It is the number the judgement used, but it is harder to explain and cannot cite match readings alone.
+- And either way, a floor on history: below N earlier readings (say 3), the card does not say "earlier in this match" (it says "for a match like this", or the shift is not spoken).
+
+**What I would do if forced:** A with a floor of 3 readings. About a day: the claim builder, the verifier's recompute, the analyst rows and both cache layers.
+
+**Answer:**
+
+---
+
 ## Q50 · The slow archetype-separation test fails since the decoy runs  [ticket: none, 27 Oct]  [blocking: no]
 
 **What I need to know:** how to make the comeback and one-sided archetypes separate again, after the deadline.

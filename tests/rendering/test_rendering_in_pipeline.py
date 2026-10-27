@@ -52,3 +52,35 @@ def test_the_same_moment_reads_differently_in_each_lens_that_shows_it(published)
     shared = [texts for texts in by_moment.values() if len(texts) > 1]
     assert shared
     assert all(len(set(texts)) == len(texts) for texts in shared)
+
+
+# Words that carry no information of their own, so a sentence made only of them and the
+# headline's words says nothing new.
+# fmt: off
+_FILLER = frozenset({
+    "the", "a", "an", "and", "of", "in", "to", "for", "than", "are", "is", "was", "it", "its",
+    "with", "from", "by", "at", "on", "as", "their", "them", "they", "that", "this", "there",
+    "have", "has", "had", "been", "be",
+})
+# fmt: on
+
+
+def _content(text: str) -> set[str]:
+    words = {word.strip(".") for word in re.findall(r"[a-z0-9.']+", text.lower())}
+    return words - _FILLER - {""}
+
+
+def test_every_sentence_adds_something_its_headline_did_not_say(published):
+    setup = next(i for i in simulate(1) if isinstance(i, MatchSetup))
+    team_words = {word for team in setup.match.teams for word in _content(team.name)}
+    player_names = {player.name for player in setup.players}
+    for card in published:
+        if card.rendition.suppressed:
+            continue
+        headline = _content(card.rendition.headline or "")
+        for said in re.split(r"(?<=[.!?])\s+", card.rendition.body or ""):
+            # Naming a team the headline did not is not news: "X are creating better chances
+            # than Y" under "X are creating far better chances than earlier" repeats it.
+            new = _content(said) - headline - team_words
+            assert new, f"{card.rendition.headline} | {said}"
+            assert said.rstrip(".") not in player_names, f"a name alone: {said}"

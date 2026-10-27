@@ -122,7 +122,8 @@ class Fails(Proposer):
 
 def test_each_lens_is_shown_only_the_sentences_it_would_speak():
     # The analyst speaks the first three claims it kept; the team lens the score and who scored.
-    # DROPPED was not selected by either, and no lens is shown it.
+    # The score is said in the template's words, so neither is shown it. DROPPED was not
+    # selected by either, and no lens is shown it.
     model = Echo()
     write(_moment(), _selected(SCORED, SCORE, QUICK), ANALYST, NAMES, model)
     write(_moment(), _selected(SCORED, SCORE, QUICK), TEAM, NAMES, model)
@@ -130,23 +131,37 @@ def test_each_lens_is_shown_only_the_sentences_it_would_speak():
     assert json.loads(analyst) == {
         "depth": "analyst",
         "language": "en",
-        # A card is read in seconds, so even the analyst speaks three: how it came about, then
-        # the scorer, then the score, which the scoreboard already shows.
+        # How it came about, then the scorer. The score closes the card in the template's words.
         "sentences": [
             "Quick attack: 7 passes in 18 s.",
             "Scorer: Tom Brack, his first of the match.",
-            "Ashworth 2, Larkfield 1.",
         ],
     }
-    # Told from the focus side and spoken first (D31, Q28: B), then who scored.
     team_sentences = json.loads(team)["sentences"]
-    assert team_sentences[0] == "Larkfield trail 2–1."
     assert any("Tom Brack" in sentence for sentence in team_sentences)  # who scored
+    assert not any("2–1" in sentence for sentence in team_sentences)  # the score is not asked
     assert analyst_instructions != team_instructions
     for prompt in (analyst, team):
         assert "0.41" not in prompt  # DROPPED's value
         assert "importance" not in prompt and "0.9" not in prompt
         assert "moment" not in prompt and "ev" not in prompt  # no moment, no evidence ids
+
+
+def test_a_save_is_never_shown_to_the_model_and_closes_the_card_in_the_templates_words():
+    # A model once cut "Saved by Ned Vossel" down to "Ned Vossel." The save is the template's.
+    chance = _moment().model_copy(update={"type": MomentType.CHANCE})
+    saved = _claim("c5", _operand(Ref(kind=RefKind.PLAYER, id="p-2"), Metric.SHOT_SAVED_BY, 1))
+    selected = _selected(saved, QUICK)
+    model = Echo()
+    written = write(chance, selected, ANALYST, NAMES, model)
+    assert isinstance(written, Written)
+    ((_, prompt),) = model.asked
+    assert "Vossel" not in prompt
+    rendition = render(chance, selected, ANALYST, NAMES, written)
+    assert rendition.body == f"{written.text} Saved by Ned Vossel."
+    # A card whose only spoken claim is the save asks no model at all.
+    assert write(chance, selected, CASUAL, NAMES, model) is None
+    assert len(model.asked) == 1
 
 
 def test_a_lens_that_speaks_no_claim_is_never_asked():
@@ -176,11 +191,11 @@ def test_the_model_words_follow_the_templates_opening_and_say_who_wrote_them():
     l3 = render(_moment(), selected, ANALYST, NAMES)
     assert rendition.headline == l3.headline
     # The goal left Larkfield behind, so the headline says that and there is no opening line: the
-    # model's words are the whole body.
+    # model's words are the body, and the score in the template's words closes it.
     assert rendition.headline is not None and "deficit" in rendition.headline
     assert l3.body is not None and l3.body.startswith("Quick attack")
-    assert rendition.body == written.text
-    assert (rendition.model, rendition.model_version) == ("scripted", "s1+writer-8")
+    assert rendition.body == f"{written.text} Larkfield trail 2–1."
+    assert (rendition.model, rendition.model_version) == ("scripted", "s1+writer-9")
     assert (l3.model, l3.model_version) == (templates.MODEL, templates.MODEL_VERSION)
     assert rendition.surviving_claim_ids == l3.surviving_claim_ids
 
@@ -192,8 +207,9 @@ def test_the_model_words_follow_the_templates_opening_and_say_who_wrote_them():
         Says("Larkfield scored."),  # not JSON
         Says(json.dumps({"text": "Tom Brack scores his 2nd."})),  # a number it was not given
         Says(json.dumps({"text": ""})),
+        Says(json.dumps({"text": "Quick attack: 7 passes in 18 s. Tom Brack."})),  # says nothing
     ],
-    ids=["fails", "not json", "untraceable", "empty"],
+    ids=["fails", "not json", "untraceable", "empty", "a name alone"],
 )
 def test_a_model_that_gives_nothing_keepable_leaves_l3s_words(model):
     selected = _selected(SCORED, SCORE, QUICK)
@@ -356,3 +372,10 @@ def _names_of_seed_1() -> dict[str, str]:
     assert isinstance(setup, MatchSetup)  # the stream opens on the setup (D16)
     names = {team.team_id: team.name for team in setup.match.teams}
     return names | {player.player_id: player.name for player in setup.players}
+
+
+def test_a_sentence_that_is_only_a_name_is_caught_and_one_that_says_what_they_did_is_not():
+    assert writer.name_alone("Larkfield trail 1–2. Tom Brack.", NAMES) == "a name alone 'Tom Brack'"
+    assert writer.name_alone("Tom Brack; Larkfield trail 1–2.", NAMES) is not None
+    assert writer.name_alone("It was Tom Brack. Larkfield trail 1–2.", NAMES) is None
+    assert writer.name_alone("Saved by Ned Vossel.", NAMES) is None
