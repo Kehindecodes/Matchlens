@@ -90,6 +90,8 @@ def render(
         return _suppressed(moment, lens, selection.suppression_reason)
 
     headline, opening, spoken = _words(moment, selection, lens, names, _spoken(lens))
+    if (line := _score_line(moment, selection.claims, spoken, lens, names)) is not None:
+        opening = _joined(opening, [line])
     if written is None:
         body = _joined(opening, [text for _, text in spoken])
         model, version = templates.MODEL, templates.MODEL_VERSION
@@ -171,6 +173,12 @@ def in_full(moment: Moment, selection: Selection, lens: Lens, names: Mapping[str
     if selection.suppression_reason is not None:
         return ""
     _, opening, spoken = _words(moment, selection, lens, names, None)
+    _, _, on_card = _words(moment, selection, lens, names, _spoken(lens))
+    if (line := _score_line(moment, selection.claims, on_card, lens, names)) is not None:
+        # The card said the score in its opening, so the line does too, and not again after.
+        opening = _joined(opening, [line])
+        said = state.score(moment, selection.claims)
+        spoken = [(claim, text) for claim, text in spoken if said is None or claim != said.claim]
     return _joined(opening, [text for _, text in spoken])
 
 
@@ -213,8 +221,11 @@ def _words(
       ahead) is headlined by that state, told for or against the side a lens follows; the same
       for a chance that is one of a run. The viewer has seen the goal and wants to know what it
       did, so there is no opening line.
+    - a ruled-out goal that cancelled a lead or an equaliser, as the score after it shows, is
+      headlined by what it took away.
     - a tactical shift has no news but what moved, so its first spoken fact is its headline.
     - anything else keeps the template's headline.
+
 
     A lens that follows a side speaks only where the side stands, but only on its card: a late
     joiner's catch-up (`limit` None, D4) is told how it came about too.
@@ -258,6 +269,51 @@ def _words(
     return headline, opening, spoken
 
 
+def _score_line(
+    moment: Moment,
+    claims: tuple[Claim, ...],
+    spoken: list[tuple[Claim, str]],
+    lens: Lens,
+    names: Mapping[str, str],
+) -> str | None:
+    """The score a goal or a ruled-out goal left, said at the lens's depth and from its side,
+    or None if no claim holds it, a claim the card speaks already says it, or nobody has said
+    the form. It goes after the card's opening line: the scoreboard may be off screen, and the
+    score is what the moment changed.
+
+    It is read from the score claim Selection kept, so it says nothing the claims do not.
+    """
+    if moment.type not in (MomentType.GOAL, MomentType.GOAL_DISALLOWED):
+        return None
+    left = state.score(moment, claims)
+    if left is None or any(claim == left.claim for claim, _ in spoken):
+        return None
+    still = "still_" if moment.type is MomentType.GOAL_DISALLOWED else ""
+    level = left.mine == left.theirs
+    focus = lens.focus_team
+    if focus is None:
+        form = "level" if level else "lead"
+    else:
+        ours, theirs = (
+            (left.mine, left.theirs) if moment.subject.id == focus else (left.theirs, left.mine)
+        )
+        form = "level" if level else "ahead" if ours > theirs else "behind"
+    text = templates.score_line(lens.language, still + form, lens.depth)
+    if text is None:
+        return None
+    leader = moment.subject.id if left.mine > left.theirs else left.other
+    filled = {
+        "leader": None if level or leader is None else names[leader],
+        "focus": None if focus is None else names[focus],
+        "margin": templates.margin(lens.language, abs(left.mine - left.theirs)),
+        "high": str(max(left.mine, left.theirs)),
+        "low": str(min(left.mine, left.theirs)),
+    }
+    if any(filled.get(name) is None for name in templates.fields(text)):
+        return None
+    return text.format(**filled)
+
+
 def _judges(spoken: list[tuple[Claim, str]], lens: Lens) -> bool:
     """Whether the first thing a shift card says is a judgement of one signal, which is news
     enough to be the card's first clause; a comparison alone is not."""
@@ -273,6 +329,8 @@ def _judges(spoken: list[tuple[Claim, str]], lens: Lens) -> bool:
 def _state(moment: Moment, claims: tuple[Claim, ...]) -> str | None:
     if moment.type is MomentType.GOAL:
         return state.goal_state(moment, claims)
+    if moment.type is MomentType.GOAL_DISALLOWED:
+        return state.disallowed_state(moment, claims)
     if moment.type is MomentType.CHANCE:
         return state.chance_state(claims)
     return None

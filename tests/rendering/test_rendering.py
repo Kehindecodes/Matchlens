@@ -153,7 +153,7 @@ def _score(scorer: Ref, scorer_goals: float, against: Ref, against_goals: float)
 def test_an_opponent_lead_is_told_as_the_focus_side_trailing():
     claim = _score(OPPONENT, 2, SIDE, 1)
     text = _text(render(_moment(MomentType.GOAL, OPPONENT), _selected(claim), TEAM, NAMES))
-    assert "Larkfield trail 1–2." in text
+    assert "Larkfield trail 2–1." in text
     match = _text(render(_moment(MomentType.GOAL, OPPONENT), _selected(claim), ANALYST, NAMES))
     assert "Ashworth 2, Larkfield 1." in match  # a match lens reads the claim as it is made
 
@@ -171,7 +171,7 @@ def test_the_team_lens_speaks_where_the_moment_leaves_its_side_first():
     assert TEAM.detail_level is DetailLevel.FULL  # a supporter is told who as well as the score
     goal = _moment(MomentType.GOAL, OPPONENT)
     team = render(goal, _selected(first, score), TEAM, NAMES)
-    assert "Larkfield trail 1–2." in _text(team)
+    assert "Larkfield trail 2–1." in _text(team)
     assert "goal for Larkfield" not in _text(team)
     assert team.surviving_claim_ids == ("goals", "score")  # the order spoken, not the order kept
     # A match lens has no side to leave first, and the scoreboard already shows the score, so it
@@ -369,3 +369,77 @@ def test_the_word_for_shot_quality_is_never_the_other_one():
         if path.is_file() and path.suffix in {".py", ".json"} and needle in path.read_text()
     ]
     assert offenders == []
+
+
+# --- the score a goal leaves ---------------------------------------------------------------------
+
+# The casual lens's detail, read at the engaged depth: a match lens that says figures.
+NEUTRAL_ENGAGED = CASUAL.model_copy(update={"depth": Depth.ENGAGED})
+
+
+def test_a_goal_card_says_the_score_it_left_in_words_to_casual_and_in_figures_otherwise():
+    goal, score = _moment(MomentType.GOAL, SIDE), _score(SIDE, 2, OPPONENT, 1)
+    casual = _text(render(goal, _selected(_claim(), score), CASUAL, NAMES))
+    assert "Larkfield are one goal up." in casual
+    assert not re.search(r"\d", casual)  # L3: casual says no number
+    engaged = _text(render(goal, _selected(_claim(), score), NEUTRAL_ENGAGED, NAMES))
+    assert "Larkfield lead 2–1." in engaged
+
+
+def test_a_goal_against_the_focus_side_says_it_trails_leader_first():
+    goal, score = _moment(MomentType.GOAL, OPPONENT), _score(OPPONENT, 2, SIDE, 0)
+    selected = _selected(_claim(), score.model_copy(update={"operands": score.operands[:1]}))
+    text = _text(render(goal, selected, CASUAL.model_copy(update={"focus_team": SIDE.id}), NAMES))
+    assert "Larkfield are two goals down." in text
+
+
+def test_the_score_is_said_once_when_a_spoken_claim_already_says_it():
+    goal, score = _moment(MomentType.GOAL, OPPONENT), _score(OPPONENT, 2, SIDE, 1)
+    text = _text(render(goal, _selected(score), TEAM, NAMES))
+    assert text.count("2–1") == 1
+
+
+def test_a_goal_with_no_score_claim_says_no_score():
+    text = _text(render(_moment(MomentType.GOAL, SIDE), _selected(), NEUTRAL_ENGAGED, NAMES))
+    assert "lead" not in text and "Level" not in text
+
+
+def test_a_ruled_out_goal_that_had_put_its_side_ahead_is_told_as_a_cancelled_lead():
+    ruled_out, score = _moment(MomentType.GOAL_DISALLOWED, SIDE), _score(SIDE, 2, OPPONENT, 2)
+    casual = render(ruled_out, _selected(_claim(), score), CASUAL, NAMES)
+    assert casual.headline == "Larkfield's lead is cancelled"
+    assert "Level again." in casual.body
+    engaged = render(ruled_out, _selected(_claim(), score), NEUTRAL_ENGAGED, NAMES)
+    assert "Back to 2–2." in engaged.body
+
+
+def test_a_ruled_out_equaliser_is_told_as_one_and_the_lead_as_still_standing():
+    ruled_out, score = _moment(MomentType.GOAL_DISALLOWED, SIDE), _score(SIDE, 1, OPPONENT, 2)
+    rendition = render(ruled_out, _selected(_claim(), score), NEUTRAL_ENGAGED, NAMES)
+    assert rendition.headline == "VAR rules out Larkfield's equaliser"
+    assert "Ashworth still lead 2–1." in rendition.body
+
+
+def test_a_ruled_out_goal_against_the_focus_side_is_told_from_that_side():
+    ruled_out, score = _moment(MomentType.GOAL_DISALLOWED, OPPONENT), _score(OPPONENT, 1, SIDE, 1)
+    rendition = render(ruled_out, _selected(_claim(), score), TEAM, NAMES)
+    assert rendition.headline == "Larkfield level again as VAR rules it out"
+
+
+def test_a_ruled_out_goal_names_the_clock_of_the_goal_it_took_away():
+    scorer = Ref(kind=RefKind.PLAYER, id="p9")
+    claim = Claim(
+        claim_id="var", moment_id="m", claim_type=ClaimType.DESCRIPTIVE,
+        operands=(Operand(
+            subject=scorer, metric=Metric.RULED_OUT_OFFSIDE,
+            window=Window(start_ms=5_051_000, end_ms=5_121_000), value=1.0,
+            evidence_ids=(Ref(kind=RefKind.EVENT, id="goal"), Ref(kind=RefKind.EVENT, id="var")),
+        ),),
+        backing_reading=None, threshold=None, model="m", model_version="v",
+    )  # fmt: skip
+    names = NAMES | {"p9": "Tom Brack"}
+    ruled_out = _moment(MomentType.GOAL_DISALLOWED, SIDE)
+    analyst = render(ruled_out, _selected(claim), ANALYST, names)
+    assert "Tom Brack's goal at 84:11" in analyst.body
+    casual = render(ruled_out, _selected(claim), CASUAL, names)
+    assert not re.search(r"\d", f"{casual.headline} {casual.body}")

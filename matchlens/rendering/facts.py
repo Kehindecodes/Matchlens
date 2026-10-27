@@ -165,6 +165,7 @@ def _fields(claim: Claim, language: str, names: Mapping[str, str]) -> dict[str, 
         "ordinal": templates.ordinal(language, subject.value),
         "minutes": number(round(width / 60_000)),
         "seconds": number(round(width / 1000)),
+        "at": clock(subject.window.start_ms),  # where the window opens: a ruled-out goal's clock
         "other": None,
         "other_value": None,
         "until": None,

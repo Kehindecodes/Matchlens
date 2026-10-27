@@ -13,6 +13,7 @@ count over some other window is not.
 """
 
 from collections.abc import Sequence
+from dataclasses import dataclass
 
 from matchlens.config import settings
 from matchlens.models import Claim, Metric, Moment, RefKind
@@ -23,28 +24,70 @@ EQUALISER = "equaliser"  # behind before, level now
 EXTENDED = "extended"  # ahead before, further ahead now
 PULLED_BACK = "pulled_back"  # behind before, still behind
 RUN = "run"  # a run of big chances: the chance is one of several
+LEAD_CANCELLED = "lead_cancelled"  # a goal ruled out that had put its side ahead
+EQUALISER_CANCELLED = "equaliser_cancelled"  # a goal ruled out that had levelled it
 
 
-def goal_state(moment: Moment, claims: Sequence[Claim]) -> str | None:
-    """What the goal did to the score, or None if no claim holds the score it left."""
-    scorer = moment.subject.id
+@dataclass(frozen=True)
+class Score:
+    """The score a moment left, read from the claim that holds it, from the moment's side."""
+
+    claim: Claim
+    mine: int  # the goals of the moment's subject: the scorer, or the side whose goal went
+    theirs: int
+    other: str | None  # the other side's team id, where the claim names it: it has scored
+
+
+def score(moment: Moment, claims: Sequence[Claim]) -> Score | None:
+    """The score over the whole match up to the moment, or None if no claim holds it.
+
+    A goal's and a ruled-out goal's claims both carry it. A count of one side alone is the
+    form a side whose opponent has none gets (Q26 2a), so the side it does not count has none:
+    after a ruled-out goal, that may be the moment's own side.
+    """
+    if moment.subject.kind is not RefKind.TEAM:
+        return None
+    side = moment.subject.id
     for claim in claims:
         first, *rest = claim.operands
         if first.metric is not Metric.GOALS or len(rest) > 1:
             continue
         if any(
-            o.subject.kind is not RefKind.TEAM
-            or o.metric is not Metric.GOALS
-            or (o.window.start_ms, o.window.end_ms) != (0, moment.clock_ms)
-            for o in claim.operands
+            operand.subject.kind is not RefKind.TEAM
+            or operand.metric is not Metric.GOALS
+            or (operand.window.start_ms, operand.window.end_ms) != (0, moment.clock_ms)
+            for operand in claim.operands
         ):
             continue
-        by_team = {o.subject.id: o.value for o in claim.operands}
-        if scorer not in by_team:
+        by_team = {operand.subject.id: operand.value for operand in claim.operands}
+        others = [team for team in by_team if team != side]
+        if side not in by_team and len(others) != 1:
             continue
-        mine = by_team[scorer]
-        theirs = next((v for team, v in by_team.items() if team != scorer), 0.0)
-        return _goal_state(int(mine), int(theirs))
+        other = others[0] if others else None
+        theirs = 0 if other is None else int(by_team[other])
+        return Score(claim, int(by_team.get(side, 0)), theirs, other)
+    return None
+
+
+def goal_state(moment: Moment, claims: Sequence[Claim]) -> str | None:
+    """What the goal did to the score, or None if no claim holds the score it left."""
+    left = score(moment, claims)
+    return None if left is None else _goal_state(left.mine, left.theirs)
+
+
+def disallowed_state(moment: Moment, claims: Sequence[Claim]) -> str | None:
+    """What the ruled-out goal would have done, read from the score after it went.
+
+    Level now: it had put its side ahead. One behind now: it had levelled. Anything else, or no
+    score claim, names no state.
+    """
+    left = score(moment, claims)
+    if left is None:
+        return None
+    if left.mine == left.theirs:
+        return LEAD_CANCELLED
+    if left.mine + 1 == left.theirs:
+        return EQUALISER_CANCELLED
     return None
 
 

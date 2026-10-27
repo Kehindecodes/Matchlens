@@ -4,11 +4,6 @@
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },
- "081b2cc85dde5ad4cf19404827bc42f4daeb6c2408389cacc1d488468c9e9472": {
-  "text": "{\"text\":\"Won in own third; quick attack, 5 passes in 15 s; combination, 3 players in 3 s.\"}",
-  "model": "gpt-5.4-mini",
-  "model_version": "gpt-5.4-mini-2026-03-17"
- },
  "132968f0f1deb840b05d15b73492424e3ff98b1dc81f4975c1e22398b8392f8c": {
   "text": "{\"text\":\"Riverside Athletic have their third big chance in ten minutes.\"}",
   "model": "gpt-5.4-mini",
@@ -21,6 +16,11 @@
  },
  "1a06c434b0cf4bd40d41b876d4b1210014b2e755b369904c8cd94e1d72fec06c": {
   "text": "{\"text\":\"Riverside Athletic lead 3\u20132, and Dale Ashley is the scorer; they won it back within 7 seconds of losing it.\"}",
+  "model": "gpt-5.4-mini",
+  "model_version": "gpt-5.4-mini-2026-03-17"
+ },
+ "1a5848ae94583fc2b1db241c420c301a134e6dab4648441928a8b6b2b89f41be": {
+  "text": "{\"text\":\"Riverside Athletic's fourth big chance in ten minutes; Kofi Rennov's run away from the shot took a defender 17.1 m with him; 5 against 3 around the ball.\"}",
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },
@@ -44,6 +44,11 @@
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },
+ "3a63cf0222014a0ce866f1b8728630d03d49e9c6db2fdd748fa5dc66dceeb633": {
+  "text": "{\"text\":\"Quick attack: 3 passes in 14 s, 3 players combined in 2 s before the shot, assist: Arlo Lorwick.\"}",
+  "model": "gpt-5.4-mini",
+  "model_version": "gpt-5.4-mini-2026-03-17"
+ },
  "3b755a54f115469a27ee6ef8eee5bb7898e01c7f1426d18361b8831fa7f16def": {
   "text": "{\"text\":\"It was Sami Orsner.\"}",
   "model": "gpt-5.4-mini",
@@ -51,6 +56,11 @@
  },
  "420fde365306beddb4c5de58c98b4c85a3f40fc4579d8671853702d3c966fec9": {
   "text": "{\"text\":\"That is Riverside Athletic's fourth big chance in ten minutes.\"}",
+  "model": "gpt-5.4-mini",
+  "model_version": "gpt-5.4-mini-2026-03-17"
+ },
+ "42117f78df28bffb02842a980c34776ba3d0a38c3d7a8c31124d0be31383aaf4": {
+  "text": "{\"text\":\"Riverside Athletic: 4 big chances in the last 10 minutes; Arlo Gorstow blocked it; Kofi Rennov ran away from the shot and a defender followed him 17.1 m.\"}",
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },
@@ -71,6 +81,11 @@
  },
  "51900a70438dbb5fb18bfcd36572f25f469d47d7283009fcb942ff587adb0307": {
   "text": "{\"claims\":[{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"territory\",\"window\":{\"start_ms\":1260000,\"end_ms\":1560000},\"value\":0.5555555555555556,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch1-territory-m-1-home-1560000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"territory\",\"window\":{\"start_ms\":1260000,\"end_ms\":1560000},\"value\":0.4444444444444444,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch1-territory-m-1-away-1560000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"pressing_intensity\",\"window\":{\"start_ms\":1260000,\"end_ms\":1560000},\"value\":3.5,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch1-pressing_intensity-m-1-home-1560000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"pressing_intensity\",\"window\":{\"start_ms\":1260000,\"end_ms\":1560000},\"value\":20.0,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch1-pressing_intensity-m-1-away-1560000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"interpretive\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"pressing_intensity\",\"window\":{\"start_ms\":1260000,\"end_ms\":1560000},\"value\":20.0,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch1-pressing_intensity-m-1-away-1560000\"}]}],\"backing_reading\":{\"kind\":\"reading\",\"id\":\"m-1-epoch1-pressing_intensity-m-1-away-1560000\"},\"threshold\":2.0}]}",
+  "model": "gpt-5.4-mini",
+  "model_version": "gpt-5.4-mini-2026-03-17"
+ },
+ "569e168434d7852546d9d7d5b3311cdb0a23f7b30c916a73e86d9ccae1e9a982": {
+  "text": "{\"text\":\"Ball won in own third, quick attack: 5 passes in 15 s, 3 players combined in 3 s before that.\"}",
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },
@@ -99,6 +114,11 @@
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },
+ "6d75c5479e8ee11ba36fa479370ed36502247789386eb41a6aa84a83ec69f515": {
+  "text": "{\"text\":\"Riverside Athletic's third big chance in ten minutes; Finn Norham's run took a defender 14.3 m with him; 4 against 2 around the ball.\"}",
+  "model": "gpt-5.4-mini",
+  "model_version": "gpt-5.4-mini-2026-03-17"
+ },
  "6d79dbc2ab55c14d110d1230af34847fc33d09ca01689ab7caf714919b8a9cc5": {
   "text": "{\"claims\":[{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":3960000,\"end_ms\":4260000},\"value\":0.8333333333333334,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch4-possession_control-m-1-home-4260000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":3960000,\"end_ms\":4260000},\"value\":0.16666666666666666,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch4-possession_control-m-1-away-4260000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"pressing_intensity\",\"window\":{\"start_ms\":3960000,\"end_ms\":4260000},\"value\":2.3333333333333335,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch4-pressing_intensity-m-1-home-4260000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"pressing_intensity\",\"window\":{\"start_ms\":3960000,\"end_ms\":4260000},\"value\":4.0,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch4-pressing_intensity-m-1-away-4260000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"interpretive\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":3960000,\"end_ms\":4260000},\"value\":0.8333333333333334,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch4-possession_control-m-1-home-4260000\"}]}],\"backing_reading\":{\"kind\":\"reading\",\"id\":\"m-1-epoch4-possession_control-m-1-home-4260000\"},\"threshold\":1.25}]}",
   "model": "gpt-5.4-mini",
@@ -119,18 +139,13 @@
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },
- "807228e85845d6d5b6d973a12d9ba39c7f9241c67b75f475c959b1d1d3a25abe": {
-  "text": "{\"text\":\"Riverside Athletic trail 1\u20132, with Sami Orsner.\"}",
+ "7c449c3505c6650883e26530ebc7fbbb52a7d7aa4dd8beffa54dc28c96fcd1b9": {
+  "text": "{\"text\":\"Riverside Athletic trail 2\u20131, and Sami Orsner is the scorer.\"}",
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },
  "8507941367015999429f430a6e6836d4330f5956b4acfbeaa09b99562aea4ee6": {
   "text": "{\"text\":\"Luka Savford, after ball won in own third, with overload: 2 v 1 around the ball during the final pass.\"}",
-  "model": "gpt-5.4-mini",
-  "model_version": "gpt-5.4-mini-2026-03-17"
- },
- "8647cfc807c85249caa21caeb49d8b9576c62da237c62f1b54c013abef5d1dd8": {
-  "text": "{\"text\":\"Kofi Rennov's run drew a defender 17.1 m away from the shot, with Riverside Athletic 5 against 3 around the ball.\"}",
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },
@@ -209,23 +224,18 @@
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },
- "c1ac4048477338e57d912f27c7e32e2c7717864c4a94231321c44e3b9f4a7189": {
-  "text": "{\"text\":\"Quick attack: 3 passes in 14 s, combination: 3 players in 2 s, assist: Arlo Lorwick.\"}",
-  "model": "gpt-5.4-mini",
-  "model_version": "gpt-5.4-mini-2026-03-17"
- },
  "c4360b3cfe720d19c109d9c221ef19cf9fa3ea7579831727b508abdbd4e91538": {
   "text": "{\"text\":\"Redfern United's third big chance in ten minutes.\"}",
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },
- "d928badbfd5b9a763e1498af99e8ccd320c74e1ad8eb7f317a43a996b07052dd": {
-  "text": "{\"text\":\"Dale Drustow.\"}",
+ "d077e66b6242e9718d9b2281a7bc9f1bc40657bc32d52740c9ea60ef554970f0": {
+  "text": "{\"text\":\"Riverside Athletic had 3 big chances in last 10 minutes; Finn Norham's decoy run, a defender followed him 14.3 m.\"}",
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },
- "db21685e9b5bb3c4cf62a95093c7066c70e62cf0988cb83648d1dcec7ded2381": {
-  "text": "{\"text\":\"Riverside Athletic have 4 big chances in the last 10 minutes, and Kofi Rennov drew a defender 17.1 m away.\"}",
+ "d928badbfd5b9a763e1498af99e8ccd320c74e1ad8eb7f317a43a996b07052dd": {
+  "text": "{\"text\":\"Dale Drustow.\"}",
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },
@@ -249,11 +259,6 @@
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },
- "ef1e38286eb2a808f4bd986714a9c8f3183b152c90bd426c84fe4738d34e5776": {
-  "text": "{\"text\":\"Finn Norham's run drew a defender 14.3 m away, and Riverside Athletic had 4 against 2 around the ball.\"}",
-  "model": "gpt-5.4-mini",
-  "model_version": "gpt-5.4-mini-2026-03-17"
- },
  "f479766b83ae01947b7f50832807bcad683fc7885b233a7e29d9856e97e76bdb": {
   "text": "{\"text\":\"From close range.\"}",
   "model": "gpt-5.4-mini",
@@ -261,11 +266,6 @@
  },
  "f78c8ec55e5379c6ae793ee00345196645ab842b50029ab1e2addf06fcad0160": {
   "text": "{\"claims\":[{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"territory\",\"window\":{\"start_ms\":420000,\"end_ms\":720000},\"value\":0.8571428571428571,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch0-territory-m-1-away-720000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"territory\",\"window\":{\"start_ms\":420000,\"end_ms\":720000},\"value\":0.14285714285714285,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch0-territory-m-1-home-720000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"pressing_intensity\",\"window\":{\"start_ms\":420000,\"end_ms\":720000},\"value\":14.0,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch0-pressing_intensity-m-1-home-720000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"pressing_intensity\",\"window\":{\"start_ms\":420000,\"end_ms\":720000},\"value\":3.4285714285714284,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch0-pressing_intensity-m-1-away-720000\"}]}],\"backing_reading\":null,\"threshold\":null}]}",
-  "model": "gpt-5.4-mini",
-  "model_version": "gpt-5.4-mini-2026-03-17"
- },
- "fa28d86e3accf5063c1aa8d5e1a6df35d7a7a0e910623809dffa6bd150440726": {
-  "text": "{\"text\":\"Riverside Athletic have 3 big chances in the last 10 minutes; Finn Norham drew a defender 14.3 m away.\"}",
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },

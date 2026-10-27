@@ -178,7 +178,7 @@ def test_a_shots_quality_is_said_in_words_and_never_as_its_value(depth):
 def test_an_interpretive_signal_claim_never_states_a_value_or_standard_deviations():
     claim = _claim(_operand(Metric.TERRITORY, 0.83), threshold=2.0)
     text = _said(claim, Depth.ANALYST)
-    assert "playing much further up the pitch than their norm" in text
+    assert "playing much further up the pitch than earlier in this match" in text
     assert not re.search(r"\d", text) and "standard deviation" not in text
 
 
@@ -297,7 +297,7 @@ def test_a_switch_a_regain_a_combination_and_a_pressured_loss_are_said_without_a
     assert "5.5 s" in _said(regain, Depth.ANALYST)
     combination = _claim(_operand(Metric.COMBINATION, 3, start_ms=100_000, end_ms=102_000))
     assert not re.search(r"\d", _said(combination, Depth.CASUAL))
-    assert "3 players in 2 s" in _said(combination, Depth.ANALYST)
+    assert "3 players combined in 2 s before the shot" in _said(combination, Depth.ANALYST)
     pressed = _claim(_operand(Metric.PRESSURED_LOSS, 1, subject=SCORER))
     assert "Ada Quill gave it away under pressure" in _said(pressed, Depth.ENGAGED)
     for claim in (switch, regain, combination, pressed):
