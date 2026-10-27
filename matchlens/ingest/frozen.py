@@ -1,8 +1,8 @@
 """The explainer's read: the record frozen at a moment's clock (A1, invariant 6).
 
-A `FrozenLog` is built from a moment and serves the events, readings and epochs at or before that
-moment's clock, and nothing later exists from its point of view. The boundary is inclusive, so a
-goal moment can cite its own goal (Q6).
+A `FrozenLog` is built from a moment and serves the events, readings, position readings and
+epochs at or before that moment's clock, and nothing later exists from its point of view. The
+boundary is inclusive, so a goal moment can cite its own goal (Q6).
 
 The clock is the moment's and is fixed when the log is built. No read takes a clock, so no caller
 can ask it for a later one, and what it holds are tuples copied at that point, so a later append
@@ -13,7 +13,7 @@ was built from, so there is nothing on it to follow to a `Frame` (invariant 1).
 from collections.abc import Iterable
 
 from matchlens.ingest.record import RecordReader
-from matchlens.models import Epoch, Event, Match, Moment, Player, SignalReading
+from matchlens.models import Epoch, Event, Match, Moment, Player, PositionReading, SignalReading
 
 
 class FrozenLog:
@@ -23,6 +23,7 @@ class FrozenLog:
         record: RecordReader,
         readings: Iterable[SignalReading],
         epochs: Iterable[Epoch],
+        positions: Iterable[PositionReading] = (),
     ):
         clock = moment.clock_ms
         self._clock_ms = clock
@@ -31,6 +32,7 @@ class FrozenLog:
         self._events = record.events_between(0, clock + 1)  # [from, to), so +1 includes the clock
         self._readings = tuple(r for r in readings if r.clock_ms <= clock)
         self._epochs = tuple(e for e in epochs if e.start_clock_ms <= clock)
+        self._positions = tuple(p for p in positions if p.clock_ms <= clock)
 
     @property
     def clock_ms(self) -> int:
@@ -60,3 +62,8 @@ class FrozenLog:
     def epochs(self) -> tuple[Epoch, ...]:
         """Epochs started at or before the clock, in clock order."""
         return self._epochs
+
+    @property
+    def positions(self) -> tuple[PositionReading, ...]:
+        """Position readings taken at or before the clock: what the frames showed, never a frame."""
+        return self._positions

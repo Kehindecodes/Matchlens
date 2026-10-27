@@ -134,7 +134,8 @@ def test_a_comparison_with_earlier_names_the_boundary_and_one_with_the_opponent_
     now = _operand(Metric.POSSESSION_CONTROL, 0.62, start_ms=2_100_000, end_ms=2_400_000)
     before = _operand(Metric.POSSESSION_CONTROL, 0.41, start_ms=1_800_000, end_ms=2_100_000)
     theirs = _operand(Metric.POSSESSION_CONTROL, 0.38, subject=AWAY, end_ms=2_400_000)
-    assert "more of the ball than before 35:00" in _said(_claim(now, before))
+    # The earlier window is a comparison, not a time: a card does not say when (26 Oct).
+    assert "more of the ball than before." in _said(_claim(now, before))
     assert "more of the ball than Ostbridge" in _said(_claim(now, theirs))
 
 
@@ -201,3 +202,127 @@ def test_a_share_is_a_percentage_and_pressing_is_passes_per_defensive_action():
     text = _said(_claim(ours, theirs), Depth.ANALYST)
     assert "opponent passes allowed per defensive action" in text.lower()
     assert "10.7" in text and "10.67" not in text
+
+
+# --- the run set against the other side's ------------------------------------------------------
+
+
+def test_a_chance_comparison_is_said_only_for_a_clear_edge_and_from_the_side_with_more():
+    end = settings.claim_chance_window_ms
+    ahead = _operand(Metric.CHANCES, 5, start_ms=0, end_ms=end)
+    behind = _operand(Metric.CHANCES, 2, subject=AWAY, start_ms=0, end_ms=end)
+    assert "lead the big chances 5 to 2" in _said(_claim(ahead, behind))
+    assert "lead the big chances 5 to 2" in _said(_claim(behind, ahead))  # read from the leader
+    assert "most of the chances" in _said(_claim(ahead, behind), Depth.CASUAL)
+    close = _operand(Metric.CHANCES, 4, subject=AWAY, start_ms=0, end_ms=end)
+    assert _say(_claim(ahead, close)) is None  # four to five is not an edge
+
+
+def test_one_pass_is_not_passes():
+    text = _said(_move(1, 6), Depth.ANALYST)
+    assert "1 pass " in text and "passes" not in text
+
+
+# --- how a goal came about ---------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    ("third", "casual", "analyst"),
+    [
+        (3, "high up the pitch", "final third"),
+        (2, "in midfield", "midfield"),
+        (1, "deep in their own half", "own third"),
+    ],
+)
+def test_where_the_ball_was_won_is_said_in_words_and_in_thirds(third, casual, analyst):
+    claim = _claim(_operand(Metric.BALL_WON_THIRD, third))
+    assert casual in _said(claim, Depth.CASUAL)
+    assert analyst in _said(claim, Depth.ANALYST)
+
+
+def test_who_gave_the_ball_away_is_named():
+    claim = _claim(_operand(Metric.BALL_LOST, 1, subject=SCORER))
+    assert "Ada Quill" in _said(claim, Depth.CASUAL)
+    assert "Ada Quill" in _said(claim, Depth.ANALYST)
+
+
+def test_how_far_out_a_shot_was_is_said_in_bands_and_casual_hears_only_the_extremes():
+    close, mid, far = (_claim(_operand(Metric.SHOT_DISTANCE, d)) for d in (8.4, 18.0, 27.5))
+    assert "close range" in _said(close, Depth.CASUAL)
+    assert _say(mid, Depth.CASUAL) is None  # nothing to say about a shot from about 18 metres
+    assert "distance" in _said(far, Depth.CASUAL)
+    for claim, metres in ((close, "8.4"), (mid, "18"), (far, "27.5")):
+        assert f"{metres} m" in _said(claim, Depth.ANALYST)
+
+
+# --- who, for a supporter ------------------------------------------------------------------------
+
+
+def _said_from(claim: Claim, side: str, depth: Depth = Depth.ENGAGED) -> str:
+    text = sentence(claim, depth, "en", NAMES, side=side)
+    assert text is not None
+    return text
+
+
+def test_an_assist_a_save_and_a_block_name_the_player_and_never_the_position():
+    names = {"home-p9": "Ada Quill"}
+    assert "Ada Quill" in _said(_claim(_operand(Metric.ASSIST, 1, subject=SCORER)))
+    keeper = _claim(_operand(Metric.BALL_LOST_BY_KEEPER, 1, subject=SCORER))
+    for depth in Depth:
+        said = _said(keeper, depth)
+        assert "Ada Quill" in said
+        assert not re.search(r"keeper|goalkeeper|GK", said, re.IGNORECASE), said
+    assert names  # the mapping the pipeline supplies names players, not positions
+
+
+def test_a_save_is_told_differently_to_the_side_that_shot_and_the_side_that_kept_it_out():
+    saved = _claim(_operand(Metric.SHOT_SAVED_BY, 1, subject=SCORER))
+    assert _said_from(saved, "for") == "Saved by Ada Quill."
+    assert _said_from(saved, "against") == "Ada Quill makes the save."
+    blocked = _claim(_operand(Metric.SHOT_BLOCKED_BY, 1, subject=SCORER))
+    assert _said_from(blocked, "for") == "Blocked by Ada Quill."
+    assert _said_from(blocked, "against") == "Ada Quill blocks it."
+
+
+# --- how the attack was made --------------------------------------------------------------------
+
+
+def test_a_switch_a_regain_a_combination_and_a_pressured_loss_are_said_without_a_cause():
+    switch = _claim(_operand(Metric.SWITCH_OF_PLAY, 41.2))
+    assert "switched across the pitch" in _said(switch, Depth.CASUAL)
+    assert "41.2 m" in _said(switch, Depth.ANALYST)
+    regain = _claim(_operand(Metric.REGAIN, 5.5, start_ms=100_000, end_ms=105_500))
+    assert "straight back" in _said(regain, Depth.CASUAL)
+    assert "within 6 seconds" in _said(regain, Depth.ENGAGED)
+    assert "5.5 s" in _said(regain, Depth.ANALYST)
+    combination = _claim(_operand(Metric.COMBINATION, 3, start_ms=100_000, end_ms=102_000))
+    assert not re.search(r"\d", _said(combination, Depth.CASUAL))
+    assert "3 players in 2 s" in _said(combination, Depth.ANALYST)
+    pressed = _claim(_operand(Metric.PRESSURED_LOSS, 1, subject=SCORER))
+    assert "Ada Quill gave it away under pressure" in _said(pressed, Depth.ENGAGED)
+    for claim in (switch, regain, combination, pressed):
+        assert not re.search(r"\bbecause\b", _said(claim, Depth.ANALYST))  # since, never because
+
+
+# --- what the positions showed (Q48) --------------------------------------------------------------
+
+
+def test_an_overload_sets_the_attackers_against_the_defenders_and_casual_hears_no_number():
+    overload = _claim(_operand(Metric.OVERLOAD, 4), _operand(Metric.OVERLOAD, 1, subject=AWAY))
+    assert _said(overload) == "Larkfield had 4 against 1 around the ball."
+    assert "4 v 1" in _said(overload, Depth.ANALYST)
+    assert not re.search(r"\d", _said(overload, Depth.CASUAL))
+
+
+def test_a_decoy_run_and_an_early_run_name_the_runner_and_never_a_cause():
+    decoy = _claim(_operand(Metric.DECOY_RUN, 14.3, subject=SCORER, start_ms=0, end_ms=3_500))
+    early = _claim(_operand(Metric.EARLY_RUN, 9.1, subject=SCORER, start_ms=0, end_ms=1_500))
+    for claim in (decoy, early):
+        for depth in Depth:
+            said = _said(claim, depth)
+            assert said.startswith("Ada Quill") or "Ada Quill" in said
+            # The frames show where everyone was, never why: no word claims space was made.
+            assert not re.search(r"space|opened|created|dragged", said, re.IGNORECASE), said
+        assert not re.search(r"\d", _said(claim, Depth.CASUAL))
+    assert "14.3 m" in _said(decoy, Depth.ANALYST)
+    assert "9.1 m in the 2 s" in _said(early, Depth.ANALYST)

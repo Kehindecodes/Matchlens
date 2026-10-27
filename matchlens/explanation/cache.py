@@ -20,6 +20,7 @@ import logging
 import sys
 import threading
 import time
+from collections.abc import Callable
 from pathlib import Path
 from typing import override
 
@@ -75,6 +76,59 @@ class Recording(Proposer):
         return answer
 
 
+def rate_limited(failure: BaseException) -> bool:
+    """Whether `failure`, or anything it was raised from, is the service's 429."""
+    seen: set[int] = set()
+    current: BaseException | None = failure
+    while current is not None and id(current) not in seen:
+        seen.add(id(current))
+        text = repr(current).lower()
+        if "ratelimit" in text or "rate_limit" in text or "error code: 429" in text:
+            return True
+        current = current.__cause__ or current.__context__
+    return False
+
+
+class Retrying(Proposer):
+    """`live`, asked again after a pause when the service says it is out of quota.
+
+    Only for the offline build, where waiting costs nothing: the live path has a deadline and
+    a ladder, and must fail fast instead. Only a rate limit is retried; any other failure is
+    raised at once. The wait doubles from `first_wait_s` up to `max_wait_s`, and after
+    `attempts` calls the last failure is raised, so a deployment with no quota left still stops.
+    """
+
+    def __init__(
+        self,
+        live: Proposer,
+        attempts: int = 8,
+        first_wait_s: float = 15.0,
+        max_wait_s: float = 90.0,
+        sleep: Callable[[float], None] = time.sleep,
+    ):
+        self._live = live
+        self._attempts = attempts
+        self._first_wait_s = first_wait_s
+        self._max_wait_s = max_wait_s
+        self._sleep = sleep
+
+    @override
+    def propose(self, instructions: str, prompt: str) -> Answer:
+        wait = self._first_wait_s
+        for attempt in range(1, self._attempts + 1):
+            try:
+                return self._live.propose(instructions, prompt)
+            except Exception as failure:
+                if not rate_limited(failure) or attempt == self._attempts:
+                    raise
+                logger.warning(
+                    "rate limited (attempt %d of %d): waiting %.0f s", attempt, self._attempts, wait
+                )
+                self._sleep(wait)
+                wait = min(wait * 2, self._max_wait_s)
+        raise AssertionError("unreachable: the last attempt returns or raises")
+
+
 def build(seed: int) -> list[Recording]:
     """Every enriched moment of `seed` put to the configured model, waiting as long as it takes.
 
@@ -86,8 +140,8 @@ def build(seed: int) -> list[Recording]:
     from matchlens.explanation import foundry
     from matchlens.source import simulate
 
-    # Offline, every answer is wanted, however slow: no deadline, a long timeout, and one call
-    # at a time, which stays under the deployment's token rate limit.
+    # Offline, every answer is wanted, however slow: no deadline, a long timeout, one call at a
+    # time, and a pause and another try when the deployment's token rate limit is hit.
     settings.explainer_deadline_ms = 10**9
     settings.explainer_timeout_s = 180.0
     settings.explainer_concurrency = 1
@@ -103,7 +157,7 @@ def build(seed: int) -> list[Recording]:
         # A rebuild asks again only what is not cached yet: the prompts that are, are answered.
         return Recording(Cached.load(str(path), model) if path.exists() else model)
 
-    explaining, writing = recorded(explainer), recorded(writer)
+    explaining, writing = recorded(Retrying(explainer)), recorded(Retrying(writer))
     pipeline = Pipeline(explaining, publish=lambda card: None, writer=writing)
     for item in simulate(seed):
         for _ in pipeline.process(item):

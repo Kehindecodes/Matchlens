@@ -13,6 +13,10 @@ match. Two rules, per `(signal, team)`:
   `spotter_cooldown_ms`, whichever direction the next one goes. A shift that begins inside the
   cooldown is blocked and is not queued: it is not reported when the cooldown ends.
 
+- **Mirror.** Possession share and territory are zero-sum: one side seeing less of the ball is
+  the other seeing more, and both readings arrive on the same clock. Only the first of the pair
+  fires, so the match is told one shift rather than the same fact from both sides.
+
 Goals never come here: they are events, and a goal is a goal however recently anything fired.
 One `Suppression` per match, so two matches in one process cannot suppress each other.
 """
@@ -20,10 +24,14 @@ One `Suppression` per match, so two matches in one process cannot suppress each 
 from matchlens.config import settings
 from matchlens.models import MomentType, Signal, SignalReading
 
+# Signals where one side's gain is the other's loss.
+_MIRRORED = frozenset({Signal.POSSESSION_CONTROL, Signal.TERRITORY})
+
 
 class Suppression:
     def __init__(self) -> None:
         self._direction: dict[tuple[Signal, str], int] = {}
+        self._mirror_fired: dict[Signal, tuple[int, str]] = {}  # clock and team of the last shift
         self._fired_at_ms: dict[tuple[Signal, str, MomentType], int] = {}
 
     def admits_shift(self, reading: SignalReading, trusted: bool) -> bool:
@@ -48,5 +56,10 @@ class Suppression:
         last = self._fired_at_ms.get(key)
         if last is not None and reading.clock_ms - last < settings.spotter_cooldown_ms:
             return False
+        if reading.signal in _MIRRORED:
+            mirror = self._mirror_fired.get(reading.signal)
+            if mirror is not None and mirror[0] == reading.clock_ms and mirror[1] != reading.team:
+                return False
+            self._mirror_fired[reading.signal] = (reading.clock_ms, reading.team)
         self._fired_at_ms[key] = reading.clock_ms
         return True

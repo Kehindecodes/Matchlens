@@ -90,11 +90,12 @@ Selection must happen *after* the record is complete. If the log only held inter
 | `receiver` | Intended or actual recipient, for passes |
 | `player_on` | The player coming on. **Set only for `substitution`**, where `player` is the one coming off. Null for a red card or an injury with no replacement. Explicit pairing rather than two paired events, because a double substitution at one clock would otherwise be ambiguous — and the 58:00 double change is the hinge of the demo narrative |
 | `added_time_ms` | How much added time the fourth official announced. **Set only for `added_time_announced`.** Needed at announcement time, so it cannot wait to be derived from `period_end` |
+| `overturns`, `var_reason` | The goal event a `var_overturned` rules out, and why (`offside` \| `foul` \| `handball`). **Set only for `var_overturned`** (Q49). The goal is never edited; `standing_goals` is how every reader of the score leaves it out from the overturn on |
 | `under_pressure` | Whether an opponent was within pressing distance at execution. **Generator-set** |
 | `body_part` | Foot, head, other. Feeds shot quality |
 | `frame_ref` | The frame this aligns to, so positional context can be recovered |
 
-> **Rule of three on action-specific fields.** `receiver`, `player_on` and `added_time_ms` are each nullable and meaningful for one action. Three is the limit. **A fourth is the signal to switch to a discriminated payload union** — `ShotDetail`, `SubstitutionDetail`, `AddedTimeDetail` under one `detail` field — rather than widening `Event` again. Do not do that refactor pre-emptively; do it the moment a fourth is needed.
+> **Rule of five on action-specific fields.** `receiver`, `player_on`, `added_time_ms`, `overturns` and `var_reason` are each nullable and meaningful for one action. Five is the limit: it was three until Q49 needed two more, and Kehinde chose to accept five and amend the rule rather than refactor (27 Oct). **A sixth is the signal to switch to a discriminated payload union** — `ShotDetail`, `SubstitutionDetail`, `AddedTimeDetail`, `OverturnDetail` under one `detail` field — rather than widening `Event` again. Do not do that refactor pre-emptively; do it the moment a sixth is needed.
 
 ---
 
@@ -113,6 +114,19 @@ A sequence of consecutive events by one team. Possession control is measured in 
 `possession_id`, `team`, `start_clock_ms`, `end_clock_ms`, `pass_count`, `start_zone`, `end_zone`, `outcome` (`shot` | `turnover` | `foul` | `out_of_play` | `period_end`), `event_ids`.
 
 A possession starts on the event that gains control, a restart included, and holds that team's on-ball events. When a foul ends it, the foul is its last event even though the other team committed it, and when the half ends during it, the `period_end` event is (Q10–Q12). Cards, substitutions and the other match events are in none.
+
+### PositionReading
+What the frames before a shot showed about how it came about (Q48). Measured by Understanding, the only reader of frames, when the shot arrives; claims cite it (`RefKind.POSITION`) so no agent reads a frame. Not a `Run`: it is one fact about one shot, and nothing in v1 is player scope.
+
+| Attribute | Meaning |
+|---|---|
+| `reading_id` | Citable as evidence: `{shot_id}-{mechanism}` |
+| `mechanism` | `overload` \| `decoy_run` \| `early_run` |
+| `team`, `shot_id`, `clock_ms` | The attacking side, the shot, and its clock: when the reading could first be taken |
+| `start_ms`, `end_ms` | The clocks of the first and last frame measured: one frame for an overload |
+| `player`, `opponent` | The decoy or the early runner; the defender a decoy drew. Null for an overload |
+| `value`, `against` | Overload: attackers and defenders near the ball. A run: metres (the defender drawn, or the shooter's ground covered) |
+| `frame_seqs` | The frames it was measured from (invariant 4) |
 
 ### SignalReading
 A **signal** is a definition (a function). A **reading** is an observation (data). Only readings are stored.
@@ -304,15 +318,16 @@ Every closed set in the model, named. **Closed sets are enums, not strings** —
 | Type | Values | Used by |
 |---|---|---|
 | `Phase` | `in_play` · `stopped` · `set_piece` | `Frame.phase` |
-| `Action` | **On-ball:** `pass` · `carry` · `shot` · `tackle` · `interception` · `clearance` · `block` · `aerial_duel` · `save` · `foul` · `throw_in` · `corner` · `goal_kick` · `free_kick` · `penalty`<br>**Match events (D16):** `substitution` · `red_card` · `yellow_card` · `period_start` · `period_end` · `added_time_announced` | `Event.action`. The match events drive the derived roster and the epoch triggers |
+| `Action` | **On-ball:** `pass` · `carry` · `shot` · `tackle` · `interception` · `clearance` · `block` · `aerial_duel` · `save` · `foul` · `throw_in` · `corner` · `goal_kick` · `free_kick` · `penalty`<br>**Match events (D16):** `substitution` · `red_card` · `yellow_card` · `period_start` · `period_end` · `added_time_announced` · `var_overturned` | `Event.action`. The match events drive the derived roster and the epoch triggers |
 | `Outcome` | `complete` · `incomplete` · `blocked` · `goal` · `saved` · `off_target` · `won` · `lost` · `out_of_play` | `Event.outcome` |
 | `BodyPart` | `left_foot` · `right_foot` · `head` · `other` | `Event.body_part` |
 | `Zone` | `defensive_third` · `middle_third` · `final_third` | `Possession.start_zone`, `end_zone` |
 | `PossessionOutcome` | `shot` · `turnover` · `foul` · `out_of_play` · `period_end` | `Possession.outcome` |
 | `Signal` | `territory` · `possession_control` · `pressing_intensity` · `chance_quality` · `line_height` | `SignalReading.signal`, `SignalPrior.signal`. **`line_height` stays in the set but is not built in v1 (D24)**, as `RefKind.RUN` does |
 | `Trend` | `rising` · `falling` · `steady` | `SignalReading.trend` |
-| `EpochTrigger` | `goal` · `red_card` · `half_time` | `Epoch.trigger` |
-| `MomentType` | `goal` · `chance` · `tactical_shift` · `milestone` · `pattern` | `Moment.type` · `Lens.breakthrough_types`. `off_ball_run` is deferred with player scope — do not add it until `Run` exists |
+| `EpochTrigger` | `goal` · `red_card` · `half_time` · `var_overturn` | `Epoch.trigger` |
+| `VarReason` | `offside` · `foul` · `handball` | `Event.var_reason` (Q49) |
+| `MomentType` | `goal` · `goal_disallowed` · `chance` · `tactical_shift` · `milestone` · `pattern` | `Moment.type` · `Lens.breakthrough_types`. `off_ball_run` is deferred with player scope — do not add it until `Run` exists |
 | `ClaimType` | `descriptive` · `comparative` · `interpretive` | `Claim.claim_type`. Only `interpretive` requires a backing `SignalReading` |
 | `Verdict` | `pass` · `fail` | `Verification.verdict` |
 | `CheckName` | `citation` · `temporal` · `entity` · `value` · `entailment` · `coverage` | keys of `Verification.checks`. Exactly six, all must run |
@@ -326,7 +341,7 @@ Every closed set in the model, named. **Closed sets are enums, not strings** —
 | `LengthVariant` | `short` · `long` | `Recap.length_variant`. T3 |
 | `RunType` | `in_behind` · `into_channel` · `overlap` · `dropping_off` · `decoy` | `Run.run_type`. **Not built in v1** |
 | `RunEndState` | `served` · `unplayed` · `offside` | `Run.end_state`. **Not built in v1** |
-| `RefKind` | `team` · `player` · `event` · `reading` · `run` · `moment` · `rendition` · `lens` | The `Ref` type used by the three polymorphic relationships |
+| `RefKind` | `team` · `player` · `event` · `reading` · `position` · `run` · `moment` · `rendition` · `lens` | The `Ref` type used by the three polymorphic relationships |
 
 ### Not enums
 

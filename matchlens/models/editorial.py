@@ -56,7 +56,8 @@ class Moment(_Record):
         return self
 
 
-_EVIDENCE_KINDS = frozenset({RefKind.EVENT, RefKind.READING, RefKind.RUN})
+# A position reading is what the frames showed, measured by Understanding (Q48).
+_EVIDENCE_KINDS = frozenset({RefKind.EVENT, RefKind.READING, RefKind.POSITION, RefKind.RUN})
 # How many operands each claim type has (D21). The rule over them is the same for every type.
 _OPERANDS = {ClaimType.DESCRIPTIVE: 1, ClaimType.COMPARATIVE: 2, ClaimType.INTERPRETIVE: 1}
 
@@ -93,10 +94,12 @@ class Operand(_Record):
         return self
 
     @model_validator(mode="after")
-    def _evidence_is_events_readings_or_runs(self):
+    def _evidence_is_events_readings_positions_or_runs(self):
         wrong = [r.kind for r in self.evidence_ids if r.kind not in _EVIDENCE_KINDS]
         if wrong:
-            raise ValueError(f"evidence is events, readings or runs, not {sorted(set(wrong))}")
+            raise ValueError(
+                f"evidence is events, readings, positions or runs, not {sorted(set(wrong))}"
+            )
         return self
 
 

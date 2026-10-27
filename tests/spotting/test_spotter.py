@@ -162,7 +162,7 @@ def test_each_team_and_signal_is_its_own_series(started):
     readings = [
         _reading(team=team, signal=signal)
         for team in ("home", "away")
-        for signal in (Signal.TERRITORY, Signal.PRESSING_INTENSITY)
+        for signal in (Signal.CHANCE_QUALITY, Signal.PRESSING_INTENSITY)
     ]
     assert len(_fire(started, *readings)) == 4
 
@@ -227,8 +227,11 @@ def _mean(values) -> float:
 # --- the match ----------------------------------------------------------------------------------
 
 
-def test_there_are_between_30_and_60_moments(spotted):
-    assert 30 <= len(spotted.moments) <= 60, len(spotted.moments)
+def test_there_are_between_20_and_60_moments(spotted):
+    # The floor was 30 until the mirror rule (M2) stopped telling one possession swing, or one
+    # territory swing, as two shifts; the scrappy match, where both flip most, went from 32 to
+    # 22 (Q46).
+    assert 20 <= len(spotted.moments) <= 60, len(spotted.moments)
 
 
 def test_only_goals_chances_and_shifts_are_emitted(spotted):
@@ -248,8 +251,11 @@ def test_a_chance_is_a_shot_that_was_not_a_goal(spotted):
     chances = [m for m in spotted.moments if m.type is MomentType.CHANCE]
     assert chances, "no chance moments to check"
     for m in chances:
-        [event_id] = m.trigger_event_ids
-        assert is_shot(by_id[event_id]) and by_id[event_id].outcome is not Outcome.GOAL
+        # The shot is first. A shot that was saved or blocked also cites the save or block that
+        # stopped it, which is what the moment waited for, and nothing else.
+        shot, *stop = m.trigger_event_ids
+        assert is_shot(by_id[shot]) and by_id[shot].outcome is not Outcome.GOAL
+        assert len(stop) <= 1 and all(by_id[s].action in (Action.SAVE, Action.BLOCK) for s in stop)
 
 
 def test_every_moment_cites_what_fired_it_and_only_that(spotted):
@@ -258,6 +264,8 @@ def test_every_moment_cites_what_fired_it_and_only_that(spotted):
     for m in spotted.moments:
         if m.type is MomentType.TACTICAL_SHIFT:
             assert len(m.trigger_reading_ids) == 1 and m.trigger_event_ids == ()
+        elif m.type is MomentType.CHANCE:
+            assert 1 <= len(m.trigger_event_ids) <= 2 and m.trigger_reading_ids == ()
         else:
             assert len(m.trigger_event_ids) == 1 and m.trigger_reading_ids == ()
         assert set(m.trigger_reading_ids) <= reading_ids

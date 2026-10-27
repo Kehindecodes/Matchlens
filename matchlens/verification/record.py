@@ -4,7 +4,8 @@ Not the explainer's frozen log. A claim that cites an event after its moment's c
 be able to *resolve* that event, so that `temporal` fails it for the right reason rather than
 `citation` failing it for the wrong one. A snapshot rather than a view, so a check on the
 model's thread (Q34: A) reads what was there when the moment was handed over, however far the
-match has moved on. There is no frame on it (invariant 1).
+match has moved on. There is no frame on it (invariant 1): what the frames showed arrives as
+position readings, which Understanding measured and a claim cites.
 """
 
 from collections.abc import Iterable
@@ -12,7 +13,7 @@ from dataclasses import dataclass
 from functools import cached_property
 
 from matchlens.ingest import RecordReader
-from matchlens.models import Event, Match, Player, SignalReading
+from matchlens.models import Event, Match, Player, PositionReading, SignalReading
 
 _WHOLE_LOG_MS = 2**62  # past any match clock
 
@@ -23,11 +24,21 @@ class Record:
     players: tuple[Player, ...]
     events: tuple[Event, ...]
     readings: tuple[SignalReading, ...]
+    positions: tuple[PositionReading, ...] = ()
 
     @classmethod
-    def of(cls, reader: RecordReader, readings: Iterable[SignalReading]) -> "Record":
+    def of(
+        cls,
+        reader: RecordReader,
+        readings: Iterable[SignalReading],
+        positions: Iterable[PositionReading] = (),
+    ) -> "Record":
         return cls(
-            reader.match, reader.players, reader.events_between(0, _WHOLE_LOG_MS), tuple(readings)
+            reader.match,
+            reader.players,
+            reader.events_between(0, _WHOLE_LOG_MS),
+            tuple(readings),
+            tuple(positions),
         )
 
     @cached_property
@@ -37,6 +48,10 @@ class Record:
     @cached_property
     def reading(self) -> dict[str, SignalReading]:
         return {r.reading_id: r for r in self.readings}
+
+    @cached_property
+    def position(self) -> dict[str, PositionReading]:
+        return {p.reading_id: p for p in self.positions}
 
     @cached_property
     def player(self) -> dict[str, Player]:

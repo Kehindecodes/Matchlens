@@ -84,15 +84,18 @@ def test_focus_player_is_null_on_every_lens():
     assert [lens.focus_player for lens in lenses.all_lenses()] == [None, None, None]
 
 
-def test_breakthrough_types_are_goals_only():
+def test_breakthrough_types_are_goals_and_goals_ruled_out():
+    """A goal VAR rules out moves the score as much as the goal did (Q49)."""
     for lens in lenses.all_lenses():
-        assert lens.breakthrough_types == (MomentType.GOAL,)
+        assert lens.breakthrough_types == (MomentType.GOAL, MomentType.GOAL_DISALLOWED)
 
 
-def test_casual_drops_comparative_claims_and_the_other_depths_keep_them():
-    by_depth = _by_depth()
-    assert ClaimType.COMPARATIVE not in by_depth[Depth.CASUAL].allowed_claim_types
-    assert ClaimType.COMPARATIVE in by_depth[Depth.ANALYST].allowed_claim_types
+def test_every_depth_hears_comparisons():
+    """Casual used to drop them. It hears them now, because the score is a comparison and the
+    casual viewer is told what a goal did to it, in words (26 Oct); what casual says of a
+    comparison still carries no number."""
+    for lens in _by_depth().values():
+        assert ClaimType.COMPARATIVE in lens.allowed_claim_types
 
 
 # --- invariant 10 --------------------------------------------------------------------------------

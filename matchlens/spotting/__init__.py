@@ -10,6 +10,7 @@ from matchlens import calltrace
 from matchlens.config import settings
 from matchlens.ingest import RecordReader
 from matchlens.models import (
+    Action,
     Epoch,
     Event,
     Frame,
@@ -19,13 +20,14 @@ from matchlens.models import (
     Ref,
     RefKind,
     SignalReading,
+    standing_goals,
 )
-from matchlens.spotting.importance import importance, shift_magnitude
+from matchlens.spotting.importance import goal_magnitude, importance, shift_magnitude
 from matchlens.spotting.suppression import Suppression
 from matchlens.understanding.shot_value import is_shot, value
 
 MODEL = "spotter-rules"
-MODEL_VERSION = "spotter-1"
+MODEL_VERSION = "spotter-2"
 
 tracer = trace.get_tracer(__name__)
 
@@ -38,7 +40,8 @@ class SpotterResult:
 
 
 class Spotter:
-    """Fires a moment for a goal, a chance, or a signal's `z_match` crossing the threshold.
+    """Fires a moment for a goal, a goal VAR rules out, a chance, or a signal's `z_match`
+    crossing the threshold.
 
     No model is involved: the judgement is a threshold on z-scores, gated by confidence and by
     how much of the match the window has seen, so it says nothing in the minutes after a break,
@@ -93,28 +96,89 @@ class Spotter:
     def _event(self, event: Event) -> Moment | None:
         if event.team is None:
             return None
-        if event.outcome is Outcome.GOAL:
-            type_, magnitude = MomentType.GOAL, 1.0
+        triggers = (event.event_id,)
+        shot = event
+        if event.action is Action.VAR_OVERTURNED:
+            # Fired on the overturn, citing it and the goal (Q49). It matters as much as the goal
+            # did: the score it gave and has now taken back.
+            goal = next(
+                (e for e in self._record().events_between(0, event.clock_ms + 1)
+                 if e.event_id == event.overturns),
+                None,
+            )  # fmt: skip
+            if goal is None:
+                return None
+            triggers = (event.event_id, goal.event_id)
+            type_, magnitude = MomentType.GOAL_DISALLOWED, self._goal_magnitude(goal)
+        elif event.outcome is Outcome.GOAL:
+            type_, magnitude = MomentType.GOAL, self._goal_magnitude(event)
+        elif event.action in (Action.SAVE, Action.BLOCK):
+            # A shot that was stopped is spotted when it is stopped, a moment later, because who
+            # saved it or blocked it is half of what a supporter wants to know and is not in the
+            # log until then (invariant 6: a moment can only be explained from what is in it).
+            stopped = self._stopped_shot(event)
+            if stopped is None:
+                return None
+            shot, triggers = stopped, (stopped.event_id, event.event_id)
+            quality = value(stopped, self._record().match).value
+            type_, magnitude = (
+                MomentType.CHANCE,
+                max(quality, self._run_magnitude(stopped, quality)),
+            )
         elif is_shot(event):
+            if event.outcome in (Outcome.SAVED, Outcome.BLOCKED):
+                return None  # spotted when it is stopped, above
             quality = value(event, self._record().match).value
             if quality < settings.spotter_chance_quality:
                 return None
-            type_, magnitude = MomentType.CHANCE, quality
+            type_, magnitude = MomentType.CHANCE, max(quality, self._run_magnitude(event, quality))
         else:
             return None
 
         return Moment(
-            moment_id=f"moment-{event.event_id}",
+            moment_id=f"moment-{shot.event_id}",
             clock_ms=event.clock_ms,
             type=type_,
-            subject=Ref(kind=RefKind.TEAM, id=event.team),
+            subject=Ref(kind=RefKind.TEAM, id=shot.team or event.team),
             importance=importance(type_, magnitude),
             trigger_reading_ids=(),
-            trigger_event_ids=(event.event_id,),
+            trigger_event_ids=triggers,
             epoch_id=self._epoch_at(event.clock_ms).epoch_id,
             model=MODEL,
             model_version=MODEL_VERSION,
         )
+
+    def _stopped_shot(self, stop: Event) -> Event | None:
+        """The big chance that `stop` stopped: the event just before it, by the other side."""
+        before = [
+            e
+            for e in self._record().events_between(stop.clock_ms - 3000, stop.clock_ms + 1)
+            if e.seq < stop.seq
+        ]
+        shot = before[-1] if before else None
+        if shot is None or not is_shot(shot) or shot.team == stop.team:
+            return None
+        quality = value(shot, self._record().match).value
+        return shot if quality >= settings.spotter_chance_quality else None
+
+    def _run_magnitude(self, shot: Event, quality: float) -> float:
+        """What a big chance is worth when it is one of a run: the side has had several in ten
+        minutes, which is something the viewer has not been told. Alone it is worth its quality."""
+        record = self._record()
+        start = max(0, shot.clock_ms - settings.claim_chance_window_ms)
+        run = sum(
+            is_shot(e)
+            and e.team == shot.team
+            and value(e, record.match).value >= settings.spotter_chance_quality
+            for e in record.events_between(start + 1, shot.clock_ms + 1)
+        )
+        return settings.chance_run_magnitude if run >= settings.wording_chance_run else quality
+
+    def _goal_magnitude(self, goal: Event) -> float:
+        """How much `goal` matters, from the score it leaves, read from the log before it."""
+        before = standing_goals(self._record().events_between(0, goal.clock_ms))
+        scored = sum(e.team == goal.team for e in before) + 1
+        return goal_magnitude(scored, len(before) - (scored - 1))
 
     @staticmethod
     def _result(moment: Moment) -> SpotterResult:

@@ -93,6 +93,9 @@ Read `A — B` as "one A relates to this many B".
 | `Match` | `Epoch` | 1..* (min 2) | At least first and second half, since `half_time` is a trigger |
 | `Match` | `SignalReading` | 1..* | 5 signals × 2 teams × rolling cadence |
 | `SignalReading` | `Team` | exactly 1 | Every reading describes one side |
+| `PositionReading` | `Event` | exactly 1 | The shot it was measured for (Q48) |
+| `PositionReading` | `Frame` | 1..* | By `seq`, the frames it was measured from. Cited, never handed on (invariant 1) |
+| `PositionReading` | `Claim` | many-to-many | A claim cites it as `RefKind.POSITION` |
 | `SignalReading` | `Epoch` | **exactly 1** | Unambiguous by construction: **D15** clamps a window so it can never cross an epoch boundary, so `epoch_id` is always the current epoch at the reading's clock. No overlap maths, no majority rule. |
 | `SignalPrior` | `SignalReading` | 1..* | By `signal`, not by ID. A prior is only valid for the `generator_version` that made it |
 

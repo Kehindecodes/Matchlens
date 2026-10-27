@@ -2,8 +2,8 @@
 
 Most tests run seed 1's real cards through the router as a live match would: the cards up to
 the join clock have arrived before the viewer does, the rest arrive after. On seed 1 the goals
-are at 18:54 (Redfern United) and 35:34 (Riverside Athletic), and the team lens follows
-Riverside Athletic.
+are at 12:44 and 38:37 (Redfern United), then 57:59, 76:41 and 89:18 (Riverside Athletic), who
+win 3-2, and the team lens follows Riverside Athletic.
 """
 
 import re
@@ -21,8 +21,9 @@ from matchlens.delivery.hub import MatchStateHub
 from matchlens.delivery.release import ReleaseQueues
 from matchlens.delivery.router import CardRouter
 from matchlens.delivery.sessions import SessionStore
-from matchlens.models import MomentType, Rendition, ViewerSession
+from matchlens.models import Event, MomentType, Rendition, ViewerSession, standing_goals
 from matchlens.rendering import Card
+from matchlens.source import MatchSetup, simulate
 from tests.delivery.test_http import LiveServer, _fields, _state
 from tests.overlays import overlay_for
 
@@ -63,6 +64,15 @@ def _log(queues: ReleaseQueues, session: ViewerSession) -> list[Card | CatchUp]:
     """The session's cards and catch-up. No mute is in play here, so there is no notice."""
     log = queues.released(session.session_id)
     return [entry for entry in log if not isinstance(entry, Notice)]
+
+
+def _scorers() -> set[str]:
+    """The names of the players who scored on seed 1, from the record and not from any card."""
+    items = list(simulate(1))
+    setup = next(item for item in items if isinstance(item, MatchSetup))
+    names = {player.player_id: player.name for player in setup.players}
+    goals = standing_goals([e for e in items if isinstance(e, Event)])  # not one VAR ruled out
+    return {names[e.player] for e in goals if e.player is not None}
 
 
 def _summary(cards: list[Card], lens_id: str, to_clock: int = JOIN) -> CatchUp:
@@ -118,15 +128,26 @@ def test_every_lens_is_told_the_goals_and_only_the_goals(seed_one, lens_id):
         for c in seed_one
         if c.moment_type is MomentType.GOAL and c.display_at_clock <= JOIN
     }
-    assert len(goals) == 2
+    assert len(goals) == 3  # 12:44, 38:37 and 57:59
     assert {line.moment_id for line in _summary(seed_one, lens_id).lines} == goals
 
 
 @pytest.mark.parametrize("lens_id", LENS_IDS)
 def test_a_goal_is_told_with_its_scorer_and_how_the_move_began(seed_one, lens_id):
-    for line in _summary(seed_one, lens_id).lines:
-        assert re.search(r"Gideon Corlan|Idris Gorstow", line.body), line.body
-        assert "quick attack" in line.body, line.body
+    scorers = _scorers()
+    lines = _summary(seed_one, lens_id).lines
+    if lens_id == "team_engaged":
+        # The team lens names only its own side's players: not the opponent's two scorers, and
+        # Riverside's own scorer on the third goal.
+        assert not any(name in line.body for line in lines[:2] for name in scorers)
+        assert any(name in lines[2].body for name in scorers), lines[2].body
+    else:
+        for line in lines:
+            assert any(name in line.body for name in scorers), line.body
+    # The first goal came from winning the ball and a shot 12 seconds later, so every lens says
+    # how. The second began with a throw-in, which is not an attack's start (D30): no claim.
+    assert re.search(r"(quick|fast) attack", lines[0].body, re.IGNORECASE), lines[0].body
+    assert not re.search(r"(quick|fast) attack", lines[1].body, re.IGNORECASE), lines[1].body
 
 
 def test_the_casual_summary_says_how_without_a_number(seed_one):
@@ -134,24 +155,31 @@ def test_the_casual_summary_says_how_without_a_number(seed_one):
         assert not re.search(r"\d", f"{line.headline} {line.body}"), line.body
 
 
-def test_the_team_summary_is_told_from_the_side_it_follows(seed_one):
-    conceded, scored = _summary(seed_one, "team_engaged").lines
-    assert conceded.headline == "Riverside Athletic concede"
-    assert scored.headline == "Riverside Athletic score"
-    for line in (conceded, scored):
+def test_the_team_summary_tells_each_goal_by_what_it_did_to_the_match(seed_one):
+    opened, extended, trimmed = _summary(seed_one, "team_engaged").lines
+    # Told for the side the lens follows: the first two goals are Riverside falling behind.
+    assert re.search(r"fall behind|score first", opened.headline), opened.headline
+    assert "Redfern United stretch their lead" in extended.headline or "fall" in extended.headline
+    assert re.search(r"pull one back|cut the deficit", trimmed.headline), trimmed.headline
+    assert "Riverside Athletic" in trimmed.headline
+    for line in (opened, extended, trimmed):
         assert not re.search(r"\b(we|us|our)\b", line.body, re.IGNORECASE)  # D31
 
 
 def test_the_team_summary_says_where_a_goal_leaves_the_side_before_who_scored(seed_one):
-    _, equaliser = _summary(seed_one, "team_engaged").lines
-    assert equaliser.body.index("Level at 1–1") < equaliser.body.index("Idris Gorstow")
+    *_, trimmed = _summary(seed_one, "team_engaged").lines
+    assert trimmed.body.startswith("Riverside Athletic trail 1–2")
 
 
 def test_with_no_goals_yet_a_joiner_is_told_the_most_important_moments(seed_one):
-    early = [c for c in seed_one if c.display_at_clock <= 15 * MINUTE]
+    # The same match with its goals taken out, which is a match nobody has scored in yet.
+    goalless = [c for c in seed_one if c.moment_type is not MomentType.GOAL]
+    early = [c for c in goalless if c.display_at_clock <= 40 * MINUTE]
     analyst = [c for c in early if c.rendition.lens_id == "match_analyst"]
     assert len(analyst) > settings.catchup_key_moments
-    lines = _summary(seed_one, "match_analyst", 15 * MINUTE).lines
+    summary = catchup.summarise(lenses.get("match_analyst"), goalless, 0, 40 * MINUTE)
+    assert summary is not None
+    lines = summary.lines
     top = sorted(analyst, key=lambda c: (-c.importance, c.display_at_clock))
     chosen = {c.rendition.moment_id for c in top[: settings.catchup_key_moments]}
     assert {line.moment_id for line in lines} == chosen
@@ -181,11 +209,16 @@ def test_every_line_is_a_card_the_lens_showed_in_the_window(seed_one, lens_id, j
 
 
 def test_a_full_detail_card_is_already_told_in_full(seed_one):
-    # The analyst lens speaks every selected claim, so its catch-up body is its card's body:
-    # the catch-up adds wording only by speaking claims Selection kept, never new sentences.
+    # A card speaks the first few claims Selection kept; the catch-up speaks them all. So the
+    # catch-up body is the card's body where the lens kept no more than a card speaks, and
+    # otherwise only adds claims Selection kept, never new sentences.
     analyst = [c for c in seed_one if c.rendition.lens_id == "match_analyst"]
     assert analyst
-    assert all(c.body_in_full == c.rendition.body for c in analyst)
+    for card in analyst:
+        if len(card.rendition.surviving_claim_ids) <= settings.claims_spoken_full:
+            assert card.body_in_full == card.rendition.body
+        else:
+            assert len(card.body_in_full) >= len(card.rendition.body or "")
 
 
 # --- once, and never when there is nothing to say -------------------------------------------------
@@ -206,8 +239,8 @@ def test_a_viewer_joining_at_kickoff_gets_no_summary(seed_one, lens_id, offset):
 
 
 def test_a_joiner_whose_lens_has_said_nothing_yet_gets_no_summary(seed_one):
-    assert catchup.summarise(lenses.get("match_casual"), seed_one, 0, 15 * MINUTE) is None
-    queues, session = _join_live(seed_one, "match_casual", 15 * MINUTE)
+    assert catchup.summarise(lenses.get("match_casual"), seed_one, 0, 12 * MINUTE) is None
+    queues, session = _join_live(seed_one, "match_casual", 12 * MINUTE)
     assert not any(isinstance(e, CatchUp) for e in _log(queues, session))
 
 

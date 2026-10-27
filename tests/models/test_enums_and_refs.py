@@ -18,7 +18,7 @@ def test_group_a_enum_values_match_the_data_model():
         "pass", "carry", "shot", "tackle", "interception", "clearance", "block",
         "aerial_duel", "save", "foul", "throw_in", "corner", "goal_kick", "free_kick",
         "penalty", "substitution", "red_card", "yellow_card", "period_start", "period_end",
-        "added_time_announced",
+        "added_time_announced", "var_overturned",
     }  # fmt: skip
     assert {o.value for o in Outcome} == {
         "complete", "incomplete", "blocked", "goal", "saved", "off_target", "won", "lost",
@@ -28,7 +28,7 @@ def test_group_a_enum_values_match_the_data_model():
 
 def test_ref_kind_values_match_the_data_model():
     assert {k.value for k in RefKind} == {
-        "team", "player", "event", "reading", "run", "moment", "rendition", "lens",
+        "team", "player", "event", "reading", "position", "run", "moment", "rendition", "lens",
     }  # fmt: skip
 
 

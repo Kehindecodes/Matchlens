@@ -21,6 +21,7 @@ from matchlens.models import (
     Claim,
     ClaimType,
     Depth,
+    DetailLevel,
     Lens,
     Metric,
     Moment,
@@ -120,7 +121,7 @@ class Fails(Proposer):
 
 
 def test_each_lens_is_shown_only_the_sentences_it_would_speak():
-    # The analyst speaks every claim it kept; the team lens, at standard detail, speaks one.
+    # The analyst speaks the first three claims it kept; the team lens the score and who scored.
     # DROPPED was not selected by either, and no lens is shown it.
     model = Echo()
     write(_moment(), _selected(SCORED, SCORE, QUICK), ANALYST, NAMES, model)
@@ -129,14 +130,18 @@ def test_each_lens_is_shown_only_the_sentences_it_would_speak():
     assert json.loads(analyst) == {
         "depth": "analyst",
         "language": "en",
+        # A card is read in seconds, so even the analyst speaks three: how it came about, then
+        # the scorer, then the score, which the scoreboard already shows.
         "sentences": [
+            "Quick attack: 7 passes in 18 s.",
             "Scorer: Tom Brack, his first of the match.",
             "Ashworth 2, Larkfield 1.",
-            "A quick attack: 7 passes in 18 s from winning the ball.",
         ],
     }
-    # Told from the focus side and spoken first (D31, Q28: B), and the only one at standard.
-    assert json.loads(team)["sentences"] == ["Larkfield trail 1–2."]
+    # Told from the focus side and spoken first (D31, Q28: B), then who scored.
+    team_sentences = json.loads(team)["sentences"]
+    assert team_sentences[0] == "Larkfield trail 1–2."
+    assert any("Tom Brack" in sentence for sentence in team_sentences)  # who scored
     assert analyst_instructions != team_instructions
     for prompt in (analyst, team):
         assert "0.41" not in prompt  # DROPPED's value
@@ -146,7 +151,8 @@ def test_each_lens_is_shown_only_the_sentences_it_would_speak():
 
 def test_a_lens_that_speaks_no_claim_is_never_asked():
     model = Echo()
-    assert write(_moment(), _selected(SCORED, SCORE), CASUAL, NAMES, model) is None
+    minimal = CASUAL.model_copy(update={"detail_level": DetailLevel.MINIMAL})
+    assert write(_moment(), _selected(SCORED, SCORE), minimal, NAMES, model) is None
     silent = Selection(
         claims=(), suppression_reason=SuppressionReason.BELOW_THRESHOLD, importance=0.2
     )
@@ -169,10 +175,12 @@ def test_the_model_words_follow_the_templates_opening_and_say_who_wrote_them():
     rendition = render(_moment(), selected, ANALYST, NAMES, written)
     l3 = render(_moment(), selected, ANALYST, NAMES)
     assert rendition.headline == l3.headline
-    opening = "Larkfield scored, at 34:12."
-    assert l3.body is not None and l3.body.startswith(opening)
-    assert rendition.body == f"{opening} {written.text}"
-    assert (rendition.model, rendition.model_version) == ("scripted", "s1+writer-4")
+    # The goal left Larkfield behind, so the headline says that and there is no opening line: the
+    # model's words are the whole body.
+    assert rendition.headline is not None and "deficit" in rendition.headline
+    assert l3.body is not None and l3.body.startswith("Quick attack")
+    assert rendition.body == written.text
+    assert (rendition.model, rendition.model_version) == ("scripted", "s1+writer-8")
     assert (l3.model, l3.model_version) == (templates.MODEL, templates.MODEL_VERSION)
     assert rendition.surviving_claim_ids == l3.surviving_claim_ids
 
@@ -290,8 +298,6 @@ def test_only_goals_and_chances_are_worded_by_the_model_and_only_where_claims_ar
     worded = by_model["scripted"]
     assert worded
     assert {moment_type for moment_type, _ in worded} <= set(settings.writer_moment_types)
-    casual = next(lens.lens_id for lens in lenses.all_lenses() if lens.depth is Depth.CASUAL)
-    assert casual not in {lens_id for _, lens_id in worded}  # minimal detail speaks no claim
     # The same cards as with no model, in the same order, bar the words and who wrote them;
     # the overlay draws the same words as the card.
     strip = {"rendition": {"rendered_at", "body", "model", "model_version"}, "overlay": True}

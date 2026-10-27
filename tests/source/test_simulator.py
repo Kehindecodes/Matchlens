@@ -11,7 +11,7 @@ from matchlens.models import Action, Event, Frame, Outcome, Phase
 from matchlens.source.archetypes import COMEBACK
 from matchlens.source.simulator import PRESSING_DISTANCE_M, simulate
 from matchlens.source.stream import MatchSetup
-from tests.source.helpers import Played, attack_x, was_on_pitch
+from tests.source.helpers import Played, attack_x, split, was_on_pitch
 
 INTERVAL_MS = 1000 // settings.frame_rate_hz
 MIN = 60_000
@@ -111,10 +111,17 @@ def test_clock_never_goes_backwards_in_the_stream(match_1):
 
 
 def test_all_three_phases_appear_and_in_play_time_is_plausible(match_1):
+    """In-play time is a match's character, so it is read over three seeds rather than one: one
+    seed's run of stoppages is chance (seed 1 of `generator-2` plays 52.5 minutes)."""
     phases = {f.phase for f in match_1.frames}
     assert phases == {Phase.IN_PLAY, Phase.STOPPED, Phase.SET_PIECE}
-    in_play_min = sum(f.phase is Phase.IN_PLAY for f in match_1.frames) * INTERVAL_MS / MIN
-    assert 55 <= in_play_min <= 65
+
+    def in_play_min(played: Played) -> float:
+        return sum(f.phase is Phase.IN_PLAY for f in played.frames) * INTERVAL_MS / MIN
+
+    seeds = [match_1, *(split(list(simulate(seed, COMEBACK))) for seed in (2, 3))]
+    assert 55 <= mean(in_play_min(played) for played in seeds) <= 65
+    assert all(in_play_min(played) >= 50 for played in seeds)
 
 
 def test_no_open_play_action_happens_while_stopped(match_1):

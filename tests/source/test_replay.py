@@ -242,6 +242,8 @@ def test_cli_replays_a_seed_and_prints_the_goals(capsys):
     code = main(["--seed", "1", "--speed", "1000000", "--hz", "1", "--key-only"])
     out = capsys.readouterr().out
     assert code == 0
-    assert out.count("GOAL") == 3
+    # The demo is the remontada: 0–2 down and a 3–2 win, with a sixth goal VAR ruled out (Q49).
+    assert out.count("GOAL") == 6
+    assert out.count("goal ruled out (offside)") == 1
     assert out.count("Added time announced") == 2  # one per half
     assert "Full time" in out

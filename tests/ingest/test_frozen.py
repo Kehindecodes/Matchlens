@@ -4,6 +4,7 @@ import enum
 
 import pytest
 
+from matchlens import verification
 from matchlens.ingest import FrameAccess, FrozenLog, Ingest, RecordReader
 from matchlens.ingest.events import InMemoryEventRepository
 from matchlens.ingest.frames import FrameWindow
@@ -14,11 +15,12 @@ from matchlens.models import (
     Moment,
     MomentType,
     Outcome,
+    PositionReading,
     Ref,
     RefKind,
     SignalReading,
 )
-from matchlens.understanding import Understanding
+from matchlens.understanding import Movement, Understanding
 from tests.source.helpers import Played
 
 MIN = 60_000
@@ -154,3 +156,22 @@ def test_no_attribute_path_reaches_a_frame(match_1: Played, whole: Run):
     reached = _reachable(_frozen(whole, _moment(goal.clock_ms, goal)))
     assert any(isinstance(o, Event) for o in reached)  # the walk got into the log
     assert not [type(o).__name__ for o in reached if isinstance(o, _BANNED)]
+
+
+def test_position_readings_bring_no_frame_into_the_log_or_the_verifiers_record(match_1: Played):
+    # Q48: what the frames showed reaches the explainer and the verifier as readings. Walk both
+    # objects, as above, to show the readings are data and keep no path back to a frame.
+    ingest = Ingest()
+    movement = Movement(ingest.frame_access, ingest.record)
+    positions = []
+    for item in match_1.items:
+        ingest.accept(item)
+        positions += movement.observe(item)
+    assert positions
+    goal = _first_goal(match_1)
+    log = FrozenLog(_moment(goal.clock_ms, goal), ingest.record(), [], [], positions)
+    record = verification.Record.of(ingest.record(), [], positions)
+    for holder in (log, record):
+        reached = _reachable(holder)
+        assert any(isinstance(o, PositionReading) for o in reached)
+        assert not [type(o).__name__ for o in reached if isinstance(o, _BANNED)]

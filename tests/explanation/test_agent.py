@@ -18,6 +18,7 @@ from matchlens.audit import Audit
 from matchlens.explanation import Answer, Proposer, agent
 from matchlens.models import Claim, ClaimType, Metric, Verdict
 from matchlens.source import simulate
+from matchlens.source.archetypes import DEMO
 from tests.explanation.test_builder import Played, _play, _recount
 
 MODEL, VERSION = "fake-model", "fake-1"
@@ -455,7 +456,7 @@ def test_an_honest_models_claims_reach_the_analyst_card_and_nothing_else_moves(
 
 def test_only_goals_and_chances_are_put_to_the_model_once_each(honest):
     played, _ = honest
-    types = _moment_types(played)
+    types = _moment_types(_play(1, DEMO))  # the pipeline plays the demo match
     model = Counting(Honest())
     _run(model)
     assert model.moments

@@ -10,6 +10,8 @@ Minutes are elapsed match-clock minutes. Piecewise-linear schedules interpolate 
 from dataclasses import dataclass
 from typing import Literal
 
+from matchlens.models import VarReason
+
 Side = Literal["home", "away"]
 Schedule = tuple[tuple[float, float], ...]  # (minute, value)
 
@@ -21,6 +23,17 @@ class GoalPlan:
 
     minute: float  # not before; jittered by the seed
     side: Side
+
+
+@dataclass(frozen=True)
+class RuledOutPlan:
+    """A goal the generator scores and VAR then rules out (Q49). The minute is not jittered, so
+    adding one draws nothing from the seed and the match before it is unchanged."""
+
+    minute: float
+    side: Side
+    reason: VarReason
+    review_seconds: float = 70.0  # from the goal to the overturn
 
 
 @dataclass(frozen=True)
@@ -53,6 +66,7 @@ class ArchetypeParams:
     # side's passes and carries. 0, the default, leaves the match exactly as without it.
     home_retention: Schedule = ((0, 0.0),)
     away_retention: Schedule = ((0, 0.0),)
+    ruled_out: tuple[RuledOutPlan, ...] = ()
 
 
 # The demo narrative. Away score first on a counter while home are on top; home level while
@@ -82,6 +96,48 @@ COMEBACK = ArchetypeParams(
     ),
     red_cards=(RedCardPlan("away", 63.0),),
 )
+
+# The demo match, shaped like a remontada: the away side go two up and sit on it, home claw one
+# back after the break and level on 78, then the away side throw men forward looking for a
+# winner and home break at them on 90 to win it 3-2. Invented teams and players; only the shape of
+# the night is borrowed. Away pressing is high late, so the ball is won back in their half.
+REMONTADA = ArchetypeParams(
+    archetype_id="remontada",
+    momentum=(
+        (0, -0.15),
+        (10, -0.4),
+        (30, -0.4),
+        (44, -0.25),
+        (48, 0.05),
+        (55, 0.5),
+        (66, 0.65),
+        (76, 0.8),
+        (82, 0.1),
+        (86, -0.4),
+        (100, -0.45),
+    ),  # fmt: skip
+    home_press=((0, 0.4), (45, 0.5), (55, 0.8), (80, 0.8), (84, 0.45), (100, 0.4)),
+    away_press=((0, 0.6), (45, 0.4), (60, 0.35), (80, 0.5), (84, 0.9), (100, 0.9)),
+    home_retention=((0, 0.0), (80, 0.0), (86, 0.6), (100, 0.6)),  # the break needs the ball kept
+    goals=(
+        GoalPlan(12, "away"),
+        GoalPlan(37, "away"),
+        GoalPlan(56, "home"),
+        GoalPlan(78, "home"),
+        GoalPlan(89, "home"),
+    ),
+    # Home think they have completed the comeback at 3–2, and VAR takes it back to 2–2 (Q49).
+    ruled_out=(RuledOutPlan(84, "home", VarReason.OFFSIDE),),
+    subs=(
+        SubPlan("away", 60.0, ("MF",)),
+        SubPlan("home", 58.0, ("FW", "MF")),
+        SubPlan("away", 74.0, ("DF",)),
+        SubPlan("home", 70.0, ("FW",)),
+    ),
+)
+
+# What `simulate` plays when it is not told an archetype: the demo match (F3).
+DEMO = REMONTADA
 
 # Home on top from first to last. Away sit deep with little of the ball but counter-press hard
 # the moment they lose it, so their press stays high while their possession stays low.

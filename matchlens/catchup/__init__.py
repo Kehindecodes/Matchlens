@@ -39,7 +39,8 @@ def summarise(lens: Lens, cards: Iterable[Card], from_clock: int, to_clock: int)
 
     A summary, never a replay (D4): the viewer is told about the cards their lens showed in the
     window and is sent none of them. Every lens is told the goals, each with how it came about
-    and how it was scored, because that is what someone joining late wants first (Q30). A window
+    and how it was scored, because that is what someone joining late wants first (Q30), and any
+    goal VAR then ruled out, after it. A window
     with no goals is told its few most important moments instead. Each line is one card the lens
     showed, written from the claims Selection kept for that lens, at its depth and from its
     side, so nothing is said that the lens did not already stand behind (invariant 5).
@@ -55,7 +56,8 @@ def summarise(lens: Lens, cards: Iterable[Card], from_clock: int, to_clock: int)
         for c in cards
         if c.rendition.lens_id == lens.lens_id and from_clock <= c.display_at_clock <= to_clock
     ]
-    told = [c for c in shown if c.moment_type is MomentType.GOAL]
+    # A goal VAR ruled out is told after it, in its place, so the joiner hears both (Q49).
+    told = [c for c in shown if c.moment_type in (MomentType.GOAL, MomentType.GOAL_DISALLOWED)]
     if not told:
         # Most important first, the earlier on a tie, then told in the order they happened.
         ranked = sorted(shown, key=lambda c: (-c.importance, c.display_at_clock))

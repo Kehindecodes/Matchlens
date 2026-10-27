@@ -26,17 +26,17 @@ from matchlens.models import (
     Metric,
     Moment,
     Operand,
-    Outcome,
     Ref,
     RefKind,
     SignalReading,
+    standing_goals,
 )
 from matchlens.understanding.possession import from_events
 from matchlens.understanding.shot_value import is_shot, value
 
 logger = logging.getLogger(__name__)
 
-PROMPT_VERSION = "explainer-3"  # bump by hand whenever the instructions or the digest change
+PROMPT_VERSION = "explainer-5"  # bump by hand whenever the instructions or the digest change
 
 
 class Answer(NamedTuple):
@@ -109,9 +109,11 @@ Rules. A claim that breaks one is worthless, and an answer that breaks one is th
 - Every value must be recountable from the rows its evidence_ids cite, and only from them:
   goals counts goal events; chances counts shots with shot_quality of at least
   {settings.spotter_chance_quality}; shot_quality is one shot's shot_quality; build_up_passes
-  counts the passes in one possession; territory, possession_control, pressing_intensity and
-  chance_quality are the value of the one reading cited, over that reading's own "window",
-  copied exactly. Never write a window of your own for a reading.
+  counts the passes in one possession; ball_won_third, ball_lost and shot_distance are already
+  in existing_claims for a goal or a chance and are never proposed again; territory,
+  possession_control, pressing_intensity and chance_quality are the value of the one reading
+  cited, over that reading's own "window", copied exactly. Never write a window of your own for
+  a reading.
 - Cite only ids that appear in the JSON. Do not repeat a claim already in existing_claims.
 """
 
@@ -156,7 +158,7 @@ def digest(moment: Moment, log: FrozenLog, made: Sequence[Claim]) -> str:
             | {"triggers": sorted(triggers)},
             "teams": [{"team_id": t.team_id, "name": t.name} for t in match.teams],
             "epochs": [e.model_dump(mode="json") for e in log.epochs if e.epoch_id in epochs],
-            "goals": [_shot(e, match) for e in log.events if e.outcome is Outcome.GOAL],
+            "goals": [_shot(e, match) for e in standing_goals(log.events)],
             "shots": [
                 _shot(e, match) for e in log.events if is_shot(e) and e.clock_ms > chances_from
             ],

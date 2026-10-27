@@ -1,5 +1,5 @@
 from matchlens.models.delivery_config import Lens, OverlayPacket, ProducerAction, ViewerSession
-from matchlens.models.derived import Epoch, Possession, ShotValue, SignalReading
+from matchlens.models.derived import Epoch, PositionReading, Possession, ShotValue, SignalReading
 from matchlens.models.editorial import (
     CheckResult,
     Claim,
@@ -18,6 +18,7 @@ from matchlens.models.enums import (
     Depth,
     DetailLevel,
     EpochTrigger,
+    Mechanism,
     Metric,
     MomentType,
     Outcome,
@@ -30,6 +31,7 @@ from matchlens.models.enums import (
     Signal,
     SuppressionReason,
     Trend,
+    VarReason,
     Verdict,
     Zone,
 )
@@ -45,6 +47,8 @@ from matchlens.models.match_record import (
     normalise_event,
     normalise_frame,
     normalise_xy,
+    overturned,
+    standing_goals,
 )
 from matchlens.models.reference import SignalPrior
 from matchlens.models.refs import Ref
@@ -67,6 +71,7 @@ __all__ = [
     "Frame",
     "Lens",
     "Match",
+    "Mechanism",
     "Metric",
     "Moment",
     "MomentType",
@@ -77,6 +82,7 @@ __all__ = [
     "Phase",
     "Player",
     "PlayerPosition",
+    "PositionReading",
     "Possession",
     "PossessionOutcome",
     "ProducerAction",
@@ -92,6 +98,7 @@ __all__ = [
     "SuppressionReason",
     "Team",
     "Trend",
+    "VarReason",
     "Verdict",
     "Verification",
     "ViewerSession",
@@ -100,4 +107,6 @@ __all__ = [
     "normalise_event",
     "normalise_frame",
     "normalise_xy",
+    "overturned",
+    "standing_goals",
 ]

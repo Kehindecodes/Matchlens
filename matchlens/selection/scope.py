@@ -9,7 +9,7 @@ is a hard subject filter, deferred with `Run` (D1).
 from matchlens.config import settings
 from matchlens.models import Lens, Moment, MomentType, Ref, RefKind, Scope
 
-_MOVES_THE_RESULT = frozenset({MomentType.GOAL, MomentType.CHANCE})
+_MOVES_THE_RESULT = frozenset({MomentType.GOAL, MomentType.GOAL_DISALLOWED, MomentType.CHANCE})
 
 
 def judged_importance(moment: Moment, lens: Lens) -> float:

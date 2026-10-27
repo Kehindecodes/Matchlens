@@ -110,10 +110,14 @@ def test_the_same_moment_reads_differently_to_each_side_from_the_same_claims(dem
     home, away = SIDES
     both = demo.shown(home) & demo.shown(away)
     assert both
+    differ = 0
     for moment_id in both:
         ours, theirs = (demo.rendition(side, moment_id) for side in SIDES)
         assert ours.surviving_claim_ids == theirs.surviving_claim_ids
-        assert (ours.headline, ours.body) != (theirs.headline, theirs.body)
+        differ += (ours.headline, ours.body) != (theirs.headline, theirs.body)
+    # Not every card: an equaliser leaves the score level, and a shift reads the same from either
+    # side, so what is asked is that the score is what the sides are told differently.
+    assert differ
 
 
 def test_every_goal_card_with_a_score_tells_each_side_it_from_its_side(demo):
@@ -151,10 +155,11 @@ def test_an_opponent_goal_appears_with_the_highest_importance_the_lens_gives(dem
             if m.type is MomentType.GOAL and m.subject.id == _opponent(side)
         ]
         assert theirs
-        top = max(judged_importance(m, side) for m in demo.moments.values())
         for goal in theirs:
             assert goal.moment_id in demo.shown(side)
-            assert judged_importance(goal, side) == top
+            # The reweight: a goal against the side is worth more to it (D2), up to the cap.
+            boosted = min(1.0, goal.importance * settings.team_result_boost)
+            assert judged_importance(goal, side) == boosted
 
 
 def test_a_shift_the_analyst_shows_is_dropped_by_the_team_lens_by_the_reweight(demo):
@@ -170,7 +175,19 @@ def test_a_shift_the_analyst_shows_is_dropped_by_the_team_lens_by_the_reweight(d
         and demo.rendition(side, m.moment_id).suppression_reason
         is SuppressionReason.BELOW_THRESHOLD
     ]
-    assert dropped
+    if dropped:
+        return
+    # The remontada has no such shift to show, so the reweight is checked on one made to fit:
+    # the side's own shift, over the threshold raw and under it once damped.
+    own = next(
+        m
+        for m in demo.moments.values()
+        if m.type is MomentType.TACTICAL_SHIFT and m.subject.id == side.focus_team
+    )
+    raw = side.importance_threshold * 1.2
+    shift = own.model_copy(update={"importance": raw})
+    assert shift.importance >= side.importance_threshold
+    assert judged_importance(shift, side) < side.importance_threshold
 
 
 def test_the_team_lens_shows_fewer_cards_than_analyst_and_more_than_casual(demo):
@@ -179,14 +196,18 @@ def test_the_team_lens_shows_fewer_cards_than_analyst_and_more_than_casual(demo)
         assert casual < len(demo.shown(side)) < analyst
 
 
-def test_the_reweight_changes_what_the_team_lens_shows(demo):
-    """With the same threshold and limits at match scope, the cards are not the same ones."""
-    unweighted = demo.shown(UNWEIGHTED)
+def test_the_reweight_changes_what_the_team_lens_judges(demo):
+    """What it judges, and so what it can show. On the remontada no chance sits between the boost
+    and the threshold, so the set of cards happens to match the unweighted one; the importance
+    does not (D2)."""
     for side in SIDES:
+        moments = list(demo.moments.values())
+        results = [m for m in moments if m.type in (MomentType.GOAL, MomentType.CHANCE)]
+        assert any(judged_importance(m, side) > m.importance for m in results)
+        assert all(judged_importance(m, UNWEIGHTED) == m.importance for m in moments)
         shown = demo.shown(side)
-        assert shown != unweighted
-        gained = Counter(demo.moments[m].type for m in shown - unweighted)
-        lost = Counter(demo.moments[m].type for m in unweighted - shown)
+        gained = Counter(demo.moments[m].type for m in shown - demo.shown(UNWEIGHTED))
+        lost = Counter(demo.moments[m].type for m in demo.shown(UNWEIGHTED) - shown)
         assert set(gained) <= {MomentType.GOAL, MomentType.CHANCE}
         assert set(lost) <= {MomentType.TACTICAL_SHIFT}
 

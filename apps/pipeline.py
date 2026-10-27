@@ -47,7 +47,15 @@ from matchlens.control import Mutes
 from matchlens.control.ladder import Breaker, Ladder, Rung
 from matchlens.explanation import Failure, Proposer, foundry
 from matchlens.ingest import FrozenLog, Ingest
-from matchlens.models import Claim, Lens, Moment, SignalReading, Verdict, Verification
+from matchlens.models import (
+    Claim,
+    Lens,
+    Moment,
+    PositionReading,
+    SignalReading,
+    Verdict,
+    Verification,
+)
 from matchlens.rendering import (
     Card,
     LensOutcome,
@@ -62,7 +70,7 @@ from matchlens.rendering import (
 from matchlens.selection import Selection, ShownCards
 from matchlens.source import MatchSetup, StreamItem, simulate
 from matchlens.spotting import Spotter, SpotterResult
-from matchlens.understanding import Understanding
+from matchlens.understanding import Movement, Understanding
 
 Publish = Callable[[Card], None]
 Report = Callable[[MomentOutcome], None]
@@ -145,6 +153,10 @@ class Pipeline:
         self._shown = ShownCards()  # Selection's rate-limit state: one pipeline is one match
         self._names: dict[str, str] = {}  # team and player ids to names, from the match setup
         self._readings: list[SignalReading] = []  # derived, append-only: what the explainer reads
+        # What the frames showed before each shot (Q48). Understanding reads the frames; the
+        # explainer and the verifier get only these readings (invariant 1).
+        self._movement = Movement(self._ingest.frame_access, self._ingest.record)
+        self._positions: list[PositionReading] = []  # derived, append-only, like the readings
         self.ladder = Ladder() if ladder is None else ladder
         self.ladder.configure(explainer=proposer is not None, writer=writer is not None)
         self._proposer = self.ladder.guard(proposer)
@@ -181,6 +193,7 @@ class Pipeline:
             return iter(())
         readings = self._understanding.observe(item)
         self._readings.extend(readings)
+        self._positions.extend(self._movement.observe(item))
         results = self._spotter.consider(readings, item)
         if not self._waits:
             return self._cards(results)
@@ -208,12 +221,14 @@ class Pipeline:
                 "explanation", attributes={"moment_id": moment.moment_id}
             ):
                 reader = self._ingest.record()
-                log = FrozenLog(moment, reader, self._readings, self._understanding.epochs)
+                log = FrozenLog(
+                    moment, reader, self._readings, self._understanding.epochs, self._positions
+                )
                 claims = explanation.explain(moment, log)
                 # What Verification checks against: the record as it stands now, not the log
                 # the explainer was frozen to, so a claim citing a later row resolves and fails
                 # `temporal` for it.
-                record = verification.Record.of(reader, self._readings)
+                record = verification.Record.of(reader, self._readings, self._positions)
         proposed = None
         if self._proposer is not None and moment.type.value in settings.explainer_moment_types:
             proposed = self._model.submit(

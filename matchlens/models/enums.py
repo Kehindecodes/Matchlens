@@ -36,6 +36,8 @@ class Action(StrEnum):
     PERIOD_START = "period_start"
     PERIOD_END = "period_end"
     ADDED_TIME_ANNOUNCED = "added_time_announced"
+    # A correction (D4): the goal it names no longer stands. The goal event is not edited.
+    VAR_OVERTURNED = "var_overturned"
 
 
 class Outcome(StrEnum):
@@ -62,6 +64,7 @@ class RefKind(StrEnum):
     PLAYER = "player"
     EVENT = "event"
     READING = "reading"
+    POSITION = "position"  # a `PositionReading`: what the frames showed, measured by Understanding
     RUN = "run"  # not built in v1; kept so the set matches the data model
     MOMENT = "moment"
     RENDITION = "rendition"
@@ -93,6 +96,14 @@ class Signal(StrEnum):
     LINE_HEIGHT = "line_height"
 
 
+class Mechanism(StrEnum):
+    """What a `PositionReading` measured (Q48)."""
+
+    OVERLOAD = "overload"
+    DECOY_RUN = "decoy_run"
+    EARLY_RUN = "early_run"
+
+
 class Trend(StrEnum):
     RISING = "rising"
     FALLING = "falling"
@@ -103,14 +114,23 @@ class EpochTrigger(StrEnum):
     GOAL = "goal"
     RED_CARD = "red_card"
     HALF_TIME = "half_time"
+    VAR_OVERTURN = "var_overturn"  # a goal ruled out: the score goes back (Q49)
+
+
+class VarReason(StrEnum):
+    """Why VAR ruled a goal out (Q49)."""
+
+    OFFSIDE = "offside"
+    FOUL = "foul"
+    HANDBALL = "handball"
 
 
 # --- group C: editorial output -------------------------------------------------------------------
-# `Verdict` and `CheckName` belong to the `Claim` / six-check design and land with it.
 
 
 class MomentType(StrEnum):
     GOAL = "goal"
+    GOAL_DISALLOWED = "goal_disallowed"  # a goal VAR ruled out, fired on the overturn (Q49)
     CHANCE = "chance"
     TACTICAL_SHIFT = "tactical_shift"
     MILESTONE = "milestone"
@@ -128,6 +148,25 @@ class Metric(StrEnum):
     POSSESSION_CONTROL = "possession_control"
     PRESSING_INTENSITY = "pressing_intensity"
     CHANCE_QUALITY = "chance_quality"
+    BALL_WON_THIRD = "ball_won_third"  # 1 to 3 from the winner's own third: where it was won
+    BALL_LOST = "ball_lost"  # 1 for the player who gave the ball away to a move
+    SHOT_DISTANCE = "shot_distance"  # metres from the centre of the goal attacked
+    ASSIST = "assist"  # 1 for the player whose completed pass was the one before a shot
+    SHOT_SAVED_BY = "shot_saved_by"  # 1 for the keeper whose save was the next event after a shot
+    SHOT_BLOCKED_BY = "shot_blocked_by"  # 1 for the player whose block was the next event
+    BALL_LOST_BY_KEEPER = "ball_lost_by_keeper"  # `ball_lost`, by a goalkeeper
+    PRESSURED_LOSS = "pressured_loss"  # `ball_lost`, on an event the log marks under pressure
+    SWITCH_OF_PLAY = "switch_of_play"  # metres a completed pass crossed the pitch, in a move
+    REGAIN = "regain"  # seconds from a side losing the ball to winning it straight back
+    COMBINATION = "combination"  # players in a quick pass-pass-shot move: always three
+    # From a `PositionReading`, never from a frame directly (invariant 1).
+    OVERLOAD = "overload"  # outfield players within reach of the ball as the final pass went
+    DECOY_RUN = "decoy_run"  # metres a team-mate's run took a defender with him before the shot
+    EARLY_RUN = "early_run"  # metres the shooter covered in the moments before the pass to him
+    # 1 for the scorer whose goal VAR overturned, for that reason (Q49)
+    RULED_OUT_OFFSIDE = "ruled_out_offside"
+    RULED_OUT_FOUL = "ruled_out_foul"
+    RULED_OUT_HANDBALL = "ruled_out_handball"
 
 
 class ClaimType(StrEnum):

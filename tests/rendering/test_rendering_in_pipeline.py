@@ -40,7 +40,9 @@ def test_the_casual_cards_carry_no_numbers_and_the_analyst_cards_do(published):
         texts[by_depth[card.rendition.lens_id]].append(_text(card))
     assert texts[Depth.CASUAL] and texts[Depth.ANALYST]
     assert not any(re.search(r"\d", t) for t in texts[Depth.CASUAL])
-    assert all(re.search(r"\d", t) for t in texts[Depth.ANALYST])
+    # Not every analyst card has a figure: a chance with no run and no build-up says only that it
+    # was a good one, because a shot's quality is never shown as a number.
+    assert any(re.search(r"\d", t) for t in texts[Depth.ANALYST])
 
 
 def test_the_same_moment_reads_differently_in_each_lens_that_shows_it(published):

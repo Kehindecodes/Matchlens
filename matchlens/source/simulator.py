@@ -19,17 +19,28 @@ from matchlens.models import (
     Phase,
     PlayerPosition,
     Team,
+    VarReason,
 )
-from matchlens.source.archetypes import COMEBACK, ArchetypeParams, interpolate
+from matchlens.source.archetypes import DEMO, ArchetypeParams, interpolate
 from matchlens.source.squads import PITCH_LENGTH_M, PITCH_WIDTH_M, Slot, build_squads
 from matchlens.source.stream import MatchSetup, StreamItem
 
 # Bump whenever the generator's output changes for any archetype or seed. A signal prior is only
 # valid for the version that made it; tests pin this beside a digest of what it generates.
-GENERATOR_VERSION = "generator-1"
+GENERATOR_VERSION = "generator-3"
 
 # An opponent this close to the actor at execution means the action was under pressure.
 PRESSING_DISTANCE_M = 3.0
+
+# A decoy run: when a pass is completed within shooting range, the forward nearest its receiver
+# runs for the far side for a few seconds, and the nearest defender goes with him. Nothing is drawn
+# from the rng, so the run is fixed by the state of play alone.
+DECOY_WITHIN_M = 22.0  # the pass is received this close to the goal attacked
+DECOY_SECONDS = 2.5
+DECOY_WIDE_Y = 24.0  # the far-side lane the decoy runs to
+DECOY_SPEED_MS = 8.0
+MARKER_SPEED_MS = 7.5
+MARKER_GOAL_SIDE_M = 1.5  # the marker keeps this far goal-side of the decoy
 
 HALF_L = PITCH_LENGTH_M / 2
 HALF_W = PITCH_WIDTH_M / 2
@@ -86,6 +97,15 @@ class _Flight:
 
 
 @dataclass
+class _Decoy:
+    side: int  # the attacking side
+    runner: int  # the decoy, in `side`
+    marker: int  # the defender who follows him, in the other side
+    target: numpy.ndarray  # where the decoy is running, in the attacking side's own frame
+    until_tick: int
+
+
+@dataclass
 class _Restart:
     kind: str  # kickoff | throw_in | goal_kick | corner | free_kick
     side: int
@@ -99,6 +119,20 @@ class _Plan:
     clock_ms: int
     roles: tuple[str, ...] = ()
     done: bool = False
+    overturn: VarReason | None = None  # a goal VAR will rule out, and why (Q49)
+    review_seconds: float = 0.0
+    scored: tuple[str, str] | None = None  # (goal event id, scorer), once it is in
+
+
+@dataclass
+class _Review:
+    """A VAR review under way: the goal it will overturn, and when."""
+
+    due_tick: int
+    side: int
+    goal_id: str
+    scorer: str
+    reason: VarReason
 
 
 def _r2(v: float) -> float:
@@ -150,6 +184,20 @@ class _Engine:
         self.goals = [_Plan(idx(g.side), when(g.minute, 2.0)) for g in archetype.goals]
         self.subs = [_Plan(idx(s.side), when(s.minute, 0.0), s.roles) for s in archetype.subs]
         self.reds = [_Plan(idx(r.side), when(r.minute, 0.0)) for r in archetype.red_cards]
+        # A goal to be ruled out is not jittered, so it draws nothing and the match before it is
+        # the match without it. Only an archetype that has one is re-sorted.
+        ruled = [
+            _Plan(
+                idx(r.side),
+                int(r.minute * 60_000),
+                overturn=r.reason,
+                review_seconds=r.review_seconds,
+            )
+            for r in archetype.ruled_out
+        ]
+        if ruled:
+            self.goals = sorted([*self.goals, *ruled], key=lambda g: g.clock_ms)
+        self.review: _Review | None = None
 
         # slow state
         self.m = 0.0
@@ -174,6 +222,7 @@ class _Engine:
         self.due_fn: Callable[[], None] | None = None
         self.header_chance = False
         self.fresh = False
+        self.decoy: _Decoy | None = None
 
         # output
         self.seq = 0
@@ -274,6 +323,7 @@ class _Engine:
         self.due_fn = None
         self.holder = None
         self.header_chance = False
+        self.decoy = None
         kicking = self.sides[0 if period == 1 else 1]
         self.poss = kicking.idx
         self._update_slow_state()
@@ -301,6 +351,7 @@ class _Engine:
 
     def _step(self) -> None:
         if self.phase is Phase.STOPPED:
+            self._var_review()
             self.timer -= 1
             if self.timer <= 0:
                 self._begin_set_piece()
@@ -318,6 +369,20 @@ class _Engine:
                     break
             if self.phase is Phase.IN_PLAY and self.due_fn is None:
                 raise RuntimeError("play is live but nothing is scheduled")
+
+    def _var_review(self) -> None:
+        """Rule the reviewed goal out once the review is done: a new event, the goal untouched."""
+        review = self.review
+        if review is None or self.tick < review.due_tick:
+            return
+        self.review = None
+        self._emit(
+            Action.VAR_OVERTURNED,
+            self.sides[review.side],
+            review.scorer,
+            overturns=review.goal_id,
+            var_reason=review.reason,
+        )
 
     def _schedule(self, tick: int, fn: Callable[[], None]) -> None:
         self.due_tick = tick
@@ -399,13 +464,62 @@ class _Engine:
                 tgt[r.taker] = r.spot * d
         return tgt
 
+    def _start_decoy(self, s: _Side, passer: int, receiver: int, target: numpy.ndarray) -> None:
+        """Send a forward on a decoy run for a pass `s` completed to `target`, if there is one."""
+        if math.hypot(HALF_L - target[0], target[1]) > DECOY_WITHIN_M:
+            return
+        forwards = [
+            i for i, slot in enumerate(s.slots) if slot.role == "FW" and i not in (passer, receiver)
+        ]
+        defence = self.sides[1 - s.idx]
+        backs = [i for i, slot in enumerate(defence.slots) if slot.role == "DF"]
+        if not forwards or not backs:
+            return
+        runner = min(forwards, key=lambda i: float(numpy.hypot(*(s.pos[i] - target))))
+        seen = s.pos[runner] * (self._dir(s) * self._dir(defence))
+        marker = min(backs, key=lambda i: float(numpy.hypot(*(defence.pos[i] - seen))))
+        lane = -target[1] if abs(target[1]) > 2.0 else -s.pos[runner][1]
+        run_to = numpy.array(
+            [
+                min(s.pos[runner][0] + 3.0, HALF_L - 9.0),
+                math.copysign(DECOY_WIDE_Y, lane or 1.0),
+            ]
+        )
+        self.decoy = _Decoy(s.idx, runner, marker, run_to, self.tick + self._ticks(DECOY_SECONDS))
+
+    def _update_decoy(self) -> None:
+        """End the decoy run once its time is up, play stops, or the other side has the ball."""
+        decoy = self.decoy
+        if decoy is None:
+            return
+        busy = self.holder == (decoy.side, decoy.runner) or (
+            self.flight is not None and self.flight.runner == (decoy.side, decoy.runner)
+        )
+        if (
+            self.phase is not Phase.IN_PLAY
+            or self.poss != decoy.side
+            or self.tick >= decoy.until_tick
+            or busy
+        ):
+            self.decoy = None
+
     def _move_players(self) -> None:
         in_play = self.phase is Phase.IN_PLAY
         f = self.flight
+        self._update_decoy()
         for s in self.sides:
             d = self._dir(s)
             tgt = self._targets(s)
             vmax = numpy.full(len(s.ids), 6.0 if in_play else 2.4)
+            if (decoy := self.decoy) is not None:
+                if s.idx == decoy.side:
+                    tgt[decoy.runner] = decoy.target
+                    vmax[decoy.runner] = DECOY_SPEED_MS
+                else:
+                    runner = self.sides[decoy.side]
+                    seen = runner.pos[decoy.runner] * (self._dir(runner) * d)
+                    tgt[decoy.marker] = seen - numpy.array([MARKER_GOAL_SIDE_M, 0.0])
+                    vmax[decoy.marker] = MARKER_SPEED_MS
             if f is not None and f.runner is not None and f.runner[0] == s.idx:
                 tgt[f.runner[1]] = f.end * d
                 vmax[f.runner[1]] = 8.5
@@ -471,6 +585,8 @@ class _Engine:
         pressure: bool | None = None,
         player_on: str | None = None,
         added_time_ms: int | None = None,
+        overturns: str | None = None,
+        var_reason: VarReason | None = None,
         offset: int | None = None,
     ) -> None:
         if offset is None:
@@ -493,6 +609,8 @@ class _Engine:
                 receiver=receiver,
                 player_on=player_on,
                 added_time_ms=added_time_ms,
+                overturns=overturns,
+                var_reason=var_reason,
                 under_pressure=pressure,
                 body_part=body,
                 frame_ref=self.frame_seq,
@@ -658,6 +776,7 @@ class _Engine:
             self.flight = _Flight(
                 self.tick, self.tick + flight_ticks, src_g, tgt_g, height, runner=(s.idx, j)
             )
+            self._start_decoy(s, h, j, target)
             self._schedule(self.tick + flight_ticks, lambda: self._arrive_complete(s, j, duel, box))
             return
 
@@ -973,6 +1092,8 @@ class _Engine:
         self._emit(
             action, s, s.ids[h], start=src_g, end=end_g, outcome=outcome, body=body, pressure=up
         )
+        if goal is not None:
+            goal.scored = (self.out[-1].event_id, s.ids[h])
         self.holder = None
         self.flight = _Flight(self.tick, self.tick + ticks, src_g, end_g, 0.5)
         self._schedule(self.tick + ticks, lambda: self._arrive_shot(s, opp, outcome, end, goal))
@@ -986,24 +1107,39 @@ class _Engine:
         if outcome is Outcome.GOAL:
             assert goal is not None
             goal.done = True
-            self._begin_stoppage("kickoff", opp.idx, numpy.zeros(2), seconds=(40.0, 55.0))
+            if goal.overturn is not None and goal.scored is not None:
+                # Celebrated, reviewed, ruled out: play restarts with the defending side's free
+                # kick, not a kickoff, once the review is done.
+                goal_id, scorer = goal.scored
+                self.review = _Review(
+                    self.tick + self._ticks(goal.review_seconds), s.idx, goal_id, scorer,
+                    goal.overturn,
+                )  # fmt: skip
+                wait = goal.review_seconds
+                spot = self._to_g(opp, (-35.0, 0.0))
+                self._begin_stoppage("free_kick", opp.idx, spot, seconds=(wait + 15, wait + 25))
+            else:
+                self._begin_stoppage("kickoff", opp.idx, numpy.zeros(2), seconds=(40.0, 55.0))
         elif outcome is Outcome.OFF_TARGET:
             side_y = math.copysign(9.0, rng.normal())
             self._begin_stoppage(
                 "goal_kick", opp.idx, self._to_g(opp, (-47.0, side_y)), seconds=(14.0, 24.0)
             )
         elif outcome is Outcome.SAVED:
+            # Drawn before the event, so the save says whether it was turned behind; a half that
+            # ends before the corner is taken then leaves no possession open over stopped time.
+            behind = rng.random() < 0.35
             self._emit(
                 Action.SAVE,
                 opp,
                 opp.ids[0],
                 start=here_g,
                 end=here_g,
-                outcome=Outcome.COMPLETE,
+                outcome=Outcome.OUT_OF_PLAY if behind else Outcome.COMPLETE,
                 body=BodyPart.OTHER,
                 pressure=False,
             )
-            if rng.random() < 0.35:
+            if behind:
                 spot = self._to_g(s, (HALF_L - 0.5, math.copysign(HALF_W - 0.5, rng.normal())))
                 self._begin_stoppage("corner", s.idx, spot, seconds=(14.0, 22.0))
             else:
@@ -1012,17 +1148,18 @@ class _Engine:
                 self._after_hold()
         else:  # blocked
             w = self._nearest_opp(s, here_g * self._dir(s))
+            behind = rng.random() < 0.3
             self._emit(
                 Action.BLOCK,
                 opp,
                 opp.ids[w],
                 start=here_g,
                 end=here_g,
-                outcome=Outcome.WON,
+                outcome=Outcome.OUT_OF_PLAY if behind else Outcome.WON,
                 body=BodyPart.OTHER,
                 pressure=False,
             )
-            if rng.random() < 0.3:
+            if behind:
                 spot = self._to_g(s, (HALF_L - 0.5, math.copysign(HALF_W - 0.5, rng.normal())))
                 self._begin_stoppage("corner", s.idx, spot, seconds=(14.0, 22.0))
             else:
@@ -1112,7 +1249,7 @@ class _Engine:
 
 def simulate(
     seed: int | None = None,
-    archetype: ArchetypeParams = COMEBACK,
+    archetype: ArchetypeParams = DEMO,
     *,
     frame_rate_hz: int | None = None,
 ) -> Iterator[StreamItem]:

@@ -14,11 +14,12 @@ Conventions that hold across the module:
   objects and never touch the stored values.
 """
 
+from collections.abc import Iterable, Sequence
 from typing import Annotated, Literal, NamedTuple
 
 from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, model_validator
 
-from matchlens.models.enums import Action, BodyPart, Outcome, Phase
+from matchlens.models.enums import Action, BodyPart, Outcome, Phase, VarReason
 
 ClockMs = Annotated[int, Field(ge=0)]
 AttackDirection = Literal[1, -1]  # +1 attacks towards +x, -1 towards -x
@@ -54,7 +55,7 @@ class Player(_Record):
     shirt: int
     name: str
     position: str
-    is_starter: bool  # whether they started the match
+    is_starter: bool
 
 
 class Match(_Record):
@@ -106,7 +107,7 @@ class Frame(_Record):
     phase: Phase
     ball_x: float
     ball_y: float
-    ball_z: float  # height
+    ball_z: float
     ball_speed: Annotated[float, Field(ge=0)]  # m/s
     carrier: str | None  # null if the ball is loose or in flight
     players: tuple[PlayerPosition, ...]
@@ -129,6 +130,7 @@ MATCH_EVENTS = frozenset(
         Action.PERIOD_START,
         Action.PERIOD_END,
         Action.ADDED_TIME_ANNOUNCED,
+        Action.VAR_OVERTURNED,
     }
 )
 _NO_ACTOR = frozenset({Action.PERIOD_START, Action.PERIOD_END, Action.ADDED_TIME_ANNOUNCED})
@@ -169,9 +171,13 @@ class Event(_Record):
     `added_time_announced` (it is needed when announced, so it cannot wait to be derived from
     `period_end`).
 
-    Three action-specific nullable fields (`receiver`, `player_on`, `added_time_ms`) is the limit.
-    A fourth is the signal to move them into a discriminated `detail` union rather than widening
-    this model again (docs/DATA-MODEL.md).
+    `var_overturned` is a correction (D4, Q49): `player` and `team` are the scorer's, `overturns`
+    names the goal event that no longer stands and `var_reason` says why. The goal itself is never
+    edited; `standing_goals` is how every reader of the score leaves it out.
+
+    Five action-specific nullable fields (`receiver`, `player_on`, `added_time_ms`, `overturns`,
+    `var_reason`) is the limit (Q49: it was three). A sixth is the signal to move them into a
+    discriminated `detail` union rather than widening this model again (docs/DATA-MODEL.md).
 
     `frame_ref` is the `seq` of the Frame this event aligns to. It is mandatory, so positional
     context is always recoverable. `receiver` is set for passes; `body_part` for actions where
@@ -193,6 +199,8 @@ class Event(_Record):
     receiver: str | None
     player_on: str | None  # substitutions only
     added_time_ms: ClockMs | None  # added_time_announced only
+    overturns: str | None = None  # var_overturned only: the goal's event_id
+    var_reason: VarReason | None = None  # var_overturned only
     under_pressure: bool | None  # generator-set
     body_part: BodyPart | None
     frame_ref: Annotated[int, Field(ge=0)]
@@ -206,6 +214,7 @@ class Event(_Record):
             self._validate_on_ball_fields()
         self._validate_player_on()
         self._validate_added_time()
+        self._validate_overturn()
         return self
 
     def _set_fields(self, names: tuple[str, ...]) -> list[str]:
@@ -244,6 +253,28 @@ class Event(_Record):
                 raise ValueError("added_time_announced needs added_time_ms")
         elif self.added_time_ms is not None:
             raise ValueError("added_time_ms is set only for added_time_announced")
+
+    def _validate_overturn(self) -> None:
+        if self.action is Action.VAR_OVERTURNED:
+            if self.overturns is None or self.var_reason is None:
+                raise ValueError("var_overturned needs overturns and var_reason")
+        elif self.overturns is not None or self.var_reason is not None:
+            raise ValueError("overturns and var_reason are set only for var_overturned")
+
+
+def overturned(events: Iterable[Event]) -> frozenset[str]:
+    """The ids of the goals VAR ruled out among `events` (D4, Q49)."""
+    return frozenset(
+        e.overturns for e in events if e.action is Action.VAR_OVERTURNED and e.overturns
+    )
+
+
+def standing_goals(events: Sequence[Event]) -> list[Event]:
+    """The goals in `events` that still stand: every goal, less those an overturn in `events`
+    names. The one rule every reader of the score uses, so a ruled-out goal counts until the
+    overturn and never after it."""
+    gone = overturned(events)
+    return [e for e in events if e.outcome is Outcome.GOAL and e.event_id not in gone]
 
 
 # --- read-time coordinate normalisation ----------------------------------------------------------

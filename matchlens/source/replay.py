@@ -20,7 +20,7 @@ from collections.abc import Callable, Iterable, Iterator, Sequence
 
 from matchlens.config.settings import settings
 from matchlens.models import Action, Event, Frame, Outcome
-from matchlens.source.archetypes import COMEBACK, ArchetypeParams
+from matchlens.source.archetypes import DEMO, ArchetypeParams
 from matchlens.source.simulator import simulate
 from matchlens.source.stream import MatchSetup, StreamItem
 
@@ -75,7 +75,7 @@ class Replay:
     def from_seed(
         cls,
         seed: int | None = None,
-        archetype: ArchetypeParams = COMEBACK,
+        archetype: ArchetypeParams = DEMO,
         *,
         frame_rate_hz: int | None = None,
         **kwargs,
@@ -248,7 +248,10 @@ def main(argv: list[str] | None = None) -> int:
             if not isinstance(item, Event):
                 continue
             last = item.clock_ms
-            if item.outcome is Outcome.GOAL and item.team in score:
+            if item.action is Action.VAR_OVERTURNED and item.team in score:
+                score[item.team] -= 1
+                print(f"{_mmss(item.clock_ms)}  VAR   goal ruled out ({item.var_reason})")
+            elif item.outcome is Outcome.GOAL and item.team in score:
                 score[item.team] += 1
                 tally = (
                     f"{shorts[home.team_id]} {score[home.team_id]}-{score[away.team_id]} "

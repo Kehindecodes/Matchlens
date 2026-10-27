@@ -1,4 +1,4 @@
-from matchlens.models import Event, Frame, Outcome, Phase
+from matchlens.models import Event, Frame, Outcome, Phase, standing_goals
 from matchlens.source import MatchSetup, simulate
 from matchlens.understanding.match_state import MatchStateTracker
 
@@ -70,8 +70,10 @@ def test_the_scoreboard_ends_on_the_seeded_matchs_final_score():
     tracker = MatchStateTracker(setup)
     played = [item for item in items if isinstance(item, Frame | Event)]
     states = [state for item in played if (state := tracker.observe(item)) is not None]
-    goals = [item for item in items if isinstance(item, Event) and item.outcome is Outcome.GOAL]
-    assert goals
+    # The goals that stand: the one VAR ruled out at 85' is not in the final score (Q49).
+    events = [item for item in items if isinstance(item, Event)]
+    goals = standing_goals(events)
+    assert goals and len(goals) < sum(e.outcome is Outcome.GOAL for e in events)
     final = {team.team_id: team.goals for team in states[-1].score}
     assert final == {
         team.team_id: sum(goal.team == team.team_id for goal in goals) for team in setup.match.teams

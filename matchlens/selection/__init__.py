@@ -3,7 +3,7 @@
 from collections.abc import Sequence
 
 from matchlens import calltrace
-from matchlens.models import Claim, Lens, Moment, SuppressionReason
+from matchlens.models import Claim, Lens, Moment, MomentType, SuppressionReason
 from matchlens.selection.outcome import Selection, ShownCards
 from matchlens.selection.scope import judged_importance
 
@@ -36,7 +36,8 @@ def select(
     3. claim types: `claims_filtered_out`, when this lens allows none of the claims
     4. threshold: `below_threshold`
     5. rate limit: `rate_limited`, unless the moment's type is one of the lens's
-       `breakthrough_types`. Those are still counted.
+       `breakthrough_types`. Those are still counted, except a goal VAR ruled out (Q49): it
+       corrects a card the lens has already spent its limit on, so it spends none of its own.
 
     `degraded` belongs to the ladder, which decides before Selection runs.
     """
@@ -63,5 +64,10 @@ def select(
 
     if reason is not None:
         return Selection(claims=(), suppression_reason=reason, importance=importance)
-    shown.record(lens.lens_id, moment.clock_ms)
+    if moment.type not in _UNCOUNTED:
+        shown.record(lens.lens_id, moment.clock_ms)
     return Selection(claims=kept, suppression_reason=None, importance=importance)
+
+
+# Shown, but not counted against a lens's rate limit (Q49: Kehinde, 27 Oct).
+_UNCOUNTED = frozenset({MomentType.GOAL_DISALLOWED})

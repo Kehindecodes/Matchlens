@@ -364,7 +364,7 @@ def test_normalise_event_is_pure_and_uses_the_teams_direction_for_the_period():
 
     out = normalise_event(e, away)
 
-    assert e.model_dump() == before  # input unchanged
+    assert e.model_dump() == before
     assert out is not e
     assert (out.start_x, out.start_y, out.end_x, out.end_y) == (-10.0, 5.0, -25.0, -3.0)
     # second half the away team attacks +x, so nothing flips
