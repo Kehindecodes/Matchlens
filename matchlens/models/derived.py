@@ -10,7 +10,7 @@ from typing import Annotated
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from matchlens.models.enums import EpochTrigger, PossessionOutcome, Signal, Trend, Zone
+from matchlens.models.enums import EpochTrigger, Mechanism, PossessionOutcome, Signal, Trend, Zone
 from matchlens.models.match_record import ClockMs
 
 UnitInterval = Annotated[float, Field(ge=0, le=1)]
@@ -52,6 +52,34 @@ class SignalReading(_Record):
     trend: Trend
     confidence: UnitInterval
     epoch_id: str
+
+
+class PositionReading(_Record):
+    """One thing the frames showed about how a shot came about (Q48). Citable by `reading_id`.
+
+    Measured by Understanding, the only reader of frames, when the shot arrives, so a claim can
+    say what the positions showed while no agent reads a frame (invariant 1). It cites the shot it
+    was measured for and the frames it was measured from (invariant 4). `start_ms` and `end_ms`
+    are the frames' clocks: one frame for an overload, the first and last of a run.
+
+    - `overload`: `value` attackers and `against` defenders, outfield, near the ball as the final
+      pass was played.
+    - `decoy_run`: `player`'s run took `opponent` `value` metres with him, away from the shot.
+    - `early_run`: `player`, the shooter, covered `value` metres before the pass reached him.
+    """
+
+    reading_id: str
+    mechanism: Mechanism
+    team: str  # the attacking side
+    shot_id: str
+    clock_ms: ClockMs  # the shot's: when the reading could first be taken
+    start_ms: ClockMs
+    end_ms: ClockMs
+    player: str | None
+    opponent: str | None
+    value: float
+    against: float | None
+    frame_seqs: Annotated[tuple[int, ...], Field(min_length=1)]
 
 
 class Epoch(_Record):

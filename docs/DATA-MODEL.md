@@ -114,6 +114,19 @@ A sequence of consecutive events by one team. Possession control is measured in 
 
 A possession starts on the event that gains control, a restart included, and holds that team's on-ball events. When a foul ends it, the foul is its last event even though the other team committed it, and when the half ends during it, the `period_end` event is (Q10–Q12). Cards, substitutions and the other match events are in none.
 
+### PositionReading
+What the frames before a shot showed about how it came about (Q48). Measured by Understanding, the only reader of frames, when the shot arrives; claims cite it (`RefKind.POSITION`) so no agent reads a frame. Not a `Run`: it is one fact about one shot, and nothing in v1 is player scope.
+
+| Attribute | Meaning |
+|---|---|
+| `reading_id` | Citable as evidence: `{shot_id}-{mechanism}` |
+| `mechanism` | `overload` \| `decoy_run` \| `early_run` |
+| `team`, `shot_id`, `clock_ms` | The attacking side, the shot, and its clock: when the reading could first be taken |
+| `start_ms`, `end_ms` | The clocks of the first and last frame measured: one frame for an overload |
+| `player`, `opponent` | The decoy or the early runner; the defender a decoy drew. Null for an overload |
+| `value`, `against` | Overload: attackers and defenders near the ball. A run: metres (the defender drawn, or the shooter's ground covered) |
+| `frame_seqs` | The frames it was measured from (invariant 4) |
+
 ### SignalReading
 A **signal** is a definition (a function). A **reading** is an observation (data). Only readings are stored.
 
@@ -326,7 +339,7 @@ Every closed set in the model, named. **Closed sets are enums, not strings** —
 | `LengthVariant` | `short` · `long` | `Recap.length_variant`. T3 |
 | `RunType` | `in_behind` · `into_channel` · `overlap` · `dropping_off` · `decoy` | `Run.run_type`. **Not built in v1** |
 | `RunEndState` | `served` · `unplayed` · `offside` | `Run.end_state`. **Not built in v1** |
-| `RefKind` | `team` · `player` · `event` · `reading` · `run` · `moment` · `rendition` · `lens` | The `Ref` type used by the three polymorphic relationships |
+| `RefKind` | `team` · `player` · `event` · `reading` · `position` · `run` · `moment` · `rendition` · `lens` | The `Ref` type used by the three polymorphic relationships |
 
 ### Not enums
 

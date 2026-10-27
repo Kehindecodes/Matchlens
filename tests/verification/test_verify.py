@@ -32,10 +32,12 @@ from matchlens.models import (
 from matchlens.source import MatchSetup, simulate
 from matchlens.source.archetypes import ARCHETYPES
 from matchlens.spotting import Spotter
-from matchlens.understanding import Understanding
+from matchlens.understanding import Movement, Understanding
 from matchlens.verification import checks
 
-SUBSTITUTE_GOAL = "m-1-e1535"  # seed 1's comeback: scored by m-1-home-p17, who came off the bench
+# Seed 1 of the one-sided match: scored by m-1-home-p17, who came off the bench. The comeback has
+# no substitute's goal under `generator-2` (Q48).
+SUBSTITUTE_GOAL = "m-1-e1747"
 
 
 @dataclass
@@ -55,7 +57,9 @@ def _play(seed: int = 1, archetype: str = "comeback", proposer: Proposer | None 
     ingest = Ingest()
     understanding = Understanding(ingest.record)
     spotter = Spotter(ingest.record, understanding.epoch_at)
+    movement = Movement(ingest.frame_access, ingest.record)
     readings = []
+    positions = []
     explained = []
     for item in simulate(seed, ARCHETYPES[archetype]):
         ingest.accept(item)
@@ -63,19 +67,24 @@ def _play(seed: int = 1, archetype: str = "comeback", proposer: Proposer | None 
             continue
         batch = understanding.observe(item)
         readings.extend(batch)
+        positions.extend(movement.observe(item))
         for result in spotter.consider(batch, item):
             reader = ingest.record()
-            log = FrozenLog(result.moment, reader, readings, understanding.epochs)
+            log = FrozenLog(result.moment, reader, readings, understanding.epochs, positions)
             claims = explanation.explain(result.moment, log, proposer)
-            explained.append(
-                Explained(result.moment, claims, verification.Record.of(reader, readings))
-            )
-    return Played(explained, verification.Record.of(ingest.record(), readings))
+            record = verification.Record.of(reader, readings, positions)
+            explained.append(Explained(result.moment, claims, record))
+    return Played(explained, verification.Record.of(ingest.record(), readings, positions))
 
 
 @pytest.fixture(scope="module")
 def seed_1() -> Played:
     return _play()
+
+
+@pytest.fixture(scope="module")
+def substitute() -> Played:
+    return _play(1, "one_sided")
 
 
 def _verify(x: Explained, claim: Claim, record: verification.Record | None = None) -> Verification:
@@ -215,6 +224,68 @@ def test_a_signal_operand_citing_an_event_fails_entailment(seed_1):
     assert _status(v, CheckName.ENTAILMENT) is CheckStatus.FAILED
 
 
+_POSITION_METRICS = (Metric.OVERLOAD, Metric.DECOY_RUN, Metric.EARLY_RUN)
+
+
+def _position_claims(played: Played) -> list[tuple[Explained, Claim]]:
+    return [
+        (x, c)
+        for x in played.explained
+        for c in x.claims
+        if c.operands[0].metric in _POSITION_METRICS
+    ]
+
+
+def test_seed_1_has_position_claims_and_each_cites_only_its_position_reading(seed_1):
+    found = _position_claims(seed_1)
+    assert found
+    for x, claim in found:
+        for operand in claim.operands:
+            assert [r.kind for r in operand.evidence_ids] == [RefKind.POSITION]
+            assert (
+                x.record.position[operand.evidence_ids[0].id].shot_id in x.moment.trigger_event_ids
+            )
+
+
+def test_a_position_claim_with_a_wrong_figure_fails_value_and_entailment(seed_1):
+    x, claim = _position_claims(seed_1)[0]
+    v = _verify(x, _with_operand(claim, value=claim.operands[0].value + 3))
+    assert _status(v, CheckName.VALUE) is CheckStatus.FAILED
+    assert _status(v, CheckName.ENTAILMENT) is CheckStatus.FAILED
+    assert v.recomputed_value[0] == claim.operands[0].value
+
+
+def test_a_run_said_of_another_player_fails(seed_1):
+    x, claim = next(
+        (x, c) for x, c in _position_claims(seed_1) if c.operands[0].metric is not Metric.OVERLOAD
+    )
+    reading = x.record.position[claim.operands[0].evidence_ids[0].id]
+    other = next(
+        p.player_id
+        for p in x.record.players
+        if p.team_id == reading.team and p.player_id != reading.player
+    )
+    v = _verify(x, _with_operand(claim, subject=Ref(kind=RefKind.PLAYER, id=other)))
+    assert v.verdict is Verdict.FAIL
+    assert _status(v, CheckName.ENTAILMENT) is CheckStatus.FAILED
+    assert "not about" in (v.checks[CheckName.ENTAILMENT].reason or "")
+
+
+def test_a_position_claim_citing_an_event_instead_fails_entailment(seed_1):
+    x, claim = _position_claims(seed_1)[0]
+    shot = Ref(kind=RefKind.EVENT, id=x.moment.trigger_event_ids[0])
+    v = _verify(x, _with_operand(claim, evidence_ids=(shot,)))
+    assert _status(v, CheckName.VALUE) is CheckStatus.PASSED  # the record says the same figure
+    assert _status(v, CheckName.ENTAILMENT) is CheckStatus.FAILED
+
+
+def test_a_position_reading_that_is_not_in_the_record_fails_citation(seed_1):
+    x, claim = _position_claims(seed_1)[0]
+    made_up = Ref(kind=RefKind.POSITION, id="m-1-e0-decoy_run")
+    v = _verify(x, _with_operand(claim, evidence_ids=(made_up,)))
+    assert _status(v, CheckName.CITATION) is CheckStatus.FAILED
+
+
 def test_an_interpretive_threshold_the_reading_does_not_clear_fails_entailment(seed_1):
     x, claim = next(
         (x, c) for x in seed_1.explained for c in x.claims if c.claim_type is ClaimType.INTERPRETIVE
@@ -268,20 +339,20 @@ def test_entity_is_not_applicable_for_a_team_subject(seed_1):
     assert _status(_verify(x, team), CheckName.ENTITY) is CheckStatus.NOT_APPLICABLE
 
 
-def test_a_substitute_scorer_passes_entity_over_his_time_on_the_pitch(seed_1):
+def test_a_substitute_scorer_passes_entity_over_his_time_on_the_pitch(substitute):
     # Q36: B. His count runs from when he came on, so he was on the pitch across it.
-    x = _goal(seed_1, SUBSTITUTE_GOAL)
+    x = _goal(substitute, SUBSTITUTE_GOAL)
     scorer = x.claims[0]
-    player = seed_1.whole.player[scorer.operands[0].subject.id]
+    player = substitute.whole.player[scorer.operands[0].subject.id]
     assert not player.is_starter
-    entered, _ = pitch_window(player, seed_1.whole.events)
+    entered, _ = pitch_window(player, substitute.whole.events)
     assert scorer.operands[0].window.start_ms == entered > 0
     assert _status(_verify(x, scorer), CheckName.ENTITY) is CheckStatus.PASSED
 
 
-def test_a_player_not_on_the_pitch_across_the_window_fails_entity(seed_1):
+def test_a_player_not_on_the_pitch_across_the_window_fails_entity(substitute):
     # The same claim over kickoff to the goal: he was on the bench for most of it.
-    x = _goal(seed_1, SUBSTITUTE_GOAL)
+    x = _goal(substitute, SUBSTITUTE_GOAL)
     scorer = x.claims[0]
     window = scorer.operands[0].window.model_copy(update={"start_ms": 0})
     v = _verify(x, _with_operand(scorer, window=window))

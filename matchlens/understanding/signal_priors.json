@@ -1,33 +1,33 @@
 {
-  "generator_version": "generator-1",
+  "generator_version": "generator-2",
   "priors": [
     {
-      "generator_version": "generator-1",
+      "generator_version": "generator-2",
       "mean": 0.5,
-      "sample_size": 3570,
+      "sample_size": 3556,
       "signal": "territory",
-      "stddev": 0.38367955179228075
+      "stddev": 0.3704933209420297
     },
     {
-      "generator_version": "generator-1",
+      "generator_version": "generator-2",
       "mean": 0.5,
-      "sample_size": 3670,
+      "sample_size": 3666,
       "signal": "possession_control",
-      "stddev": 0.1629519972051357
+      "stddev": 0.16017342561902306
     },
     {
-      "generator_version": "generator-1",
-      "mean": 5.813580565201632,
-      "sample_size": 3655,
+      "generator_version": "generator-2",
+      "mean": 5.843713119164803,
+      "sample_size": 3653,
       "signal": "pressing_intensity",
-      "stddev": 4.05587884722969
+      "stddev": 4.009930864621277
     },
     {
-      "generator_version": "generator-1",
-      "mean": 0.13762226772763583,
+      "generator_version": "generator-2",
+      "mean": 0.1050636039000161,
       "sample_size": 3792,
       "signal": "chance_quality",
-      "stddev": 0.29134697772993984
+      "stddev": 0.2310726601267094
     }
   ],
   "sample": {
@@ -62,9 +62,9 @@
   },
   "stability": {
     "means": {
-      "chance_quality": 0.12570700707704657,
+      "chance_quality": 0.10831371486028013,
       "possession_control": 0.5,
-      "pressing_intensity": 5.97079560984638,
+      "pressing_intensity": 6.108936575018985,
       "territory": 0.5
     },
     "sample": {
@@ -118,9 +118,9 @@
       ]
     },
     "shift_in_stddevs": {
-      "chance_quality": 0.040897148628169226,
+      "chance_quality": 0.014065320226468277,
       "possession_control": 0.0,
-      "pressing_intensity": 0.03876226351093592,
+      "pressing_intensity": 0.0661416530130706,
       "territory": 0.0
     },
     "tolerance_stddevs": 0.1

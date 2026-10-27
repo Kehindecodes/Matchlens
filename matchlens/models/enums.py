@@ -62,6 +62,7 @@ class RefKind(StrEnum):
     PLAYER = "player"
     EVENT = "event"
     READING = "reading"
+    POSITION = "position"  # a `PositionReading`: what the frames showed, measured by Understanding
     RUN = "run"  # not built in v1; kept so the set matches the data model
     MOMENT = "moment"
     RENDITION = "rendition"
@@ -91,6 +92,14 @@ class Signal(StrEnum):
     PRESSING_INTENSITY = "pressing_intensity"
     CHANCE_QUALITY = "chance_quality"
     LINE_HEIGHT = "line_height"
+
+
+class Mechanism(StrEnum):
+    """What a `PositionReading` measured (Q48)."""
+
+    OVERLOAD = "overload"
+    DECOY_RUN = "decoy_run"
+    EARLY_RUN = "early_run"
 
 
 class Trend(StrEnum):
@@ -138,6 +147,10 @@ class Metric(StrEnum):
     SWITCH_OF_PLAY = "switch_of_play"  # metres a completed pass crossed the pitch, in a move
     REGAIN = "regain"  # seconds from a side losing the ball to winning it straight back
     COMBINATION = "combination"  # players in a quick pass-pass-shot move: always three
+    # From a `PositionReading`, never from a frame directly (invariant 1).
+    OVERLOAD = "overload"  # outfield players within reach of the ball as the final pass went
+    DECOY_RUN = "decoy_run"  # metres a team-mate's run took a defender with him before the shot
+    EARLY_RUN = "early_run"  # metres the shooter covered in the moments before the pass to him
 
 
 class ClaimType(StrEnum):

@@ -256,7 +256,7 @@ def test_the_same_seed_makes_identical_claims(seed_1):
 def test_every_claim_says_which_rules_made_it(seed_1):
     for x in seed_1.explained:
         for claim in x.claims:
-            assert (claim.model, claim.model_version) == ("deterministic", "claims-6")
+            assert (claim.model, claim.model_version) == ("deterministic", "claims-7")
 
 
 @pytest.mark.slow

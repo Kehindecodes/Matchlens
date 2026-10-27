@@ -28,7 +28,9 @@ def explain(moment: Moment, log: FrozenLog, proposer: Proposer | None = None) ->
         raise ValueError(
             f"log frozen at {log.clock_ms} ms, moment {moment.moment_id} is at {moment.clock_ms} ms"
         )
-    claims = explain_moment(moment, log.events, log.readings, log.epochs, log.match, log.players)
+    claims = explain_moment(
+        moment, log.events, log.readings, log.epochs, log.match, log.players, log.positions
+    )
     if proposer is not None:
         proposed = agent.propose(moment, log, claims, proposer)
         if not isinstance(proposed, agent.Failure):

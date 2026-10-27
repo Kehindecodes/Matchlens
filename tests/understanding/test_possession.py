@@ -93,11 +93,17 @@ def test_the_foul_is_the_last_event_of_the_fouled_teams_possession(possessions, 
         assert all(by_id[i].team == p.team for i in p.event_ids[:-1])
 
 
-def test_the_half_ending_during_a_possession_ends_it(possessions, by_id):
-    """Q12: both halves of seed 1 end with the ball live."""
-    ended = [p for p in possessions if p.outcome is PossessionOutcome.PERIOD_END]
-    assert len(ended) == 2
-    assert all(by_id[p.event_ids[-1]].action is Action.PERIOD_END for p in ended)
+def test_the_half_ending_during_a_possession_ends_it(played, possessions, by_id):
+    """Q12: the whistle ends the possession it interrupts, and a whistle while play is stopped
+    interrupts none. Which halves of seed 1 were stopped is read off the frames."""
+    phase = {f.seq: f.phase for f in played.frames}
+    whistles = [e for e in played.events if e.action is Action.PERIOD_END]
+    stopped = {e.event_id for e in whistles if phase[e.frame_ref] is Phase.STOPPED}
+    ended = [
+        by_id[p.event_ids[-1]] for p in possessions if p.outcome is PossessionOutcome.PERIOD_END
+    ]
+    assert ended  # seed 1 has one, so the rule is exercised
+    assert all(e.action is Action.PERIOD_END and e.event_id not in stopped for e in ended)
 
 
 def test_cards_and_substitutions_are_in_no_possession(played, possessions):

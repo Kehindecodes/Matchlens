@@ -20,10 +20,10 @@ from matchlens.source import simulate
 from matchlens.source.archetypes import COMEBACK
 from tests.rendering.test_writer import Echo
 
-# The first 50 minutes of seed 1 on the comeback: goals, chances and shifts, at half the cost of a
-# whole match. It is the match these tests were written on, and the one that crowds a lens enough
-# to rate-limit it; the remontada demo is a quieter night and exercises fewer of the reasons.
-_UNTIL_MS = 50 * 60_000
+# Seed 1 on the comeback, the whole match: goals, chances and shifts. It is the match these tests
+# were written on, and the one that crowds a lens enough to rate-limit it; under `generator-2`
+# that happens after the 70th minute, so the first 50 no longer do (Q48).
+_UNTIL_MS = 100 * 60_000
 
 
 def _items():

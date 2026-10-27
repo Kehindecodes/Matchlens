@@ -28,7 +28,7 @@ def test_group_a_enum_values_match_the_data_model():
 
 def test_ref_kind_values_match_the_data_model():
     assert {k.value for k in RefKind} == {
-        "team", "player", "event", "reading", "run", "moment", "rendition", "lens",
+        "team", "player", "event", "reading", "position", "run", "moment", "rendition", "lens",
     }  # fmt: skip
 
 

@@ -5,15 +5,18 @@ them should hear them:
 
 - goal: the scorer's goals, the score (or the team's goals while the other side has none, Q26
   2a), how it came about (the build-up, where the ball was won, how fast it was regained, who
-  gave it away, a switch of play, a quick combination, how far out the shot was), who set it up,
-  the shot's quality
+  gave it away, a switch of play, a quick combination, how far out the shot was), what the
+  positions showed (an overload, a decoy run, an early run), who set it up, the shot's quality
 - chance: the run of big chances, the run set against the opponent's over the same window when
-  they had one too, how it came about, who saved or blocked it, the shot's quality
+  they had one too, how it came about, what the positions showed, who saved or blocked it, the
+  shot's quality
 - tactical shift: the signal that fired, read as a judgement, then compared with the same team
   in the previous epoch and with the opponent at the same clock
 
 Every operand cites the rows its value is counted from, and between them a moment's claims cite
-every trigger that fired it (D22). A claim with nothing to cite is not made (invariant 5).
+every trigger that fired it (D22). A claim with nothing to cite is not made (invariant 5). What
+the positions showed is cited as the `PositionReading` Understanding took for the shot, never as
+a frame (invariant 1, Q48).
 """
 
 import math
@@ -28,12 +31,14 @@ from matchlens.models import (
     Epoch,
     Event,
     Match,
+    Mechanism,
     Metric,
     Moment,
     MomentType,
     Operand,
     Outcome,
     Player,
+    PositionReading,
     Ref,
     RefKind,
     SignalReading,
@@ -55,7 +60,7 @@ from matchlens.understanding.possession import from_events
 from matchlens.understanding.shot_value import is_shot, value
 
 MODEL = "deterministic"
-MODEL_VERSION = "claims-6"  # bump by hand whenever a rule below changes (invariant 7)
+MODEL_VERSION = "claims-7"  # bump by hand whenever a rule below changes (invariant 7)
 
 
 def explain_moment(
@@ -65,16 +70,18 @@ def explain_moment(
     epochs: Sequence[Epoch],
     match: Match,
     players: Sequence[Player],
+    positions: Sequence[PositionReading] = (),
 ) -> list[Claim]:
     """The claims for `moment`. Every input is already frozen at the moment's clock."""
     if moment.type is MomentType.TACTICAL_SHIFT:
         operands = _shift(moment, readings, epochs, match)
     elif moment.type in (MomentType.GOAL, MomentType.CHANCE):
         trigger = next(e for e in events if e.event_id == moment.trigger_event_ids[0])
+        shown = [p for p in positions if p.shot_id == trigger.event_id]
         if moment.type is MomentType.GOAL:
-            operands = _goal(trigger, events, match, players)
+            operands = _goal(trigger, events, match, players, shown)
         else:
-            operands = _chance(trigger, events, match, players)
+            operands = _chance(trigger, events, match, players, shown)
     else:
         operands = []
     return [
@@ -156,7 +163,11 @@ def _shot_quality(shot: Event, match: Match) -> Operand:
 
 
 def _goal(
-    goal: Event, events: Sequence[Event], match: Match, players: Sequence[Player]
+    goal: Event,
+    events: Sequence[Event],
+    match: Match,
+    players: Sequence[Player],
+    positions: Sequence[PositionReading],
 ) -> list[_Spec]:
     assert goal.team is not None  # a goal is an on-ball event
     goals = [e for e in events if e.outcome is Outcome.GOAL]
@@ -178,6 +189,7 @@ def _goal(
     specs.append(_comparative(team, against) if against is not None else _descriptive(team))
 
     specs.extend(_descriptive(operand) for operand in _how(goal, events, match, players))
+    specs.extend(_moved(match, positions))
     if (assist := _assist(goal, events)) is not None:
         specs.append(_descriptive(assist))
     specs.append(_descriptive(_shot_quality(goal, match)))
@@ -280,6 +292,54 @@ def _how(
     return operands
 
 
+def _moved(match: Match, positions: Sequence[PositionReading]) -> list[_Spec]:
+    """What the frames showed before the shot, one claim per position reading, each citing it.
+
+    An overload is the attackers set against the defenders near the ball. A decoy run is said of
+    the team-mate who made it, and an early run of the shooter: the defender a decoy drew is in
+    the reading, and not in the claim, so no card names him.
+    """
+    specs: list[_Spec] = []
+    for reading in sorted(positions, key=lambda p: p.mechanism.value):
+        cited = (Ref(kind=RefKind.POSITION, id=reading.reading_id),)
+        window = Window(start_ms=reading.start_ms, end_ms=reading.end_ms)
+        if reading.mechanism is Mechanism.OVERLOAD:
+            assert reading.against is not None  # an overload always counts both sides
+            specs.append(
+                _comparative(
+                    Operand(
+                        subject=_team(reading.team),
+                        metric=Metric.OVERLOAD,
+                        window=window,
+                        value=reading.value,
+                        evidence_ids=cited,
+                    ),
+                    Operand(
+                        subject=_team(_opponent(match, reading.team)),
+                        metric=Metric.OVERLOAD,
+                        window=window,
+                        value=reading.against,
+                        evidence_ids=cited,
+                    ),
+                )
+            )
+            continue
+        assert reading.player is not None  # a run is always someone's
+        metric = Metric.DECOY_RUN if reading.mechanism is Mechanism.DECOY_RUN else Metric.EARLY_RUN
+        specs.append(
+            _descriptive(
+                Operand(
+                    subject=Ref(kind=RefKind.PLAYER, id=reading.player),
+                    metric=metric,
+                    window=window,
+                    value=reading.value,
+                    evidence_ids=cited,
+                )
+            )
+        )
+    return specs
+
+
 def _big_chances(
     team_id: str, shot: Event, events: Sequence[Event], match: Match
 ) -> Operand | None:
@@ -334,7 +394,11 @@ def _stopped(shot: Event, events: Sequence[Event]) -> Operand | None:
 
 
 def _chance(
-    shot: Event, events: Sequence[Event], match: Match, players: Sequence[Player]
+    shot: Event,
+    events: Sequence[Event],
+    match: Match,
+    players: Sequence[Player],
+    positions: Sequence[PositionReading],
 ) -> list[_Spec]:
     team_id = shot.team or ""
     run = _big_chances(team_id, shot, events, match)
@@ -343,6 +407,7 @@ def _chance(
     if (theirs := _big_chances(_opponent(match, team_id), shot, events, match)) is not None:
         specs.append(_comparative(run, theirs))
     specs.extend(_descriptive(operand) for operand in _how(shot, events, match, players))
+    specs.extend(_moved(match, positions))
     if (stopped := _stopped(shot, events)) is not None:
         specs.append(_descriptive(stopped))
     specs.append(_descriptive(_shot_quality(shot, match)))

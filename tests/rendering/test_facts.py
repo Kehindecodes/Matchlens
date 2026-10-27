@@ -302,3 +302,27 @@ def test_a_switch_a_regain_a_combination_and_a_pressured_loss_are_said_without_a
     assert "Ada Quill gave it away under pressure" in _said(pressed, Depth.ENGAGED)
     for claim in (switch, regain, combination, pressed):
         assert not re.search(r"\bbecause\b", _said(claim, Depth.ANALYST))  # since, never because
+
+
+# --- what the positions showed (Q48) --------------------------------------------------------------
+
+
+def test_an_overload_sets_the_attackers_against_the_defenders_and_casual_hears_no_number():
+    overload = _claim(_operand(Metric.OVERLOAD, 4), _operand(Metric.OVERLOAD, 1, subject=AWAY))
+    assert _said(overload) == "Larkfield had 4 against 1 around the ball."
+    assert "4 v 1" in _said(overload, Depth.ANALYST)
+    assert not re.search(r"\d", _said(overload, Depth.CASUAL))
+
+
+def test_a_decoy_run_and_an_early_run_name_the_runner_and_never_a_cause():
+    decoy = _claim(_operand(Metric.DECOY_RUN, 14.3, subject=SCORER, start_ms=0, end_ms=3_500))
+    early = _claim(_operand(Metric.EARLY_RUN, 9.1, subject=SCORER, start_ms=0, end_ms=1_500))
+    for claim in (decoy, early):
+        for depth in Depth:
+            said = _said(claim, depth)
+            assert said.startswith("Ada Quill") or "Ada Quill" in said
+            # The frames show where everyone was, never why: no word claims space was made.
+            assert not re.search(r"space|opened|created|dragged", said, re.IGNORECASE), said
+        assert not re.search(r"\d", _said(claim, Depth.CASUAL))
+    assert "14.3 m" in _said(decoy, Depth.ANALYST)
+    assert "9.1 m in the 2 s" in _said(early, Depth.ANALYST)

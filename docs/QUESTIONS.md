@@ -24,6 +24,25 @@ Newest at the top. Kehinde answers inline and moves the resolved ones to `docs/D
 
 ---
 
+## Q48 · Movement before a shot: overloads, decoy runs and early runs from frames  [ticket: none, 27 Oct]  [blocking: no]
+
+**What changed, so you can reverse it:** Kehinde asked for all three position mechanisms on 27 Oct and chose both options below, so this is a record, not a request. Branch `feat/position-mechanisms`.
+
+- **New entity, `PositionReading` (group B).** Kehinde chose it over reusing `SignalReading`, whose baseline, z-scores and epoch do not apply and which the spotter would have started judging. Understanding measures it from frames when a shot arrives (`matchlens/understanding/movement.py`); it cites the shot and the frames by `seq` (invariant 4). Claims cite it by `RefKind.POSITION`. The explainer and the verifier get these readings, never a frame (invariant 1): `FrozenLog.positions`, `Record.positions`. Not given to the spotter, so no new moments.
+- **Three metrics, `claims-7`.** `overload` (outfield attackers against defenders within 15 m of the ball in the last frame before the final pass, kept when the attackers outnumber them), `decoy_run` (a team-mate got 4 m or more farther from where the shot was struck over the 4 s before it, with an outfield defender who started within 8 m of him, finished within 6 m, and went 4 m or more the same way), `early_run` (the shooter covered 6 m or more in the 2 s before the final pass). Settings `movement_*`. The verifier checks a position claim against its reading, as it checks a signal claim against its reading, and recounts the figure from `Record.positions` without the claim's citations.
+- **The simulator plays decoy runs (`generator-2`).** Kehinde chose to change it: before, no defender ever followed a runner, so a dragged defender happened 0–3 times a match by coincidence. Now a completed pass received within 22 m of goal sends the forward nearest the receiver on a 2.5 s run to the far side, and the nearest defender goes with him, 1.5 m goal-side. No random numbers are drawn for it, but positions change, so the match does: same seed, same scripted goals at the same minutes (demo: 12, 38, 57, 77, 89; 76 before), different events in between. The demo shows 11 overloads, 4 decoy runs and 7 early runs. Run length and range were tuned so the one-sided archetype keeps its possession dominance (0.555 against the test's 0.55; 2.5 s, not 3 or 4).
+- **A save or block turned behind is `out_of_play` now**, not `complete`/`won`. The corner after it used to be what closed the possession; when a half ended before the corner was taken, the possession ran across stopped time. Nothing reads a save's outcome.
+- **Signal priors rebuilt** for `generator-2`, and the digests the tests pin updated.
+- **Two tests restated, not loosened in what they mean.** In-play time is now the mean of seeds 1–3 between 55 and 65 minutes, with none under 50 (seed 1 alone is 52.5; over 8 seeds the mean is 57.9 against 57.5 before). The half-ending test reads which halves were stopped off the frames instead of assuming both halves of seed 1 end live. Say if you want either back as it was. Tests that pinned facts of the old match now pin the new one's: the comeback's first goal clock (19:11), the P1 outcome tests run the whole comeback (its one rate limit now comes after the 70th minute), and the substitute-scorer entity tests use seed 1 of the one-sided match (the comeback has no substitute's goal now).
+- **What a viewer sees.** Analyst and engaged cards hear a decoy run or an overload first among how a goal or chance came about; casual cards rotate them in. A supporter hears them only for their own side's attack. The team card names the decoy, never the defender he drew (the reading holds the defender; the claim does not), and never the other side's runner: a decoy or early run on the opponent's attack is left out of the team lens, the catch-up included. Wording says only what the frames show: "Kofi Rennov's run drew a defender 17.1 m away from the shot", never that it opened space. `templates-6`.
+
+**What you need to do:** rebuild the explainer cache and the overlay sample (`claims-7`, `templates-6`, and the match itself changed), then a full run:
+`uv run python -m matchlens.explanation.cache 1`, `uv run python -m tests.rendering.test_overlay`, `uv run pytest`.
+
+**Answer:**
+
+---
+
 ## Q46 · Card wording: variants, the mirrored possession shift, and a Remontada-shaped demo match  [ticket: none, 26 Oct]  [blocking: no]
 
 **What changed, so you can reverse it:** Kehinde asked for all of it on 26 Oct, so this is a record, not a request.

@@ -29,7 +29,7 @@ from matchlens.models import Depth, Metric, MomentType
 TEMPLATES_PATH = Path(__file__).with_name("templates.json")
 
 MODEL = "templates"  # what a rendition's words came from when no model wrote them (invariant 7)
-MODEL_VERSION = "templates-5"  # bump by hand whenever a row below changes what a card says
+MODEL_VERSION = "templates-6"  # bump by hand whenever a row below changes what a card says
 
 SIGNAL_ROWS = "signal"  # the fact rows the four signal metrics share
 

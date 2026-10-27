@@ -5,6 +5,10 @@
 the claim's **own evidence**, and catches a right number whose citations have nothing to do with
 it. They share the metric definitions (D30) and nothing else: neither looks at what the other
 reads.
+
+What the frames showed is checked against the position readings Understanding took (Q48), as a
+signal is checked against its readings: the verifier holds no frame (invariant 1), so it checks a
+position claim says what its reading says, about the side or player the reading is about.
 """
 
 import math
@@ -22,6 +26,7 @@ from matchlens.models import (
     Moment,
     Operand,
     Outcome,
+    PositionReading,
     Ref,
     RefKind,
     SignalReading,
@@ -56,8 +61,10 @@ _COUNTS = frozenset(
         Metric.ASSIST,
         Metric.SHOT_SAVED_BY,
         Metric.SHOT_BLOCKED_BY,
+        Metric.OVERLOAD,
     }
 )
+_POSITIONS = frozenset({Metric.OVERLOAD, Metric.DECOY_RUN, Metric.EARLY_RUN})
 _SIGNALS = frozenset(
     {Metric.TERRITORY, Metric.POSSESSION_CONTROL, Metric.PRESSING_INTENSITY, Metric.CHANCE_QUALITY}
 )
@@ -81,11 +88,13 @@ def _refs(claim: Claim) -> list[Ref]:
     return refs
 
 
-def _resolve(ref: Ref, record: Record) -> Event | SignalReading | None:
+def _resolve(ref: Ref, record: Record) -> Event | SignalReading | PositionReading | None:
     if ref.kind is RefKind.EVENT:
         return record.event.get(ref.id)
     if ref.kind is RefKind.READING:
         return record.reading.get(ref.id)
+    if ref.kind is RefKind.POSITION:
+        return record.position.get(ref.id)
     return None  # a run is not built in v1, so nothing can resolve one
 
 
@@ -173,6 +182,17 @@ def recompute(o: Operand, record: Record) -> list[float]:
         return [_ball_lost(o, record)]
     if o.metric in (Metric.ASSIST, Metric.SHOT_SAVED_BY, Metric.SHOT_BLOCKED_BY):
         return [_around_a_shot(o, record)]
+    if o.metric in _POSITIONS:
+        found = [
+            figure
+            for p in record.positions
+            if p.mechanism.value == o.metric.value
+            and (p.start_ms, p.end_ms) == (start, end)
+            and (figure := _position_value(o, p)) is not None
+        ]
+        if not found:
+            raise _Unrecomputable(f"no {o.metric} reading for {o.subject.id} over {start}–{end} ms")
+        return found
     team = _team_only(o)
     if o.metric is Metric.SWITCH_OF_PLAY:
         passes = [
@@ -254,6 +274,21 @@ def recompute(o: Operand, record: Record) -> list[float]:
     if not readings:
         raise _Unrecomputable(f"no {o.metric} reading for {team} over {start}–{end} ms")
     return [r.value for r in readings]
+
+
+def _position_value(o: Operand, reading: PositionReading) -> float | None:
+    """What `reading` says `o`'s subject's value is, or None if it is not about that subject.
+
+    An overload counts both sides: the attacking side's figure is `value`, the other's `against`.
+    A run is the one player's.
+    """
+    if o.metric is Metric.OVERLOAD:
+        if o.subject.kind is not RefKind.TEAM:
+            return None
+        return reading.value if o.subject.id == reading.team else reading.against
+    if o.subject.kind is not RefKind.PLAYER or o.subject.id != reading.player:
+        return None
+    return reading.value
 
 
 def _around_a_shot(o: Operand, record: Record) -> float:
@@ -344,8 +379,26 @@ def _supports(o: Operand, record: Record) -> str | None:
         return "some of its evidence does not exist"
     events = [row for row in rows if isinstance(row, Event)]
     readings = [row for row in rows if isinstance(row, SignalReading)]
+    positions = [row for row in rows if isinstance(row, PositionReading)]
     start, end = o.window.start_ms, o.window.end_ms
     subject = o.subject.id
+
+    if o.metric in _POSITIONS:
+        if events or readings or len(positions) != 1:
+            return "what the positions showed is one position reading, and nothing else"
+        [p] = positions
+        if p.mechanism.value != o.metric.value:
+            return f"cites a {p.mechanism} reading"
+        if (p.start_ms, p.end_ms) != (start, end):
+            return "cites a position reading over different frames"
+        figure = _position_value(o, p)
+        if figure is None:
+            return f"cites a position reading that is not about {subject}"
+        if not same(o.metric, o.value, figure):
+            return f"its position reading says {figure:g}"
+        return None
+    if positions:
+        return f"{o.metric} is not read from positions, but it cites a position reading"
 
     if o.metric in _SIGNALS:
         if events or len(readings) != 1:

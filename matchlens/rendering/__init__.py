@@ -281,18 +281,26 @@ def _state(moment: Moment, claims: tuple[Claim, ...]) -> str | None:
 # How a goal or a chance came about, in the order each viewer wants it. A casual viewer is told
 # who gave it away and where it was won, a person and a place; one who wants the mechanism is
 # told where it was won, how fast it was punished and how far out it was struck, and the person
-# after. A depth that is not casual is the second: the order is a register, not a lens (D31).
+# after. What the positions showed (Q48), a run that drew a defender or an overload, is the part
+# the picture hides, so it goes first. A depth that is not casual is the second: the order is a
+# register, not a lens (D31).
 _HOW_CASUAL = (
+    Metric.DECOY_RUN,
     Metric.BALL_WON_THIRD,
+    Metric.OVERLOAD,
     Metric.REGAIN,
+    Metric.EARLY_RUN,
     Metric.ASSIST,
     Metric.SWITCH_OF_PLAY,
     Metric.COMBINATION,
     Metric.SHOT_DISTANCE,
 )  # then the build-up
 _HOW_CLOSER = (
+    Metric.DECOY_RUN,
+    Metric.OVERLOAD,
     Metric.BALL_WON_THIRD,
     Metric.REGAIN,
+    Metric.EARLY_RUN,
     Metric.BUILD_UP_PASSES,
     Metric.SWITCH_OF_PLAY,
     Metric.COMBINATION,
@@ -308,10 +316,13 @@ def _names_their_player(claim: Claim, moment: Moment, side: str | None) -> bool:
     A supporter is told their own side's players: who scored for them, who set it up, who gave
     the ball away to the other side's goal, who saved or blocked the other side's shot. The
     other side's scorer, assist and stopper are the other side's, so which they are follows from
-    whether the moment is for or against the side, and needs no roster.
+    whether the moment is for or against the side, and needs no roster. A decoy or early run is
+    the attacking side's player, so it is theirs when the moment is against the side.
     """
     metric = claim.operands[0].metric
     scorer = metric is Metric.GOALS and claim.operands[0].subject.kind is RefKind.PLAYER
+    if metric in _RUNS:  # the attacking side's player, on a goal or a chance alike (Q48)
+        return side == "against"
     if moment.type is MomentType.GOAL:
         if side == "for":
             return metric in _LOSSES
@@ -326,7 +337,8 @@ def _for_a_supporter(claim: Claim, moment: Moment, side: str | None) -> bool:
 
     A goal: the score it left, who scored, who set it up, and who gave the ball away for it. A
     chance: the run it is part of, and who saved or blocked it. A shift: what moved. For their
-    own side's attack, also how it was made: won straight back, switched, a quick combination.
+    own side's attack, also how it was made: won straight back, switched, a quick combination,
+    a decoy run, an overload, an early run (Q48).
     How far out the shot was is for the lenses that want the mechanism.
     """
     first = claim.operands[0]
@@ -342,8 +354,18 @@ def _for_a_supporter(claim: Claim, moment: Moment, side: str | None) -> bool:
 
 _GOAL_PEOPLE = frozenset({Metric.ASSIST, *_LOSSES})
 # How the side's own attack was made: told to a supporter for their side's goals and chances.
-_ATTACK = frozenset({Metric.REGAIN, Metric.SWITCH_OF_PLAY, Metric.COMBINATION})
+_ATTACK = frozenset(
+    {
+        Metric.REGAIN,
+        Metric.SWITCH_OF_PLAY,
+        Metric.COMBINATION,
+        Metric.DECOY_RUN,
+        Metric.OVERLOAD,
+        Metric.EARLY_RUN,
+    }
+)
 _STOPPERS = frozenset({Metric.SHOT_SAVED_BY, Metric.SHOT_BLOCKED_BY})
+_RUNS = frozenset({Metric.DECOY_RUN, Metric.EARLY_RUN})  # each names a player of the attack
 
 
 def _in_order(claims: tuple[Claim, ...], moment: Moment, lens: Lens, pick: int = 0) -> list[Claim]:

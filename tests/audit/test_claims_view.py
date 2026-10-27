@@ -154,8 +154,8 @@ def test_windows_and_clocks_read_as_minutes_and_seconds(mixed):
 
     [operand, *_] = _row(page, claims[0].claim_id).operands
 
-    assert operand.window == "00:00–18:54"  # 0 to 1_134_535 ms
-    assert page.moments[0].clock == "18:54"
+    assert operand.window == "00:00–19:11"  # 0 to 1_151_535 ms
+    assert page.moments[0].clock == "19:11"
     assert page.moments[0].moment_type == goal.moment.type.value
 
 

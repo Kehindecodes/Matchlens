@@ -48,6 +48,16 @@ class Settings(BaseSettings):
     claim_switch_min_m: float = 35.0  # a completed pass this far across the pitch is a switch
     claim_regain_max_ms: int = 8_000  # won back this soon after it was lost is a regain
     claim_combination_max_ms: int = 4_000  # pass, pass and shot inside this is a quick combination
+    # What the frames before a shot must show (Q48). Measured by Understanding, never by an agent.
+    movement_reach_m: float = 15.0  # an outfield player this close to the ball is in the overload
+    movement_decoy_ms: int = 4_000  # how far back before the shot a decoy run is looked for
+    movement_decoy_min_m: float = 4.0  # the decoy got this much farther from the shot, and the
+    # defender went this far with him, the same way (`movement_follow_cos`)
+    movement_follow_cos: float = 0.8
+    movement_marker_start_m: float = 8.0  # the defender started this close to the decoy
+    movement_marker_end_m: float = 6.0  # and finished this close
+    movement_early_ms: int = 2_000  # how far back before the final pass an early run is measured
+    movement_early_min_m: float = 6.0  # the shooter covered this much in it
     claim_strong_z: float = 2.0  # |z_match| for strong words: "much harder", "by far"
     wording_chance_run: int = 3  # a run of big chances is spoken from the third
     wording_quick_attack_ms: int = 20_000  # ball won in open play to the shot

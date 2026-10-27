@@ -1,5 +1,5 @@
 from matchlens.models.delivery_config import Lens, OverlayPacket, ProducerAction, ViewerSession
-from matchlens.models.derived import Epoch, Possession, ShotValue, SignalReading
+from matchlens.models.derived import Epoch, PositionReading, Possession, ShotValue, SignalReading
 from matchlens.models.editorial import (
     CheckResult,
     Claim,
@@ -18,6 +18,7 @@ from matchlens.models.enums import (
     Depth,
     DetailLevel,
     EpochTrigger,
+    Mechanism,
     Metric,
     MomentType,
     Outcome,
@@ -67,6 +68,7 @@ __all__ = [
     "Frame",
     "Lens",
     "Match",
+    "Mechanism",
     "Metric",
     "Moment",
     "MomentType",
@@ -77,6 +79,7 @@ __all__ = [
     "Phase",
     "Player",
     "PlayerPosition",
+    "PositionReading",
     "Possession",
     "PossessionOutcome",
     "ProducerAction",

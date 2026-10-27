@@ -105,6 +105,12 @@ def _read(claim: Claim, language: str) -> tuple[str, Mapping[str, str | None]] |
         return "regain", {}
     if metric is Metric.COMBINATION:
         return "combination", {}
+    if metric is Metric.OVERLOAD:
+        return "overload", {}
+    if metric is Metric.DECOY_RUN:
+        return "decoy", {}
+    if metric is Metric.EARLY_RUN:
+        return "early", {}
     if metric is Metric.ASSIST:
         return "assist", {}
     if metric is Metric.SHOT_SAVED_BY:
