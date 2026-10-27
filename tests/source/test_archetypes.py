@@ -23,13 +23,16 @@ from tests.source.helpers import Played, played, reader, split
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 SEEDS = (1, 2, 3)
-METRICS = ("shots", "home_pass_share", "goals", "fouls")
+# `home_shot_share` since Q50: the decoy runs (Q48) narrowed the one-sided side's pass share to
+# within seed spread of the comeback's, and who takes the shots is what a one-sided match means.
+METRICS = ("shots", "home_pass_share", "home_shot_share", "goals", "fouls")
 
 
 @dataclass(frozen=True)
 class Summary:
     shots: int
     home_pass_share: float
+    home_shot_share: float
     goals: int
     fouls: int
     home_goals: int
@@ -43,11 +46,13 @@ def _summary(match: Played) -> Summary:
     home = match.setup.match.teams[0].team_id
     passes = [e for e in match.events if e.action is Action.PASS]
     goals = [e for e in match.events if e.outcome is Outcome.GOAL]
+    shots = [e for e in match.events if e.action is Action.SHOT]
     possessions = sequence(reader(match), 0, match.end_clock_ms + 1)
     interval = match.frames[1].clock_ms - match.frames[0].clock_ms
     return Summary(
         shots=sum(e.action is Action.SHOT for e in match.events),
         home_pass_share=sum(e.team == home for e in passes) / len(passes),
+        home_shot_share=sum(e.team == home for e in shots) / len(shots),
         goals=len(goals),
         fouls=sum(e.action is Action.FOUL for e in match.events),
         home_goals=sum(e.team == home for e in goals),

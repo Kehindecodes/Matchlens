@@ -39,7 +39,7 @@ Newest at the top. Kehinde answers inline and moves the resolved ones to `docs/D
 
 **What I would do if forced:** C, then A if C is not enough: it keeps the demo's decoy runs.
 
-**Answer:**
+**Answer (Kehinde, 27 Oct):** C. The test now also compares `home_shot_share`, the home side's share of the shots (the away side's share read the other way), and every pair separates again: the slow archetype tests pass, 12 of 12. Nothing in the generator, the priors or the demo changed. The slow suite also moved to its own workflow (`slow.yml`), so it no longer gates the deploy, which follows CI alone.
 
 ---
 
