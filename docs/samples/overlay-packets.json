@@ -1,43 +1,43 @@
 [
   {
-    "packet_id": "moment-m-1-e1116:match_analyst:overlay",
-    "rendition_id": "moment-m-1-e1116:match_analyst",
-    "display_at_clock": 3288035,
-    "duration_ms": 5000,
-    "template": "lower_third",
-    "payload": {
-      "headline": "Chance: Riverside Athletic",
-      "clock": "54:48",
-      "body": "Won in midfield, a patient move: 15 passes over 34 s, from 3.9 m."
-    }
-  },
-  {
-    "packet_id": "moment-m-1-epoch4-possession_control-m-1-home-3600000:match_analyst:overlay",
-    "rendition_id": "moment-m-1-epoch4-possession_control-m-1-home-3600000:match_analyst",
-    "display_at_clock": 3600000,
+    "packet_id": "moment-m-1-epoch4-possession_control-m-1-home-3780000:match_analyst:overlay",
+    "rendition_id": "moment-m-1-epoch4-possession_control-m-1-home-3780000:match_analyst",
+    "display_at_clock": 3780000,
     "duration_ms": 5500,
     "template": "stat_bar",
     "payload": {
       "headline": "Riverside Athletic are seeing more of the ball than their norm.",
-      "clock": "60:00",
+      "clock": "63:00",
       "label": "share of the passes",
       "team": "Riverside Athletic",
-      "value": "73%",
+      "value": "72%",
       "other": "Redfern United",
-      "other_value": "27%"
+      "other_value": "28%"
     }
   },
   {
-    "packet_id": "moment-m-1-e1795:team_engaged:overlay",
-    "rendition_id": "moment-m-1-e1795:team_engaged",
-    "display_at_clock": 5358535,
-    "duration_ms": 5000,
+    "packet_id": "moment-m-1-e1434:match_analyst:overlay",
+    "rendition_id": "moment-m-1-e1434:match_analyst",
+    "display_at_clock": 4309035,
+    "duration_ms": 6500,
+    "template": "lower_third",
+    "payload": {
+      "headline": "Riverside Athletic keep creating chances",
+      "clock": "71:49",
+      "body": "Riverside Athletic have 4 big chances in the last 10 minutes, and Kofi Rennov drew a defender 17.1 m away."
+    }
+  },
+  {
+    "packet_id": "moment-m-1-e1649:team_engaged:overlay",
+    "rendition_id": "moment-m-1-e1649:team_engaged",
+    "display_at_clock": 5121535,
+    "duration_ms": 6000,
     "template": "team_card",
     "payload": {
-      "headline": "Riverside Athletic take the lead",
-      "clock": "89:18",
+      "headline": "VAR takes the goal away from Riverside Athletic",
+      "clock": "85:21",
       "team": "Riverside Athletic",
-      "body": "Riverside Athletic lead 3–2."
+      "body": "Dale Ashley was offside, and the goal is taken away. Level at 2–2."
     }
   }
 ]

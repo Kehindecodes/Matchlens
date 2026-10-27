@@ -84,9 +84,10 @@ def test_focus_player_is_null_on_every_lens():
     assert [lens.focus_player for lens in lenses.all_lenses()] == [None, None, None]
 
 
-def test_breakthrough_types_are_goals_only():
+def test_breakthrough_types_are_goals_and_goals_ruled_out():
+    """A goal VAR rules out moves the score as much as the goal did (Q49)."""
     for lens in lenses.all_lenses():
-        assert lens.breakthrough_types == (MomentType.GOAL,)
+        assert lens.breakthrough_types == (MomentType.GOAL, MomentType.GOAL_DISALLOWED)
 
 
 def test_every_depth_hears_comparisons():

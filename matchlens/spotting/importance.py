@@ -14,6 +14,7 @@ from matchlens.models import MomentType, SignalReading
 
 _WEIGHTS = {
     MomentType.GOAL: settings.importance_goal,
+    MomentType.GOAL_DISALLOWED: settings.importance_goal,  # as much as the goal it took back
     MomentType.CHANCE: settings.importance_chance,
     MomentType.TACTICAL_SHIFT: settings.importance_tactical_shift,
 }

@@ -248,7 +248,10 @@ def main(argv: list[str] | None = None) -> int:
             if not isinstance(item, Event):
                 continue
             last = item.clock_ms
-            if item.outcome is Outcome.GOAL and item.team in score:
+            if item.action is Action.VAR_OVERTURNED and item.team in score:
+                score[item.team] -= 1
+                print(f"{_mmss(item.clock_ms)}  VAR   goal ruled out ({item.var_reason})")
+            elif item.outcome is Outcome.GOAL and item.team in score:
                 score[item.team] += 1
                 tally = (
                     f"{shorts[home.team_id]} {score[home.team_id]}-{score[away.team_id]} "

@@ -26,17 +26,17 @@ from matchlens.models import (
     Metric,
     Moment,
     Operand,
-    Outcome,
     Ref,
     RefKind,
     SignalReading,
+    standing_goals,
 )
 from matchlens.understanding.possession import from_events
 from matchlens.understanding.shot_value import is_shot, value
 
 logger = logging.getLogger(__name__)
 
-PROMPT_VERSION = "explainer-4"  # bump by hand whenever the instructions or the digest change
+PROMPT_VERSION = "explainer-5"  # bump by hand whenever the instructions or the digest change
 
 
 class Answer(NamedTuple):
@@ -158,7 +158,7 @@ def digest(moment: Moment, log: FrozenLog, made: Sequence[Claim]) -> str:
             | {"triggers": sorted(triggers)},
             "teams": [{"team_id": t.team_id, "name": t.name} for t in match.teams],
             "epochs": [e.model_dump(mode="json") for e in log.epochs if e.epoch_id in epochs],
-            "goals": [_shot(e, match) for e in log.events if e.outcome is Outcome.GOAL],
+            "goals": [_shot(e, match) for e in standing_goals(log.events)],
             "shots": [
                 _shot(e, match) for e in log.events if is_shot(e) and e.clock_ms > chances_from
             ],

@@ -18,10 +18,10 @@ DOCUMENT = json.loads(PRIORS_PATH.read_text())
 # What `GENERATOR_VERSION` currently generates, seed 1 of each archetype. If one of these moves,
 # the generator changed: bump the version, update the digests and rebuild the priors.
 DIGESTS = {
-    "comeback": "828b8ea241c7d585",
-    "one_sided": "df34284309ef545c",
-    "scrappy": "681a4915fbc3988e",
-    "tight": "c16cac92f71ce54c",
+    "comeback": "2e747ca6ab4dd5a3",
+    "one_sided": "2ab125c4dbb980f3",
+    "scrappy": "62bdb2c3df12c46c",
+    "tight": "6b0587e5e1c15159",
 }
 
 
@@ -101,12 +101,12 @@ def test_placeholders_are_left_out_and_empty_chance_quality_is_kept():
 
 
 def test_the_generator_version_pins_what_the_comeback_generates():
-    assert (GENERATOR_VERSION, _digest("comeback")) == ("generator-2", DIGESTS["comeback"])
+    assert (GENERATOR_VERSION, _digest("comeback")) == ("generator-3", DIGESTS["comeback"])
 
 
 @pytest.mark.slow
 def test_the_generator_version_pins_every_archetype():
-    assert GENERATOR_VERSION == "generator-2"
+    assert GENERATOR_VERSION == "generator-3"
     assert {a: _digest(a) for a in sorted(ARCHETYPES)} == DIGESTS
 
 

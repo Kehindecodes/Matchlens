@@ -74,11 +74,14 @@ def test_the_comeback_is_untouched():
 
 
 def test_the_comeback_is_byte_identical_to_before_retention():
-    """Q16: retention defaults to 0 and leaves the comeback exactly as `generator-2` plays it."""
+    """Q16: retention defaults to 0 and leaves the comeback exactly as `generator-3` plays it.
+
+    `generator-3` plays the same comeback as `generator-2`; the digest moved only because every
+    event now serialises the two VAR fields, null here (Q49)."""
     digest = hashlib.sha256()
     for item in played("comeback", 1).items:
         digest.update(item.model_dump_json().encode())
-    assert digest.hexdigest()[:16] == "828b8ea241c7d585"
+    assert digest.hexdigest()[:16] == "2e747ca6ab4dd5a3"
 
 
 def test_retention_gives_the_one_sided_match_real_possession_dominance():

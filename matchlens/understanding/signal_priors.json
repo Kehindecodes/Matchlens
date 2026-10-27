@@ -1,29 +1,29 @@
 {
-  "generator_version": "generator-2",
+  "generator_version": "generator-3",
   "priors": [
     {
-      "generator_version": "generator-2",
+      "generator_version": "generator-3",
       "mean": 0.5,
       "sample_size": 3556,
       "signal": "territory",
       "stddev": 0.3704933209420297
     },
     {
-      "generator_version": "generator-2",
+      "generator_version": "generator-3",
       "mean": 0.5,
       "sample_size": 3666,
       "signal": "possession_control",
       "stddev": 0.16017342561902306
     },
     {
-      "generator_version": "generator-2",
+      "generator_version": "generator-3",
       "mean": 5.843713119164803,
       "sample_size": 3653,
       "signal": "pressing_intensity",
       "stddev": 4.009930864621277
     },
     {
-      "generator_version": "generator-2",
+      "generator_version": "generator-3",
       "mean": 0.1050636039000161,
       "sample_size": 3792,
       "signal": "chance_quality",

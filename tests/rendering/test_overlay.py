@@ -56,9 +56,9 @@ def seed_one() -> list[Card]:
 # One packet of each template, chosen for the submission. The team card is the team lens's, so
 # the sample shows a goal told from the side a viewer follows.
 SAMPLED = (
-    "moment-m-1-e1116:match_analyst",  # lower third: a chance from a patient move, 54:48
-    "moment-m-1-epoch4-possession_control-m-1-home-3600000:match_analyst",  # stat bar, 60:00
-    "moment-m-1-e1795:team_engaged",  # team card: the 3-2 counter, told for the side, 89:18
+    "moment-m-1-e1434:match_analyst",  # lower third: a decoy run before a chance, 71' (Q48)
+    "moment-m-1-epoch4-possession_control-m-1-home-3780000:match_analyst",  # stat bar, 63:00
+    "moment-m-1-e1649:team_engaged",  # team card: the goal VAR rules out, for the side, 85' (Q49)
 )
 
 

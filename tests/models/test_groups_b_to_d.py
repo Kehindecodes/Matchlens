@@ -44,9 +44,9 @@ def test_group_b_to_d_enum_values_match_the_data_model():
         "territory", "possession_control", "pressing_intensity", "chance_quality", "line_height",
     }  # fmt: skip
     assert {t.value for t in Trend} == {"rising", "falling", "steady"}
-    assert {t.value for t in EpochTrigger} == {"goal", "red_card", "half_time"}
+    assert {t.value for t in EpochTrigger} == {"goal", "red_card", "half_time", "var_overturn"}
     assert {t.value for t in MomentType} == {
-        "goal", "chance", "tactical_shift", "milestone", "pattern",
+        "goal", "goal_disallowed", "chance", "tactical_shift", "milestone", "pattern",
     }  # fmt: skip
     assert {t.value for t in ClaimType} == {"descriptive", "comparative", "interpretive"}
     assert {s.value for s in Scope} == {"match", "team", "player"}

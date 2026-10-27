@@ -67,7 +67,7 @@ def _shape(
 ) -> tuple[OverlayTemplate, Payload]:
     assert rendition.headline is not None and rendition.body is not None  # a shown rendition
     text: Payload = {"headline": rendition.headline, "clock": clock(moment.clock_ms)}
-    if moment.type is MomentType.GOAL:
+    if moment.type in (MomentType.GOAL, MomentType.GOAL_DISALLOWED):
         team = names[moment.subject.id]
         return OverlayTemplate.TEAM_CARD, text | {"team": team, "body": rendition.body}
     for claim in spoken:

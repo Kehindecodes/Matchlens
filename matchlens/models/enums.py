@@ -36,6 +36,8 @@ class Action(StrEnum):
     PERIOD_START = "period_start"
     PERIOD_END = "period_end"
     ADDED_TIME_ANNOUNCED = "added_time_announced"
+    # A correction (D4): the goal it names no longer stands. The goal event is not edited.
+    VAR_OVERTURNED = "var_overturned"
 
 
 class Outcome(StrEnum):
@@ -112,6 +114,15 @@ class EpochTrigger(StrEnum):
     GOAL = "goal"
     RED_CARD = "red_card"
     HALF_TIME = "half_time"
+    VAR_OVERTURN = "var_overturn"  # a goal ruled out: the score goes back (Q49)
+
+
+class VarReason(StrEnum):
+    """Why VAR ruled a goal out (Q49)."""
+
+    OFFSIDE = "offside"
+    FOUL = "foul"
+    HANDBALL = "handball"
 
 
 # --- group C: editorial output -------------------------------------------------------------------
@@ -119,6 +130,7 @@ class EpochTrigger(StrEnum):
 
 class MomentType(StrEnum):
     GOAL = "goal"
+    GOAL_DISALLOWED = "goal_disallowed"  # a goal VAR ruled out, fired on the overturn (Q49)
     CHANCE = "chance"
     TACTICAL_SHIFT = "tactical_shift"
     MILESTONE = "milestone"
@@ -151,6 +163,10 @@ class Metric(StrEnum):
     OVERLOAD = "overload"  # outfield players within reach of the ball as the final pass went
     DECOY_RUN = "decoy_run"  # metres a team-mate's run took a defender with him before the shot
     EARLY_RUN = "early_run"  # metres the shooter covered in the moments before the pass to him
+    # 1 for the scorer whose goal VAR overturned, for that reason (Q49)
+    RULED_OUT_OFFSIDE = "ruled_out_offside"
+    RULED_OUT_FOUL = "ruled_out_foul"
+    RULED_OUT_HANDBALL = "ruled_out_handball"
 
 
 class ClaimType(StrEnum):

@@ -20,13 +20,14 @@ from matchlens.models import (
     Ref,
     RefKind,
     SignalReading,
+    standing_goals,
 )
 from matchlens.spotting.importance import goal_magnitude, importance, shift_magnitude
 from matchlens.spotting.suppression import Suppression
 from matchlens.understanding.shot_value import is_shot, value
 
 MODEL = "spotter-rules"
-MODEL_VERSION = "spotter-1"
+MODEL_VERSION = "spotter-2"
 
 tracer = trace.get_tracer(__name__)
 
@@ -39,7 +40,8 @@ class SpotterResult:
 
 
 class Spotter:
-    """Fires a moment for a goal, a chance, or a signal's `z_match` crossing the threshold.
+    """Fires a moment for a goal, a goal VAR rules out, a chance, or a signal's `z_match`
+    crossing the threshold.
 
     No model is involved: the judgement is a threshold on z-scores, gated by confidence and by
     how much of the match the window has seen, so it says nothing in the minutes after a break,
@@ -96,7 +98,19 @@ class Spotter:
             return None
         triggers = (event.event_id,)
         shot = event
-        if event.outcome is Outcome.GOAL:
+        if event.action is Action.VAR_OVERTURNED:
+            # Fired on the overturn, citing it and the goal (Q49). It matters as much as the goal
+            # did: the score it gave and has now taken back.
+            goal = next(
+                (e for e in self._record().events_between(0, event.clock_ms + 1)
+                 if e.event_id == event.overturns),
+                None,
+            )  # fmt: skip
+            if goal is None:
+                return None
+            triggers = (event.event_id, goal.event_id)
+            type_, magnitude = MomentType.GOAL_DISALLOWED, self._goal_magnitude(goal)
+        elif event.outcome is Outcome.GOAL:
             type_, magnitude = MomentType.GOAL, self._goal_magnitude(event)
         elif event.action in (Action.SAVE, Action.BLOCK):
             # A shot that was stopped is spotted when it is stopped, a moment later, because who
@@ -162,9 +176,7 @@ class Spotter:
 
     def _goal_magnitude(self, goal: Event) -> float:
         """How much `goal` matters, from the score it leaves, read from the log before it."""
-        before = [
-            e for e in self._record().events_between(0, goal.clock_ms) if e.outcome is Outcome.GOAL
-        ]
+        before = standing_goals(self._record().events_between(0, goal.clock_ms))
         scored = sum(e.team == goal.team for e in before) + 1
         return goal_magnitude(scored, len(before) - (scored - 1))
 

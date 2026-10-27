@@ -10,6 +10,8 @@ Minutes are elapsed match-clock minutes. Piecewise-linear schedules interpolate 
 from dataclasses import dataclass
 from typing import Literal
 
+from matchlens.models import VarReason
+
 Side = Literal["home", "away"]
 Schedule = tuple[tuple[float, float], ...]  # (minute, value)
 
@@ -21,6 +23,17 @@ class GoalPlan:
 
     minute: float  # not before; jittered by the seed
     side: Side
+
+
+@dataclass(frozen=True)
+class RuledOutPlan:
+    """A goal the generator scores and VAR then rules out (Q49). The minute is not jittered, so
+    adding one draws nothing from the seed and the match before it is unchanged."""
+
+    minute: float
+    side: Side
+    reason: VarReason
+    review_seconds: float = 70.0  # from the goal to the overturn
 
 
 @dataclass(frozen=True)
@@ -53,6 +66,7 @@ class ArchetypeParams:
     # side's passes and carries. 0, the default, leaves the match exactly as without it.
     home_retention: Schedule = ((0, 0.0),)
     away_retention: Schedule = ((0, 0.0),)
+    ruled_out: tuple[RuledOutPlan, ...] = ()
 
 
 # The demo narrative. Away score first on a counter while home are on top; home level while
@@ -112,6 +126,8 @@ REMONTADA = ArchetypeParams(
         GoalPlan(78, "home"),
         GoalPlan(89, "home"),
     ),
+    # Home think they have completed the comeback at 3–2, and VAR takes it back to 2–2 (Q49).
+    ruled_out=(RuledOutPlan(84, "home", VarReason.OFFSIDE),),
     subs=(
         SubPlan("away", 60.0, ("MF",)),
         SubPlan("home", 58.0, ("FW", "MF")),

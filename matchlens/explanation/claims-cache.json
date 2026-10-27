@@ -1,171 +1,276 @@
 {
- "0557ad9690613c6946c140c7880bfd27e2d959d7fece4b3ee297d63b0f22f68a": {
-  "text": "{\"text\":\"\"}",
+ "0649e4c2dc673b6807601082c6499b09b1b6add743da24681f553abd82f0713f": {
+  "text": "{\"claims\":[{\"claim_type\":\"descriptive\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"chance_quality\",\"window\":{\"start_ms\":1980000,\"end_ms\":2280000},\"value\":1.368410818801,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch1-chance_quality-m-1-away-2280000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"descriptive\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"chance_quality\",\"window\":{\"start_ms\":1980000,\"end_ms\":2280000},\"value\":0.0,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch1-chance_quality-m-1-home-2280000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"territory\",\"window\":{\"start_ms\":1980000,\"end_ms\":2280000},\"value\":0.9,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch1-territory-m-1-away-2280000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"territory\",\"window\":{\"start_ms\":1980000,\"end_ms\":2280000},\"value\":0.1,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch1-territory-m-1-home-2280000\"}]}],\"backing_reading\":null,\"threshold\":null}]}",
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },
- "07f494f32165286b1d2f9c0482b83848a592dbd0f8360d3b1a8eac497424dca7": {
-  "text": "{\"claims\":[{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"territory\",\"window\":{\"start_ms\":3120000,\"end_ms\":3420000},\"value\":1.0,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch3-territory-m-1-home-3420000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"territory\",\"window\":{\"start_ms\":3120000,\"end_ms\":3420000},\"value\":0.0,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch3-territory-m-1-away-3420000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"descriptive\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"chances\",\"window\":{\"start_ms\":2785535,\"end_ms\":3479535},\"value\":2,\"evidence_ids\":[{\"kind\":\"event\",\"id\":\"m-1-e1042\"},{\"kind\":\"event\",\"id\":\"m-1-e1052\"},{\"kind\":\"event\",\"id\":\"m-1-e1074\"},{\"kind\":\"event\",\"id\":\"m-1-e1116\"},{\"kind\":\"event\",\"id\":\"m-1-e1164\"},{\"kind\":\"event\",\"id\":\"m-1-e1172\"}]}],\"backing_reading\":null,\"threshold\":null}]}",
+ "081b2cc85dde5ad4cf19404827bc42f4daeb6c2408389cacc1d488468c9e9472": {
+  "text": "{\"text\":\"Won in own third; quick attack, 5 passes in 15 s; combination, 3 players in 3 s.\"}",
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },
- "10780f95e3eaa340b451f76b099673ea932ce40909f420394d7fdbf573375725": {
-  "text": "{\"text\":\"Blocked by Arlo Gorstow, ball won in midfield after a patient move: 15 passes over 34 s.\"}",
+ "132968f0f1deb840b05d15b73492424e3ff98b1dc81f4975c1e22398b8392f8c": {
+  "text": "{\"text\":\"Riverside Athletic have their third big chance in ten minutes.\"}",
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },
- "11fde9c2848070ad8e4572a33e697849eefe2828a5a58efb2d59aea68e6ceef3": {
-  "text": "{\"text\":\"Won in own third, with a quick attack of 8 passes in 20 s and assist from Finn Norham.\"}",
+ "17412fc81acc4a755486ef1cbd960e436aa4228df5985d889cc6e3d6495c4c4f": {
+  "text": "{\"text\":\"It comes from Luka Savford, set up by Arlo Lorwick.\"}",
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },
- "1c937d8cdb9a7ee69adb80212262a46e78ca15e866ed1ca8b1b33dcb6ec126f6": {
-  "text": "{\"claims\":[{\"claim_type\":\"descriptive\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":420000,\"end_ms\":720000},\"value\":0.4117647058823529,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch0-possession_control-m-1-home-720000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"territory\",\"window\":{\"start_ms\":420000,\"end_ms\":720000},\"value\":1.0,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch0-territory-m-1-away-720000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"territory\",\"window\":{\"start_ms\":420000,\"end_ms\":720000},\"value\":0.0,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch0-territory-m-1-home-720000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"interpretive\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"territory\",\"window\":{\"start_ms\":420000,\"end_ms\":720000},\"value\":1.0,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch0-territory-m-1-away-720000\"}]}],\"backing_reading\":{\"kind\":\"reading\",\"id\":\"m-1-epoch0-territory-m-1-away-720000\"},\"threshold\":1.25}]}",
+ "1a06c434b0cf4bd40d41b876d4b1210014b2e755b369904c8cd94e1d72fec06c": {
+  "text": "{\"text\":\"Riverside Athletic lead 3\u20132, and Dale Ashley is the scorer; they won it back within 7 seconds of losing it.\"}",
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },
- "2ccff1a7cdcd3ce2943179dff00101af57cc00a456feffeb201180113c2da9cc": {
-  "text": "{\"text\":\"Gideon Corlan's first of the match was from 12.7 m, and Redfern United goals so far: 2.\"}",
+ "2388c4e08299b11af440af8bfc4e7f39c21fce0bdcb4791ea4dde62a8c8f7ee7": {
+  "text": "{\"text\":\"Ball won in midfield, regained in 7 s, quick attack: 4 passes in 15 s.\"}",
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },
- "2e710073461065cfd94ae215570be92c40422866cf1bafe5e8a08f517b5729d4": {
-  "text": "{\"text\":\"Ball won in the final third, shot from 3.3 m.\"}",
+ "2469d45279171372590049476a375a748a5937f757822130032a23cf4f6a595c": {
+  "text": "{\"text\":\"Joao Torhart was already on the move before the pass.\"}",
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },
- "38d30d6fa369e292ad76dc5c20f973b5bd72c626e1d8ef2c643b2bea9f09fe0d": {
-  "text": "{\"claims\":[{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"territory\",\"window\":{\"start_ms\":4260000,\"end_ms\":4560000},\"value\":0.875,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch4-territory-m-1-home-4560000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"territory\",\"window\":{\"start_ms\":4260000,\"end_ms\":4560000},\"value\":0.125,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch4-territory-m-1-away-4560000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"pressing_intensity\",\"window\":{\"start_ms\":4260000,\"end_ms\":4560000},\"value\":8.333333333333334,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch4-pressing_intensity-m-1-home-4560000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"pressing_intensity\",\"window\":{\"start_ms\":4260000,\"end_ms\":4560000},\"value\":6.0,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch4-pressing_intensity-m-1-away-4560000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"interpretive\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"pressing_intensity\",\"window\":{\"start_ms\":4260000,\"end_ms\":4560000},\"value\":8.333333333333334,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch4-pressing_intensity-m-1-home-4560000\"}]}],\"backing_reading\":{\"kind\":\"reading\",\"id\":\"m-1-epoch4-pressing_intensity-m-1-home-4560000\"},\"threshold\":1.25}]}",
+ "2574d200d3225d37bd6db5a27b2ec4e538f21a42e68697b9f037fdc1d616038c": {
+  "text": "{\"claims\":[{\"claim_type\":\"descriptive\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"territory\",\"window\":{\"start_ms\":3120000,\"end_ms\":3420000},\"value\":1.0,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch3-territory-m-1-home-3420000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"descriptive\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"pressing_intensity\",\"window\":{\"start_ms\":3120000,\"end_ms\":3420000},\"value\":14.0,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch3-pressing_intensity-m-1-away-3420000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"territory\",\"window\":{\"start_ms\":3120000,\"end_ms\":3420000},\"value\":1.0,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch3-territory-m-1-home-3420000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"territory\",\"window\":{\"start_ms\":3120000,\"end_ms\":3420000},\"value\":0.0,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch3-territory-m-1-away-3420000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":3120000,\"end_ms\":3420000},\"value\":0.6081081081081081,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch3-possession_control-m-1-home-3420000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":3120000,\"end_ms\":3420000},\"value\":0.3918918918918919,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch3-possession_control-m-1-away-3420000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"interpretive\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"pressing_intensity\",\"window\":{\"start_ms\":3120000,\"end_ms\":3420000},\"value\":14.0,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch3-pressing_intensity-m-1-away-3420000\"}]}],\"backing_reading\":{\"kind\":\"reading\",\"id\":\"m-1-epoch3-pressing_intensity-m-1-away-3420000\"},\"threshold\":2.0}]}",
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },
- "4c79398c4cde3185febed44662dafec02c934d3ec8bb4f2fffeb458885c481a7": {
-  "text": "{\"claims\":[{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":4601035,\"end_ms\":4680000},\"value\":1.0,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch5-possession_control-m-1-away-4680000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":4601035,\"end_ms\":4680000},\"value\":0.0,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch5-possession_control-m-1-home-4680000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"interpretive\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":4601035,\"end_ms\":4680000},\"value\":1.0,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch5-possession_control-m-1-away-4680000\"}]}],\"backing_reading\":{\"kind\":\"reading\",\"id\":\"m-1-epoch5-possession_control-m-1-away-4680000\"},\"threshold\":2.0},{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"pressing_intensity\",\"window\":{\"start_ms\":4601035,\"end_ms\":4680000},\"value\":1.0,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch5-pressing_intensity-m-1-home-4680000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"pressing_intensity\",\"window\":{\"start_ms\":4601035,\"end_ms\":4680000},\"value\":6.0,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch5-pressing_intensity-m-1-away-4680000\"}]}],\"backing_reading\":null,\"threshold\":null}]}",
+ "28165c72d01409de5a631344e7b32eb374e53ef51401aa8dd5fe2e78113b36ea": {
+  "text": "{\"claims\":[{\"claim_type\":\"interpretive\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"pressing_intensity\",\"window\":{\"start_ms\":5121535,\"end_ms\":5280000},\"value\":11.0,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch7-pressing_intensity-m-1-away-5280000\"}]}],\"backing_reading\":{\"kind\":\"reading\",\"id\":\"m-1-epoch7-pressing_intensity-m-1-away-5280000\"},\"threshold\":1.25},{\"claim_type\":\"descriptive\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":5121535,\"end_ms\":5280000},\"value\":0.3,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch7-possession_control-m-1-away-5280000\"}]}],\"backing_reading\":null,\"threshold\":null}]}",
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },
- "523daca68b1c69fc4dc4dabcd51c83e2c48aa1a3c36814250500d3d68b3429f3": {
-  "text": "{\"text\":\"Ball won in midfield, with a quick attack: 5 passes in 12 s, assist: Elio Bromont.\"}",
+ "3b755a54f115469a27ee6ef8eee5bb7898e01c7f1426d18361b8831fa7f16def": {
+  "text": "{\"text\":\"It was Sami Orsner.\"}",
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },
- "5a28db1b59f4678adc6dc562fa371c134729825291b076523bf4d39aad2f3620": {
-  "text": "{\"text\":\"Arlo Lorwick was set up by Sami Orsner.\"}",
+ "420fde365306beddb4c5de58c98b4c85a3f40fc4579d8671853702d3c966fec9": {
+  "text": "{\"text\":\"That is Riverside Athletic's fourth big chance in ten minutes.\"}",
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },
- "5ccba41096bcd89220520493c01c4dd094189e9489e4592f2368c3db63a1e186": {
-  "text": "{\"text\":\"A high-quality chance from 5.4 m.\"}",
+ "42c068cccd7e027cdf1fee6d7b849c46e4f26047eb5b304baeb6c464bdcb4ab2": {
+  "text": "{\"text\":\"Riverside Athletic lead 3\u20132, with Luka Savford's second goal today set up by Dale Ashley.\"}",
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },
- "6ae19b0ec74b384e92aecf8eb4c58fc2416d51ff239256d4475b42b816a9a717": {
-  "text": "{\"claims\":[{\"claim_type\":\"descriptive\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":764535,\"end_ms\":900000},\"value\":0.46153846153846156,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch1-possession_control-m-1-away-900000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":764535,\"end_ms\":900000},\"value\":0.46153846153846156,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch1-possession_control-m-1-away-900000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":764535,\"end_ms\":900000},\"value\":0.5384615384615384,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch1-possession_control-m-1-home-900000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"interpretive\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"territory\",\"window\":{\"start_ms\":420000,\"end_ms\":720000},\"value\":1.0,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch0-territory-m-1-away-720000\"}]}],\"backing_reading\":{\"kind\":\"reading\",\"id\":\"m-1-epoch0-territory-m-1-away-720000\"},\"threshold\":1.25}]}",
+ "4ae2a373979e0543c607c1aa7f3957329f88657584cc8ae30ed849582f5b894d": {
+  "text": "{\"claims\":[{\"claim_type\":\"interpretive\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"chance_quality\",\"window\":{\"start_ms\":3660000,\"end_ms\":3960000},\"value\":0.611857142806,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch4-chance_quality-m-1-home-3960000\"}]}],\"backing_reading\":{\"kind\":\"reading\",\"id\":\"m-1-epoch4-chance_quality-m-1-home-3960000\"},\"threshold\":2.0}]}",
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },
- "6ccf5c756d8bd45e351bcd60b25ad74782ba8c7e2f0f2a0e493bcea97fb13488": {
-  "text": "{\"text\":\"Kofi Rennov set it up.\"}",
+ "4fed30d9b1a3027cd77cd2e1a955ba1f68360e28487cb1515a0bf277b18ab3c8": {
+  "text": "{\"text\":\"Ball won in midfield, with a 4 v 3 overload around the ball as the final pass was played.\"}",
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },
- "6d6904537c0de56e95a5d53b1292a96ec22af42fddfd48b3ff45133d4848c16b": {
-  "text": "{\"claims\":[{\"claim_type\":\"descriptive\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"build_up_passes\",\"window\":{\"start_ms\":3749035,\"end_ms\":3766535},\"value\":6,\"evidence_ids\":[{\"kind\":\"event\",\"id\":\"m-1-e1268\"},{\"kind\":\"event\",\"id\":\"m-1-e1269\"},{\"kind\":\"event\",\"id\":\"m-1-e1270\"},{\"kind\":\"event\",\"id\":\"m-1-e1271\"},{\"kind\":\"event\",\"id\":\"m-1-e1272\"},{\"kind\":\"event\",\"id\":\"m-1-e1273\"},{\"kind\":\"event\",\"id\":\"m-1-e1274\"},{\"kind\":\"event\",\"id\":\"m-1-e1275\"},{\"kind\":\"event\",\"id\":\"m-1-e1276\"},{\"kind\":\"event\",\"id\":\"m-1-e1277\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":3479535,\"end_ms\":3720000},\"value\":0.7727272727272727,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch4-possession_control-m-1-home-3720000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":3479535,\"end_ms\":3720000},\"value\":0.22727272727272727,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch4-possession_control-m-1-away-3720000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"interpretive\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"territory\",\"window\":{\"start_ms\":3479535,\"end_ms\":3720000},\"value\":1.0,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch4-territory-m-1-home-3720000\"}]}],\"backing_reading\":{\"kind\":\"reading\",\"id\":\"m-1-epoch4-territory-m-1-home-3720000\"},\"threshold\":1.25}]}",
+ "51900a70438dbb5fb18bfcd36572f25f469d47d7283009fcb942ff587adb0307": {
+  "text": "{\"claims\":[{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"territory\",\"window\":{\"start_ms\":1260000,\"end_ms\":1560000},\"value\":0.5555555555555556,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch1-territory-m-1-home-1560000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"territory\",\"window\":{\"start_ms\":1260000,\"end_ms\":1560000},\"value\":0.4444444444444444,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch1-territory-m-1-away-1560000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"pressing_intensity\",\"window\":{\"start_ms\":1260000,\"end_ms\":1560000},\"value\":3.5,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch1-pressing_intensity-m-1-home-1560000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"pressing_intensity\",\"window\":{\"start_ms\":1260000,\"end_ms\":1560000},\"value\":20.0,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch1-pressing_intensity-m-1-away-1560000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"interpretive\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"pressing_intensity\",\"window\":{\"start_ms\":1260000,\"end_ms\":1560000},\"value\":20.0,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch1-pressing_intensity-m-1-away-1560000\"}]}],\"backing_reading\":{\"kind\":\"reading\",\"id\":\"m-1-epoch1-pressing_intensity-m-1-away-1560000\"},\"threshold\":2.0}]}",
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },
- "7c9bf53161cd92f15d005fdfb77b7d185c91b75b84f00ae0a0d05fa48de4963f": {
-  "text": "{\"text\":\"From close range.\"}",
+ "576d13fb11efc0c8a60c87588c0cef674d90de1daafb47fc44b23ef4d8628b5c": {
+  "text": "{\"claims\":[{\"claim_type\":\"descriptive\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":4624035,\"end_ms\":4680000},\"value\":0.5,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch5-possession_control-m-1-home-4680000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":4624035,\"end_ms\":4680000},\"value\":0.5,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch5-possession_control-m-1-home-4680000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":4624035,\"end_ms\":4680000},\"value\":0.5,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch5-possession_control-m-1-away-4680000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"interpretive\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"pressing_intensity\",\"window\":{\"start_ms\":4624035,\"end_ms\":4680000},\"value\":0.0,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch5-pressing_intensity-m-1-home-4680000\"}]}],\"backing_reading\":{\"kind\":\"reading\",\"id\":\"m-1-epoch5-pressing_intensity-m-1-home-4680000\"},\"threshold\":-1.25}]}",
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },
- "80a7b680a26c7c253ae6b946943f49f8461307bad8fa77abc5e6b8ffb1bcd709": {
-  "text": "{\"text\":\"Sami Orsner set it up.\"}",
-  "model": "gpt-5.4-mini",
-  "model_version": "gpt-5.4-mini-2026-03-17"
- },
- "8bc54bf5c9dd3acd8b1dbc04fac1360eef65c7719a6a51a9db10939268e50236": {
-  "text": "{\"text\":\"The ball was won in midfield and a shot from 3.6 m.\"}",
-  "model": "gpt-5.4-mini",
-  "model_version": "gpt-5.4-mini-2026-03-17"
- },
- "9363e37479afcec2e00b6231a79a94cb5034b19400c870a8fc1b164a33c3a946": {
-  "text": "{\"text\":\"Dale Drustow, after the ball was won in midfield, shot from 1.1 m.\"}",
-  "model": "gpt-5.4-mini",
-  "model_version": "gpt-5.4-mini-2026-03-17"
- },
- "9378c3a8d883365841ef77ac454d5bc794835ee1d1e505f39ea6879043545de5": {
-  "text": "{\"text\":\"Riverside Athletic lead 3\u20132, with Arlo Lorwick's second goal today set up by Finn Norham.\"}",
-  "model": "gpt-5.4-mini",
-  "model_version": "gpt-5.4-mini-2026-03-17"
- },
- "945301e00a396f9f0ffbe2ac2e97c4e3d84e275143ed90b2fac44784eaeeb4b1": {
-  "text": "{\"claims\":[{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"territory\",\"window\":{\"start_ms\":2400000,\"end_ms\":2700000},\"value\":0.875,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch2-territory-m-1-away-2700000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"territory\",\"window\":{\"start_ms\":2400000,\"end_ms\":2700000},\"value\":0.125,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch2-territory-m-1-home-2700000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"interpretive\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"pressing_intensity\",\"window\":{\"start_ms\":2400000,\"end_ms\":2700000},\"value\":16.0,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch2-pressing_intensity-m-1-home-2700000\"}]}],\"backing_reading\":{\"kind\":\"reading\",\"id\":\"m-1-epoch2-pressing_intensity-m-1-home-2700000\"},\"threshold\":2.0}]}",
-  "model": "gpt-5.4-mini",
-  "model_version": "gpt-5.4-mini-2026-03-17"
- },
- "99de914facc459343eab7898786276400d86d632667045008390aacb118677ba": {
-  "text": "{\"claims\":[{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"pressing_intensity\",\"window\":{\"start_ms\":2880000,\"end_ms\":3180000},\"value\":8.333333333333334,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch3-pressing_intensity-m-1-home-3180000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"pressing_intensity\",\"window\":{\"start_ms\":2880000,\"end_ms\":3180000},\"value\":7.333333333333333,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch3-pressing_intensity-m-1-away-3180000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"chance_quality\",\"window\":{\"start_ms\":2880000,\"end_ms\":3180000},\"value\":0.24383375776,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch3-chance_quality-m-1-home-3180000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"chance_quality\",\"window\":{\"start_ms\":2460000,\"end_ms\":2760000},\"value\":0.0,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch2-chance_quality-m-1-home-2760000\"}]}],\"backing_reading\":null,\"threshold\":null}]}",
-  "model": "gpt-5.4-mini",
-  "model_version": "gpt-5.4-mini-2026-03-17"
- },
- "9c4356f96f6ad8f97e986c01c3fc2a7aba613488eb290b3fc91c87bc37cbc0ff": {
-  "text": "{\"claims\":[{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":1980000,\"end_ms\":2280000},\"value\":0.391304347826087,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch1-possession_control-m-1-away-2280000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":1980000,\"end_ms\":2280000},\"value\":0.6086956521739131,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch1-possession_control-m-1-home-2280000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"territory\",\"window\":{\"start_ms\":1980000,\"end_ms\":2280000},\"value\":0.6666666666666666,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch1-territory-m-1-away-2280000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"territory\",\"window\":{\"start_ms\":1980000,\"end_ms\":2280000},\"value\":0.3333333333333333,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch1-territory-m-1-home-2280000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"pressing_intensity\",\"window\":{\"start_ms\":1980000,\"end_ms\":2280000},\"value\":5.857142857142857,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch1-pressing_intensity-m-1-away-2280000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"pressing_intensity\",\"window\":{\"start_ms\":1980000,\"end_ms\":2280000},\"value\":4.25,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch1-pressing_intensity-m-1-home-2280000\"}]}],\"backing_reading\":null,\"threshold\":null}]}",
-  "model": "gpt-5.4-mini",
-  "model_version": "gpt-5.4-mini-2026-03-17"
- },
- "a52d2575255c75b3fa7cf282d6a06dec41aabc161b0732818da143547070b968": {
-  "text": "{\"claims\":[{\"claim_type\":\"descriptive\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":2940000,\"end_ms\":3240000},\"value\":0.47761194029850745,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch3-possession_control-m-1-home-3240000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"territory\",\"window\":{\"start_ms\":2940000,\"end_ms\":3240000},\"value\":0.5555555555555556,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch3-territory-m-1-home-3240000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"territory\",\"window\":{\"start_ms\":2940000,\"end_ms\":3240000},\"value\":0.4444444444444444,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch3-territory-m-1-away-3240000\"}]}],\"backing_reading\":null,\"threshold\":null}]}",
-  "model": "gpt-5.4-mini",
-  "model_version": "gpt-5.4-mini-2026-03-17"
- },
- "c4b112d0e1f2afc55ea54b325287f40b84a5bbe6d59da8749f99715dff35750e": {
-  "text": "{\"text\":\"Gideon Corlan is the scorer.\"}",
-  "model": "gpt-5.4-mini",
-  "model_version": "gpt-5.4-mini-2026-03-17"
- },
- "c73bbdf84929756ab9eccf508dd4adca4368129122490e461f72bff887d193b4": {
-  "text": "{\"text\":\"Ball won in the final third, quick attack: 1 pass in 6 s, assist: Sami Orsner.\"}",
-  "model": "gpt-5.4-mini",
-  "model_version": "gpt-5.4-mini-2026-03-17"
- },
- "c76d97a1ea6f540da638d93fd34ae1af1583645d70aec3126d8c93a0b06124b6": {
-  "text": "{\"text\":\"Riverside Athletic trail 1\u20132, with Idris Gorstow set up by Kofi Rennov.\"}",
-  "model": "gpt-5.4-mini",
-  "model_version": "gpt-5.4-mini-2026-03-17"
- },
- "cd63084011dac6bb27654f0f995bbb00b71cf7c19458f08e64c2be498b613792": {
-  "text": "{\"text\":\"Ball won in the final third, with 2 passes in 8 s and assist Kofi Rennov.\"}",
-  "model": "gpt-5.4-mini",
-  "model_version": "gpt-5.4-mini-2026-03-17"
- },
- "d82ed6836e12f43f0ceb7d0956f880b1eef0dbeb86c8662fe16a56c3676309df": {
+ "598c67859c0512fa4819e85913332dc93b6e5c065da963400e068517ab356195": {
   "text": "{\"text\":\"Won back in midfield.\"}",
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },
- "e52ad5e4e2097da48902d5b1cb934273f5445e197e2c3829f436080abe05d8e5": {
-  "text": "{\"text\":\"Idris Lorwick gave it away.\"}",
+ "608e2fadf5b9c17a4e8fdc86dd261721e049a7d9f4e37a509c81dce066af1017": {
+  "text": "{\"claims\":[{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"territory\",\"window\":{\"start_ms\":1860000,\"end_ms\":2160000},\"value\":0.9,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch1-territory-m-1-away-2160000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"territory\",\"window\":{\"start_ms\":1860000,\"end_ms\":2160000},\"value\":0.1,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch1-territory-m-1-home-2160000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":1860000,\"end_ms\":2160000},\"value\":0.6326530612244898,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch1-possession_control-m-1-away-2160000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":1860000,\"end_ms\":2160000},\"value\":0.3673469387755102,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch1-possession_control-m-1-home-2160000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"interpretive\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"chance_quality\",\"window\":{\"start_ms\":1860000,\"end_ms\":2160000},\"value\":0.534175673397,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch1-chance_quality-m-1-away-2160000\"}]}],\"backing_reading\":{\"kind\":\"reading\",\"id\":\"m-1-epoch1-chance_quality-m-1-away-2160000\"},\"threshold\":2.0}]}",
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },
- "f4c0d07129fe83d6322d218c7a42fabd7732daa47e84df99a580740ed487f324": {
+ "6457731d470b680571cd2b0a91220743239d552a333dbcf555f31bfe1de5790c": {
+  "text": "{\"text\":\"Won back within 8 seconds of losing it.\"}",
+  "model": "gpt-5.4-mini",
+  "model_version": "gpt-5.4-mini-2026-03-17"
+ },
+ "6b0349309861d087438f8fd2ae1edf4b8d737f6ebb5a4c33575c74654139688f": {
+  "text": "{\"text\":\"Early run: Joao Torhart covered 9.1 m in the 2 s before the pass, with assist from Marek Fenric.\"}",
+  "model": "gpt-5.4-mini",
+  "model_version": "gpt-5.4-mini-2026-03-17"
+ },
+ "6d79dbc2ab55c14d110d1230af34847fc33d09ca01689ab7caf714919b8a9cc5": {
+  "text": "{\"claims\":[{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":3960000,\"end_ms\":4260000},\"value\":0.8333333333333334,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch4-possession_control-m-1-home-4260000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":3960000,\"end_ms\":4260000},\"value\":0.16666666666666666,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch4-possession_control-m-1-away-4260000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"pressing_intensity\",\"window\":{\"start_ms\":3960000,\"end_ms\":4260000},\"value\":2.3333333333333335,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch4-pressing_intensity-m-1-home-4260000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"pressing_intensity\",\"window\":{\"start_ms\":3960000,\"end_ms\":4260000},\"value\":4.0,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch4-pressing_intensity-m-1-away-4260000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"interpretive\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":3960000,\"end_ms\":4260000},\"value\":0.8333333333333334,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch4-possession_control-m-1-home-4260000\"}]}],\"backing_reading\":{\"kind\":\"reading\",\"id\":\"m-1-epoch4-possession_control-m-1-home-4260000\"},\"threshold\":1.25}]}",
+  "model": "gpt-5.4-mini",
+  "model_version": "gpt-5.4-mini-2026-03-17"
+ },
+ "72660f4eb5fef5300cc055d51954304811beffc1f77f638d3ae0d2f8312ec91e": {
+  "text": "{\"text\":\"Sami Orsner, his first of the match, a lower-quality chance from 15.7 m.\"}",
+  "model": "gpt-5.4-mini",
+  "model_version": "gpt-5.4-mini-2026-03-17"
+ },
+ "74d67943f90cc9c1c0edd1bbdb92e313b31d3d93941a3cc3df25ae5ccb270172": {
+  "text": "{\"text\":\"Won back deep in their own half.\"}",
+  "model": "gpt-5.4-mini",
+  "model_version": "gpt-5.4-mini-2026-03-17"
+ },
+ "789b6fd5902956f24197da27eaabe0974f744667592ec284f924333941e756f3": {
   "text": "{\"text\":\"Dale Drustow.\"}",
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },
- "f70a6237bd1c0b22e4b6790013fa249f7a7cc7fb5326b8cbdf80bb10366fd4e5": {
-  "text": "{\"text\":\"Riverside Athletic's third big chance in ten minutes.\"}",
+ "807228e85845d6d5b6d973a12d9ba39c7f9241c67b75f475c959b1d1d3a25abe": {
+  "text": "{\"text\":\"Riverside Athletic trail 1\u20132, with Sami Orsner.\"}",
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },
- "fdf8f13113a738a866be96f4b904ecbf8f3bda90515bf6a66005892afcfffc1e": {
-  "text": "{\"claims\":[{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"territory\",\"window\":{\"start_ms\":5040000,\"end_ms\":5340000},\"value\":0.42857142857142855,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch5-territory-m-1-home-5340000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"territory\",\"window\":{\"start_ms\":5040000,\"end_ms\":5340000},\"value\":0.5714285714285714,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch5-territory-m-1-away-5340000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":5040000,\"end_ms\":5340000},\"value\":0.5094339622641509,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch5-possession_control-m-1-home-5340000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":5040000,\"end_ms\":5340000},\"value\":0.49056603773584906,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch5-possession_control-m-1-away-5340000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"pressing_intensity\",\"window\":{\"start_ms\":5040000,\"end_ms\":5340000},\"value\":4.666666666666667,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch5-pressing_intensity-m-1-home-5340000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"pressing_intensity\",\"window\":{\"start_ms\":5040000,\"end_ms\":5340000},\"value\":3.75,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch5-pressing_intensity-m-1-away-5340000\"}]}],\"backing_reading\":null,\"threshold\":null}]}",
+ "8507941367015999429f430a6e6836d4330f5956b4acfbeaa09b99562aea4ee6": {
+  "text": "{\"text\":\"Luka Savford, after ball won in own third, with overload: 2 v 1 around the ball during the final pass.\"}",
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  },
- "feca3660ac60c445f99da6dc2bd3e707dbaa8b1ced1a4fd7e69eac3cc8c3c497": {
-  "text": "{\"text\":\"Riverside Athletic's third in ten minutes.\"}",
+ "8647cfc807c85249caa21caeb49d8b9576c62da237c62f1b54c013abef5d1dd8": {
+  "text": "{\"text\":\"Kofi Rennov's run drew a defender 17.1 m away from the shot, with Riverside Athletic 5 against 3 around the ball.\"}",
+  "model": "gpt-5.4-mini",
+  "model_version": "gpt-5.4-mini-2026-03-17"
+ },
+ "88e8d2c507916379046b38593df7822e00a1a467bfcdc94a60574ccfc8cbac74": {
+  "text": "{\"claims\":[{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":3600000,\"end_ms\":3900000},\"value\":0.7910447761194029,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch4-possession_control-m-1-home-3900000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":3600000,\"end_ms\":3900000},\"value\":0.208955223880597,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch4-possession_control-m-1-away-3900000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"pressing_intensity\",\"window\":{\"start_ms\":3600000,\"end_ms\":3900000},\"value\":3.5,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch4-pressing_intensity-m-1-home-3900000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"pressing_intensity\",\"window\":{\"start_ms\":3600000,\"end_ms\":3900000},\"value\":10.0,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch4-pressing_intensity-m-1-away-3900000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"interpretive\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":3600000,\"end_ms\":3900000},\"value\":0.7910447761194029,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch4-possession_control-m-1-home-3900000\"}]}],\"backing_reading\":{\"kind\":\"reading\",\"id\":\"m-1-epoch4-possession_control-m-1-home-3900000\"},\"threshold\":1.25}]}",
+  "model": "gpt-5.4-mini",
+  "model_version": "gpt-5.4-mini-2026-03-17"
+ },
+ "8b17aef92b629d179340fe627c2f0d4a5ea16e17e13393880c896ae2c32fb5a2": {
+  "text": "{\"text\":\"Overload: 3 v 1 around the ball as the final pass was played, with a shot from 2.6 m.\"}",
+  "model": "gpt-5.4-mini",
+  "model_version": "gpt-5.4-mini-2026-03-17"
+ },
+ "8d569ba4372a23115fc3b1e1425b5cb8989680fa5fd3adcbc9ca335155e7d85b": {
+  "text": "{\"text\":\"Regained in 6 s, with Joao Torhart covering 7.3 m in the 2 s before the pass.\"}",
+  "model": "gpt-5.4-mini",
+  "model_version": "gpt-5.4-mini-2026-03-17"
+ },
+ "912fde6a1aac839690c9886415227f0519c1fed2f1d6ef5bb3b6f84922a4e5d4": {
+  "text": "{\"claims\":[{\"claim_type\":\"descriptive\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"build_up_passes\",\"window\":{\"start_ms\":4609535,\"end_ms\":4624035},\"value\":3.0,\"evidence_ids\":[{\"kind\":\"event\",\"id\":\"m-1-e1522\"},{\"kind\":\"event\",\"id\":\"m-1-e1523\"},{\"kind\":\"event\",\"id\":\"m-1-e1524\"},{\"kind\":\"event\",\"id\":\"m-1-e1525\"},{\"kind\":\"event\",\"id\":\"m-1-e1526\"},{\"kind\":\"event\",\"id\":\"m-1-e1527\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":4320000,\"end_ms\":4620000},\"value\":0.6875,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch4-possession_control-m-1-home-4620000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":4320000,\"end_ms\":4620000},\"value\":0.3125,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch4-possession_control-m-1-away-4620000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"interpretive\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"territory\",\"window\":{\"start_ms\":4320000,\"end_ms\":4620000},\"value\":1.0,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch4-territory-m-1-home-4620000\"}]}],\"backing_reading\":{\"kind\":\"reading\",\"id\":\"m-1-epoch4-territory-m-1-home-4620000\"},\"threshold\":1.25}]}",
+  "model": "gpt-5.4-mini",
+  "model_version": "gpt-5.4-mini-2026-03-17"
+ },
+ "9266d314f77bce72ff4624936511d399cab728fe642d759413dea63ed879f2f5": {
+  "text": "{\"text\":\"Redfern United: 3 big chances in the last 10 minutes, 3 v 2 around the ball, blocked by Sami Orsner.\"}",
+  "model": "gpt-5.4-mini",
+  "model_version": "gpt-5.4-mini-2026-03-17"
+ },
+ "9a50de20d3ae4363bd7738c5f804e599cf4ffede597b52f640be635d40598093": {
+  "text": "{\"text\":\"Arlo Lorwick set it up.\"}",
+  "model": "gpt-5.4-mini",
+  "model_version": "gpt-5.4-mini-2026-03-17"
+ },
+ "9bb9b7e1ee94214029e32e2246fd6a8c9ea0a7b4376b1d0e32f538e0e5761a10": {
+  "text": "{\"claims\":[{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"territory\",\"window\":{\"start_ms\":4740000,\"end_ms\":5040000},\"value\":0.25,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch5-territory-m-1-home-5040000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"territory\",\"window\":{\"start_ms\":4740000,\"end_ms\":5040000},\"value\":0.75,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch5-territory-m-1-away-5040000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":4740000,\"end_ms\":5040000},\"value\":0.29310344827586204,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch5-possession_control-m-1-home-5040000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":4740000,\"end_ms\":5040000},\"value\":0.7068965517241379,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch5-possession_control-m-1-away-5040000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"pressing_intensity\",\"window\":{\"start_ms\":4740000,\"end_ms\":5040000},\"value\":8.0,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch5-pressing_intensity-m-1-home-5040000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"pressing_intensity\",\"window\":{\"start_ms\":4740000,\"end_ms\":5040000},\"value\":3.0,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch5-pressing_intensity-m-1-away-5040000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"chance_quality\",\"window\":{\"start_ms\":4740000,\"end_ms\":5040000},\"value\":0.0,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch5-chance_quality-m-1-home-5040000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"chance_quality\",\"window\":{\"start_ms\":4740000,\"end_ms\":5040000},\"value\":0.0,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch5-chance_quality-m-1-away-5040000\"}]}],\"backing_reading\":null,\"threshold\":null}]}",
+  "model": "gpt-5.4-mini",
+  "model_version": "gpt-5.4-mini-2026-03-17"
+ },
+ "a4f277868542f6a585b3eb3afc66f2bca8f2369339370e784bd3d314f5cd0cb4": {
+  "text": "{\"claims\":[{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":5121535,\"end_ms\":5340000},\"value\":0.5333333333333333,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch7-possession_control-m-1-away-5340000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":5121535,\"end_ms\":5340000},\"value\":0.4666666666666667,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch7-possession_control-m-1-home-5340000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"descriptive\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"pressing_intensity\",\"window\":{\"start_ms\":5121535,\"end_ms\":5340000},\"value\":11.0,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch7-pressing_intensity-m-1-away-5340000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"interpretive\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"chance_quality\",\"window\":{\"start_ms\":5121535,\"end_ms\":5340000},\"value\":0.716667947715,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch7-chance_quality-m-1-away-5340000\"}]}],\"backing_reading\":{\"kind\":\"reading\",\"id\":\"m-1-epoch7-chance_quality-m-1-away-5340000\"},\"threshold\":2.0}]}",
+  "model": "gpt-5.4-mini",
+  "model_version": "gpt-5.4-mini-2026-03-17"
+ },
+ "ae985a63968bb829cad3dde6908088de080555e5d5992d10853172d82042dc22": {
+  "text": "{\"text\":\"Luka Savford blocks it.\"}",
+  "model": "gpt-5.4-mini",
+  "model_version": "gpt-5.4-mini-2026-03-17"
+ },
+ "af11e1079298fbfcf7defa705874918e8501855c0009d3a321a6b54e1544e12a": {
+  "text": "{\"claims\":[{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":5361035,\"end_ms\":5580000},\"value\":0.5555555555555556,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch8-possession_control-m-1-away-5580000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":5361035,\"end_ms\":5580000},\"value\":0.4444444444444444,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch8-possession_control-m-1-home-5580000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"pressing_intensity\",\"window\":{\"start_ms\":5361035,\"end_ms\":5580000},\"value\":8.0,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch8-pressing_intensity-m-1-home-5580000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"pressing_intensity\",\"window\":{\"start_ms\":5361035,\"end_ms\":5580000},\"value\":3.0,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch8-pressing_intensity-m-1-away-5580000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"interpretive\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"territory\",\"window\":{\"start_ms\":5361035,\"end_ms\":5580000},\"value\":1.0,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch8-territory-m-1-away-5580000\"}]}],\"backing_reading\":{\"kind\":\"reading\",\"id\":\"m-1-epoch8-territory-m-1-away-5580000\"},\"threshold\":1.25}]}",
+  "model": "gpt-5.4-mini",
+  "model_version": "gpt-5.4-mini-2026-03-17"
+ },
+ "b0d5e670ccdaedae6ce6a205db3ad0b770206cefd635c9664f151800ea10b6c1": {
+  "text": "{\"text\":\"Ball won in midfield, quick attack: 6 passes in 18 s.\"}",
+  "model": "gpt-5.4-mini",
+  "model_version": "gpt-5.4-mini-2026-03-17"
+ },
+ "b6902eb82995f94f51d24ffafefc1a6e187132fe1eb66961e1deea86779fea28": {
+  "text": "{\"claims\":[{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":3475035,\"end_ms\":3720000},\"value\":0.5675675675675675,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch4-possession_control-m-1-home-3720000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":3475035,\"end_ms\":3720000},\"value\":0.43243243243243246,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch4-possession_control-m-1-away-3720000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"pressing_intensity\",\"window\":{\"start_ms\":3475035,\"end_ms\":3720000},\"value\":5.333333333333333,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch4-pressing_intensity-m-1-home-3720000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"pressing_intensity\",\"window\":{\"start_ms\":3475035,\"end_ms\":3720000},\"value\":3.0,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch4-pressing_intensity-m-1-away-3720000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"interpretive\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"territory\",\"window\":{\"start_ms\":3475035,\"end_ms\":3720000},\"value\":1.0,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch4-territory-m-1-home-3720000\"}]}],\"backing_reading\":{\"kind\":\"reading\",\"id\":\"m-1-epoch4-territory-m-1-home-3720000\"},\"threshold\":1.25}]}",
+  "model": "gpt-5.4-mini",
+  "model_version": "gpt-5.4-mini-2026-03-17"
+ },
+ "bd2c5fdd6c29bc7ef46534d1d73e7a5f24bc2ccd5a06744f0eaabf71d24a5e80": {
+  "text": "{\"claims\":[{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"territory\",\"window\":{\"start_ms\":2340000,\"end_ms\":2640000},\"value\":0.4,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch2-territory-m-1-away-2640000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"territory\",\"window\":{\"start_ms\":2340000,\"end_ms\":2640000},\"value\":0.6,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch2-territory-m-1-home-2640000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":2340000,\"end_ms\":2640000},\"value\":0.3695652173913043,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch2-possession_control-m-1-away-2640000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":2340000,\"end_ms\":2640000},\"value\":0.6304347826086957,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch2-possession_control-m-1-home-2640000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"interpretive\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"chance_quality\",\"window\":{\"start_ms\":1980000,\"end_ms\":2280000},\"value\":1.368410818801,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch1-chance_quality-m-1-away-2280000\"}]}],\"backing_reading\":{\"kind\":\"reading\",\"id\":\"m-1-epoch1-chance_quality-m-1-away-2280000\"},\"threshold\":2.0}]}",
+  "model": "gpt-5.4-mini",
+  "model_version": "gpt-5.4-mini-2026-03-17"
+ },
+ "bdfda1c6077c6acffc6dcfcaa4e94b49a3ae42c338c25dd80e8cdd6eac06f303": {
+  "text": "{\"text\":\"Dale Ashley under pressure.\"}",
+  "model": "gpt-5.4-mini",
+  "model_version": "gpt-5.4-mini-2026-03-17"
+ },
+ "bf295536fad7ad0e08c17c10c32cd02465c17c7ccbb92bd2010163c7bacb793c": {
+  "text": "{\"text\":\"Redfern United's third big chance in ten minutes, and Sami Orsner blocks it.\"}",
+  "model": "gpt-5.4-mini",
+  "model_version": "gpt-5.4-mini-2026-03-17"
+ },
+ "c1ac4048477338e57d912f27c7e32e2c7717864c4a94231321c44e3b9f4a7189": {
+  "text": "{\"text\":\"Quick attack: 3 passes in 14 s, combination: 3 players in 2 s, assist: Arlo Lorwick.\"}",
+  "model": "gpt-5.4-mini",
+  "model_version": "gpt-5.4-mini-2026-03-17"
+ },
+ "c4360b3cfe720d19c109d9c221ef19cf9fa3ea7579831727b508abdbd4e91538": {
+  "text": "{\"text\":\"Redfern United's third big chance in ten minutes.\"}",
+  "model": "gpt-5.4-mini",
+  "model_version": "gpt-5.4-mini-2026-03-17"
+ },
+ "d928badbfd5b9a763e1498af99e8ccd320c74e1ad8eb7f317a43a996b07052dd": {
+  "text": "{\"text\":\"Dale Drustow.\"}",
+  "model": "gpt-5.4-mini",
+  "model_version": "gpt-5.4-mini-2026-03-17"
+ },
+ "db21685e9b5bb3c4cf62a95093c7066c70e62cf0988cb83648d1dcec7ded2381": {
+  "text": "{\"text\":\"Riverside Athletic have 4 big chances in the last 10 minutes, and Kofi Rennov drew a defender 17.1 m away.\"}",
+  "model": "gpt-5.4-mini",
+  "model_version": "gpt-5.4-mini-2026-03-17"
+ },
+ "db4a07fc06c4322a200165ace643173dc83f51741f8bc93fa7d3908845accde6": {
+  "text": "{\"text\":\"Dale Drustow, 3 v 1 around the ball as the final pass was played, shot from 5 m.\"}",
+  "model": "gpt-5.4-mini",
+  "model_version": "gpt-5.4-mini-2026-03-17"
+ },
+ "dd25afdc3fa021a6cc9f01c8c9648d261126af371733145565df6a8ed1ddecae": {
+  "text": "{\"text\":\"Overload: 4 v 1 around the ball as the final pass was played, shot from 4.8 m.\"}",
+  "model": "gpt-5.4-mini",
+  "model_version": "gpt-5.4-mini-2026-03-17"
+ },
+ "ddae677f2984b52022805ea69c8f7fb961a45f16c5c210af7671d4527f6540c3": {
+  "text": "{\"claims\":[{\"claim_type\":\"descriptive\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":1680000,\"end_ms\":1980000},\"value\":0.6086956521739131,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch1-possession_control-m-1-away-1980000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":1680000,\"end_ms\":1980000},\"value\":0.6086956521739131,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch1-possession_control-m-1-away-1980000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":1680000,\"end_ms\":1980000},\"value\":0.391304347826087,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch1-possession_control-m-1-home-1980000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"interpretive\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"possession_control\",\"window\":{\"start_ms\":1680000,\"end_ms\":1980000},\"value\":0.6086956521739131,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch1-possession_control-m-1-away-1980000\"}]}],\"backing_reading\":{\"kind\":\"reading\",\"id\":\"m-1-epoch1-possession_control-m-1-away-1980000\"},\"threshold\":1.25},{\"claim_type\":\"interpretive\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"pressing_intensity\",\"window\":{\"start_ms\":1680000,\"end_ms\":1980000},\"value\":10.5,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch1-pressing_intensity-m-1-home-1980000\"}]}],\"backing_reading\":{\"kind\":\"reading\",\"id\":\"m-1-epoch1-pressing_intensity-m-1-home-1980000\"},\"threshold\":1.25}]}",
+  "model": "gpt-5.4-mini",
+  "model_version": "gpt-5.4-mini-2026-03-17"
+ },
+ "ee53679e42a4d11b5e0a2bfff65b70b9b195239515d6a6a7f7110c338c31c41f": {
+  "text": "{\"text\":\"Ball won in the final third, with an overload: 3 v 2 around the ball as the final pass was played.\"}",
+  "model": "gpt-5.4-mini",
+  "model_version": "gpt-5.4-mini-2026-03-17"
+ },
+ "ef1e38286eb2a808f4bd986714a9c8f3183b152c90bd426c84fe4738d34e5776": {
+  "text": "{\"text\":\"Finn Norham's run drew a defender 14.3 m away, and Riverside Athletic had 4 against 2 around the ball.\"}",
+  "model": "gpt-5.4-mini",
+  "model_version": "gpt-5.4-mini-2026-03-17"
+ },
+ "f479766b83ae01947b7f50832807bcad683fc7885b233a7e29d9856e97e76bdb": {
+  "text": "{\"text\":\"From close range.\"}",
+  "model": "gpt-5.4-mini",
+  "model_version": "gpt-5.4-mini-2026-03-17"
+ },
+ "f78c8ec55e5379c6ae793ee00345196645ab842b50029ab1e2addf06fcad0160": {
+  "text": "{\"claims\":[{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"territory\",\"window\":{\"start_ms\":420000,\"end_ms\":720000},\"value\":0.8571428571428571,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch0-territory-m-1-away-720000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"territory\",\"window\":{\"start_ms\":420000,\"end_ms\":720000},\"value\":0.14285714285714285,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch0-territory-m-1-home-720000\"}]}],\"backing_reading\":null,\"threshold\":null},{\"claim_type\":\"comparative\",\"operands\":[{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-home\"},\"metric\":\"pressing_intensity\",\"window\":{\"start_ms\":420000,\"end_ms\":720000},\"value\":14.0,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch0-pressing_intensity-m-1-home-720000\"}]},{\"subject\":{\"kind\":\"team\",\"id\":\"m-1-away\"},\"metric\":\"pressing_intensity\",\"window\":{\"start_ms\":420000,\"end_ms\":720000},\"value\":3.4285714285714284,\"evidence_ids\":[{\"kind\":\"reading\",\"id\":\"m-1-epoch0-pressing_intensity-m-1-away-720000\"}]}],\"backing_reading\":null,\"threshold\":null}]}",
+  "model": "gpt-5.4-mini",
+  "model_version": "gpt-5.4-mini-2026-03-17"
+ },
+ "fa28d86e3accf5063c1aa8d5e1a6df35d7a7a0e910623809dffa6bd150440726": {
+  "text": "{\"text\":\"Riverside Athletic have 3 big chances in the last 10 minutes; Finn Norham drew a defender 14.3 m away.\"}",
+  "model": "gpt-5.4-mini",
+  "model_version": "gpt-5.4-mini-2026-03-17"
+ },
+ "ff43e6bfc4add2a3bd62bdc73e294277ddfd656301933c468e4406130458f164": {
+  "text": "{\"text\":\"The ball was won in the final third and regained in 8 s.\"}",
   "model": "gpt-5.4-mini",
   "model_version": "gpt-5.4-mini-2026-03-17"
  }

@@ -58,4 +58,12 @@ def test_casual_is_silent_because_of_its_threshold_not_a_limit(demo):
     reasons = {
         r.suppression_reason for r in renditions if r.lens_id == casual.lens_id and r.suppressed
     }
-    assert reasons == {SuppressionReason.BELOW_THRESHOLD}
+    # One exception since Q49: in stoppage time casual has shown the 84' goal, the VAR card, a
+    # chance and the winner inside ten minutes, so a 93' chance meets its limit.
+    limited = [
+        r
+        for r in renditions
+        if r.lens_id == casual.lens_id and r.suppression_reason is SuppressionReason.RATE_LIMITED
+    ]
+    assert reasons - {SuppressionReason.RATE_LIMITED} == {SuppressionReason.BELOW_THRESHOLD}
+    assert len(limited) == 1

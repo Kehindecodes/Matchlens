@@ -5,12 +5,14 @@ and it can always be recomputed from the event log. It travels the same path as 
 the per-session release (D1) delays the score exactly as it delays a card.
 
 The score is a fold over the event log (invariant 2, D16): a goal is an event whose outcome is
-`goal`, and it counts for that event's team, the same rule the epochs' `score_state` uses.
+`goal`, and it counts for that event's team, the same rule the epochs' `score_state` uses. A
+`var_overturned` takes its goal back off (D4, Q49): the goal counted until the overturn, as the
+viewer saw it, and the scoreboard moves back the moment it arrives.
 """
 
 from pydantic import BaseModel, ConfigDict
 
-from matchlens.models import ClockMs, Event, Frame, Outcome, Team
+from matchlens.models import Action, ClockMs, Event, Frame, Outcome, Team
 from matchlens.source import MatchSetup
 
 
@@ -45,6 +47,9 @@ class MatchStateTracker:
         scored = False
         if isinstance(item, Event) and item.outcome is Outcome.GOAL and item.team is not None:
             self._goals[item.team] += 1
+            scored = True
+        if isinstance(item, Event) and item.action is Action.VAR_OVERTURNED and item.team:
+            self._goals[item.team] -= 1
             scored = True
         second = item.clock_ms // 1000
         if second <= self._last_second and not scored:

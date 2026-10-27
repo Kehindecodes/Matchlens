@@ -1,7 +1,9 @@
 """Epochs: stretches of constant game state, cut at every structural break (U5).
 
 The opening epoch starts at the first `period_start` with no trigger. A new one starts at a goal,
-a red card, or the start of each later period. The score and the player counts at each start are
+a goal ruled out by VAR (Q49), a red card, or the start of each later period. A ruled-out goal
+counts in the score from the goal until the overturn, so it opens an epoch and the overturn opens
+the next, at the score before it. The score and the player counts at each start are
 recomputed from the log every time (D16), counting everything up to and including that clock, so
 a goal's epoch already shows the goal. Breaks at the same clock make one epoch, triggered by the
 first of them. Only a red card changes a player count; substitutions and yellows do not.
@@ -11,7 +13,7 @@ from collections.abc import Sequence
 
 from matchlens import calltrace
 from matchlens.ingest import RecordReader
-from matchlens.models import Action, Epoch, EpochTrigger, Event, Outcome
+from matchlens.models import Action, Epoch, EpochTrigger, Event, Outcome, standing_goals
 
 _WHOLE_LOG_MS = 2**62  # past any match clock, so `events_between` returns everything
 
@@ -42,6 +44,8 @@ def starts_epoch(event: Event) -> bool:
 def _trigger(event: Event) -> EpochTrigger | None:
     if event.outcome is Outcome.GOAL:
         return EpochTrigger.GOAL
+    if event.action is Action.VAR_OVERTURNED:
+        return EpochTrigger.VAR_OVERTURN
     if event.action is Action.RED_CARD:
         return EpochTrigger.RED_CARD
     if event.action is Action.PERIOD_START and event.period > 1:
@@ -58,7 +62,8 @@ def _epoch(
 ) -> Epoch:
     teams = [t.team_id for t in reader.match.teams]
     so_far = [e for e in events if e.clock_ms <= clock_ms]
-    score = {t: sum(e.team == t and e.outcome is Outcome.GOAL for e in so_far) for t in teams}
+    goals = standing_goals(so_far)
+    score = {t: sum(e.team == t for e in goals) for t in teams}
     starters = {t: sum(p.team_id == t and p.is_starter for p in reader.players) for t in teams}
     sent_off = {t: sum(e.team == t and e.action is Action.RED_CARD for e in so_far) for t in teams}
     return Epoch(

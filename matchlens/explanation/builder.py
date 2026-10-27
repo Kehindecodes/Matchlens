@@ -12,6 +12,8 @@ them should hear them:
   shot's quality
 - tactical shift: the signal that fired, read as a judgement, then compared with the same team
   in the previous epoch and with the opponent at the same clock
+- goal disallowed: whose goal VAR ruled out and why, over the review from the goal to the
+  overturn, then the score it leaves (Q49). Every score counts only the goals that still stand
 
 Every operand cites the rows its value is counted from, and between them a moment's claims cite
 every trigger that fired it (D22). A claim with nothing to cite is not made (invariant 5). What
@@ -36,13 +38,14 @@ from matchlens.models import (
     Moment,
     MomentType,
     Operand,
-    Outcome,
     Player,
     PositionReading,
     Ref,
     RefKind,
     SignalReading,
+    VarReason,
     Window,
+    standing_goals,
 )
 from matchlens.understanding.buildup import (
     BALL_WINNING,
@@ -60,7 +63,7 @@ from matchlens.understanding.possession import from_events
 from matchlens.understanding.shot_value import is_shot, value
 
 MODEL = "deterministic"
-MODEL_VERSION = "claims-7"  # bump by hand whenever a rule below changes (invariant 7)
+MODEL_VERSION = "claims-8"  # bump by hand whenever a rule below changes (invariant 7)
 
 
 def explain_moment(
@@ -75,6 +78,10 @@ def explain_moment(
     """The claims for `moment`. Every input is already frozen at the moment's clock."""
     if moment.type is MomentType.TACTICAL_SHIFT:
         operands = _shift(moment, readings, epochs, match)
+    elif moment.type is MomentType.GOAL_DISALLOWED:
+        overturn_id, goal_id = moment.trigger_event_ids
+        by_id = {e.event_id: e for e in events}
+        operands = _disallowed(by_id[overturn_id], by_id[goal_id], events, match)
     elif moment.type in (MomentType.GOAL, MomentType.CHANCE):
         trigger = next(e for e in events if e.event_id == moment.trigger_event_ids[0])
         shown = [p for p in positions if p.shot_id == trigger.event_id]
@@ -170,7 +177,7 @@ def _goal(
     positions: Sequence[PositionReading],
 ) -> list[_Spec]:
     assert goal.team is not None  # a goal is an on-ball event
-    goals = [e for e in events if e.outcome is Outcome.GOAL]
+    goals = standing_goals(events)
     specs: list[_Spec] = []
     if goal.player is not None:
         mine = [e for e in goals if e.player == goal.player]
@@ -193,6 +200,41 @@ def _goal(
     if (assist := _assist(goal, events)) is not None:
         specs.append(_descriptive(assist))
     specs.append(_descriptive(_shot_quality(goal, match)))
+    return specs
+
+
+_RULED_OUT = {
+    VarReason.OFFSIDE: Metric.RULED_OUT_OFFSIDE,
+    VarReason.FOUL: Metric.RULED_OUT_FOUL,
+    VarReason.HANDBALL: Metric.RULED_OUT_HANDBALL,
+}
+
+
+def _disallowed(overturn: Event, goal: Event, events: Sequence[Event], match: Match) -> list[_Spec]:
+    """Whose goal VAR ruled out and why, citing the goal and the overturn, then the score after."""
+    assert goal.team is not None and overturn.var_reason is not None  # the model requires both
+    specs: list[_Spec] = []
+    if goal.player is not None:
+        specs.append(
+            _descriptive(
+                Operand(
+                    subject=Ref(kind=RefKind.PLAYER, id=goal.player),
+                    metric=_RULED_OUT[overturn.var_reason],
+                    window=Window(start_ms=goal.clock_ms, end_ms=overturn.clock_ms),
+                    value=1.0,
+                    evidence_ids=_events([goal, overturn]),
+                )
+            )
+        )
+    goals = standing_goals(events)
+    opponent_id = _opponent(match, goal.team)
+    clock = overturn.clock_ms
+    mine = _goals(_team(goal.team), [e for e in goals if e.team == goal.team], clock)
+    theirs = _goals(_team(opponent_id), [e for e in goals if e.team == opponent_id], clock)
+    if mine is not None and theirs is not None:
+        specs.append(_comparative(mine, theirs))
+    elif (only := mine or theirs) is not None:
+        specs.append(_descriptive(only))
     return specs
 
 

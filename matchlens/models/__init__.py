@@ -31,6 +31,7 @@ from matchlens.models.enums import (
     Signal,
     SuppressionReason,
     Trend,
+    VarReason,
     Verdict,
     Zone,
 )
@@ -46,6 +47,8 @@ from matchlens.models.match_record import (
     normalise_event,
     normalise_frame,
     normalise_xy,
+    overturned,
+    standing_goals,
 )
 from matchlens.models.reference import SignalPrior
 from matchlens.models.refs import Ref
@@ -95,6 +98,7 @@ __all__ = [
     "SuppressionReason",
     "Team",
     "Trend",
+    "VarReason",
     "Verdict",
     "Verification",
     "ViewerSession",
@@ -103,4 +107,6 @@ __all__ = [
     "normalise_event",
     "normalise_frame",
     "normalise_xy",
+    "overturned",
+    "standing_goals",
 ]

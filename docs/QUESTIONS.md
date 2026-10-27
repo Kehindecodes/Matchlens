@@ -24,6 +24,25 @@ Newest at the top. Kehinde answers inline and moves the resolved ones to `docs/D
 
 ---
 
+## Q49 · A goal ruled out by VAR in the remontada, told differently by each lens  [ticket: none, 27 Oct]  [blocking: no, one item open]
+
+**What changed, so you can reverse it:** Kehinde asked for it on 27 Oct and chose each option below. Branch `feat/var-overturn`, on top of `feat/position-mechanisms`.
+
+- **The match.** Home score at 84:11 (Dale Ashley) for 3–2; VAR rules it out for offside at 85:21, 70 s later; play restarts with Redfern's free kick, and the 89:21 winner still comes. `RuledOutPlan` in the archetype, not jittered, so it draws nothing from the seed and everything before 84' is the match without it. `generator-3`, priors rebuilt. The other archetypes play the same matches; their pinned digests moved only because every event now serialises the two new fields as null (checked: without them the comeback's digest is `generator-2`'s).
+- **The log (D4).** A new match event, `var_overturned`, with `overturns` (the goal's event id) and `var_reason`. The goal event is not edited. `standing_goals` in `models/match_record.py` is the one rule: a goal counts until an overturn names it. The scoreboard goes 3–2 then 2–2; the goal opens an epoch and the overturn (`EpochTrigger.var_overturn`) opens the next at 2–2; every score claim, the spotter's goal weight, the explainer's digest (`explainer-5`) and the verifier count standing goals only.
+- **The moment.** `goal_disallowed`, fired on the overturn, citing it and the goal, weighted like the goal it took back, and a breakthrough type for all three lenses (`lenses.json`), so no lens rate-limits it. The goal's card is not changed: it went out at 84', and the new card follows at 85' (invariant 8). Catch-up tells it after the goal, in its place.
+- **The claims (`claims-8`).** Who had it ruled out and why (`ruled_out_offside`, `_foul`, `_handball`: 1 for the scorer, citing the goal and the overturn, over the review), then the score after. The verifier checks the overturn names that goal for that reason, and a goal count over a window that ends after the overturn leaves the goal out, in `value` and in `entailment` (which reads the overturn off the record: the cited goal cannot say it was taken back).
+- **What each lens says (`templates-7`).** Casual: "No goal after all. Dale Ashley's goal is ruled out for offside. It is all square." Analyst: "Goal overturned: Riverside Athletic. Overturned for offside: Dale Ashley's goal, after a 70 s review. Riverside Athletic 2, Redfern United 2." My team (Riverside): "Riverside Athletic have a goal ruled out. Dale Ashley was offside, and the goal is taken away. Level at 2–2." Had it been the other side's goal, the team lens reads "Reprieve for …" and names nobody of theirs.
+- **One card fewer for casual.** The 84' goal and the VAR card both count towards casual's three cards in ten minutes, with the 88' chance and the 89' winner, so the 93' chance is now rate-limited: the first time casual is silent on the demo for its limit rather than its threshold. `test_casual_is_silent_because_of_its_threshold_not_a_limit` now allows exactly that one. Say if a VAR card should not count towards the limit.
+
+**Open, yours to decide:** `Event` now has five action-specific fields. DATA-MODEL's rule says the fourth is the moment to move them into a discriminated `detail` union. I did not do that refactor today. Options: A, do it after the deadline (touches every `Event` constructor and reader); B, accept five and amend the rule.
+
+**What you need to do:** rebuild the explainer cache and the overlay sample (`claims-8`, `templates-7`, `explainer-5`, and the match changed after 84'), then a full run.
+
+**Answer:**
+
+---
+
 ## Q48 · Movement before a shot: overloads, decoy runs and early runs from frames  [ticket: none, 27 Oct]  [blocking: no]
 
 **What changed, so you can reverse it:** Kehinde asked for all three position mechanisms on 27 Oct and chose both options below, so this is a record, not a request. Branch `feat/position-mechanisms`.

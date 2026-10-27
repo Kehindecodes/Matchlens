@@ -21,7 +21,7 @@ from matchlens.delivery.hub import MatchStateHub
 from matchlens.delivery.release import ReleaseQueues
 from matchlens.delivery.router import CardRouter
 from matchlens.delivery.sessions import SessionStore
-from matchlens.models import Event, MomentType, Outcome, Rendition, ViewerSession
+from matchlens.models import Event, MomentType, Rendition, ViewerSession, standing_goals
 from matchlens.rendering import Card
 from matchlens.source import MatchSetup, simulate
 from tests.delivery.test_http import LiveServer, _fields, _state
@@ -71,11 +71,8 @@ def _scorers() -> set[str]:
     items = list(simulate(1))
     setup = next(item for item in items if isinstance(item, MatchSetup))
     names = {player.player_id: player.name for player in setup.players}
-    return {
-        names[e.player]
-        for e in items
-        if isinstance(e, Event) and e.outcome is Outcome.GOAL and e.player is not None
-    }
+    goals = standing_goals([e for e in items if isinstance(e, Event)])  # not one VAR ruled out
+    return {names[e.player] for e in goals if e.player is not None}
 
 
 def _summary(cards: list[Card], lens_id: str, to_clock: int = JOIN) -> CatchUp:

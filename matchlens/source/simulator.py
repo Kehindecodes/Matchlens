@@ -19,6 +19,7 @@ from matchlens.models import (
     Phase,
     PlayerPosition,
     Team,
+    VarReason,
 )
 from matchlens.source.archetypes import DEMO, ArchetypeParams, interpolate
 from matchlens.source.squads import PITCH_LENGTH_M, PITCH_WIDTH_M, Slot, build_squads
@@ -26,7 +27,7 @@ from matchlens.source.stream import MatchSetup, StreamItem
 
 # Bump whenever the generator's output changes for any archetype or seed. A signal prior is only
 # valid for the version that made it; tests pin this beside a digest of what it generates.
-GENERATOR_VERSION = "generator-2"
+GENERATOR_VERSION = "generator-3"
 
 # An opponent this close to the actor at execution means the action was under pressure.
 PRESSING_DISTANCE_M = 3.0
@@ -118,6 +119,20 @@ class _Plan:
     clock_ms: int
     roles: tuple[str, ...] = ()
     done: bool = False
+    overturn: VarReason | None = None  # a goal VAR will rule out, and why (Q49)
+    review_seconds: float = 0.0
+    scored: tuple[str, str] | None = None  # (goal event id, scorer), once it is in
+
+
+@dataclass
+class _Review:
+    """A VAR review under way: the goal it will overturn, and when."""
+
+    due_tick: int
+    side: int
+    goal_id: str
+    scorer: str
+    reason: VarReason
 
 
 def _r2(v: float) -> float:
@@ -169,6 +184,20 @@ class _Engine:
         self.goals = [_Plan(idx(g.side), when(g.minute, 2.0)) for g in archetype.goals]
         self.subs = [_Plan(idx(s.side), when(s.minute, 0.0), s.roles) for s in archetype.subs]
         self.reds = [_Plan(idx(r.side), when(r.minute, 0.0)) for r in archetype.red_cards]
+        # A goal to be ruled out is not jittered, so it draws nothing and the match before it is
+        # the match without it. Only an archetype that has one is re-sorted.
+        ruled = [
+            _Plan(
+                idx(r.side),
+                int(r.minute * 60_000),
+                overturn=r.reason,
+                review_seconds=r.review_seconds,
+            )
+            for r in archetype.ruled_out
+        ]
+        if ruled:
+            self.goals = sorted([*self.goals, *ruled], key=lambda g: g.clock_ms)
+        self.review: _Review | None = None
 
         # slow state
         self.m = 0.0
@@ -322,6 +351,7 @@ class _Engine:
 
     def _step(self) -> None:
         if self.phase is Phase.STOPPED:
+            self._var_review()
             self.timer -= 1
             if self.timer <= 0:
                 self._begin_set_piece()
@@ -339,6 +369,20 @@ class _Engine:
                     break
             if self.phase is Phase.IN_PLAY and self.due_fn is None:
                 raise RuntimeError("play is live but nothing is scheduled")
+
+    def _var_review(self) -> None:
+        """Rule the reviewed goal out once the review is done: a new event, the goal untouched."""
+        review = self.review
+        if review is None or self.tick < review.due_tick:
+            return
+        self.review = None
+        self._emit(
+            Action.VAR_OVERTURNED,
+            self.sides[review.side],
+            review.scorer,
+            overturns=review.goal_id,
+            var_reason=review.reason,
+        )
 
     def _schedule(self, tick: int, fn: Callable[[], None]) -> None:
         self.due_tick = tick
@@ -541,6 +585,8 @@ class _Engine:
         pressure: bool | None = None,
         player_on: str | None = None,
         added_time_ms: int | None = None,
+        overturns: str | None = None,
+        var_reason: VarReason | None = None,
         offset: int | None = None,
     ) -> None:
         if offset is None:
@@ -563,6 +609,8 @@ class _Engine:
                 receiver=receiver,
                 player_on=player_on,
                 added_time_ms=added_time_ms,
+                overturns=overturns,
+                var_reason=var_reason,
                 under_pressure=pressure,
                 body_part=body,
                 frame_ref=self.frame_seq,
@@ -1044,6 +1092,8 @@ class _Engine:
         self._emit(
             action, s, s.ids[h], start=src_g, end=end_g, outcome=outcome, body=body, pressure=up
         )
+        if goal is not None:
+            goal.scored = (self.out[-1].event_id, s.ids[h])
         self.holder = None
         self.flight = _Flight(self.tick, self.tick + ticks, src_g, end_g, 0.5)
         self._schedule(self.tick + ticks, lambda: self._arrive_shot(s, opp, outcome, end, goal))
@@ -1057,7 +1107,19 @@ class _Engine:
         if outcome is Outcome.GOAL:
             assert goal is not None
             goal.done = True
-            self._begin_stoppage("kickoff", opp.idx, numpy.zeros(2), seconds=(40.0, 55.0))
+            if goal.overturn is not None and goal.scored is not None:
+                # Celebrated, reviewed, ruled out: play restarts with the defending side's free
+                # kick, not a kickoff, once the review is done.
+                goal_id, scorer = goal.scored
+                self.review = _Review(
+                    self.tick + self._ticks(goal.review_seconds), s.idx, goal_id, scorer,
+                    goal.overturn,
+                )  # fmt: skip
+                wait = goal.review_seconds
+                spot = self._to_g(opp, (-35.0, 0.0))
+                self._begin_stoppage("free_kick", opp.idx, spot, seconds=(wait + 15, wait + 25))
+            else:
+                self._begin_stoppage("kickoff", opp.idx, numpy.zeros(2), seconds=(40.0, 55.0))
         elif outcome is Outcome.OFF_TARGET:
             side_y = math.copysign(9.0, rng.normal())
             self._begin_stoppage(

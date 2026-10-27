@@ -105,6 +105,8 @@ def _read(claim: Claim, language: str) -> tuple[str, Mapping[str, str | None]] |
         return "regain", {}
     if metric is Metric.COMBINATION:
         return "combination", {}
+    if metric in _RULED_OUT:
+        return "ruled_out", {}
     if metric is Metric.OVERLOAD:
         return "overload", {}
     if metric is Metric.DECOY_RUN:
@@ -176,6 +178,7 @@ def _fields(claim: Claim, language: str, names: Mapping[str, str]) -> dict[str, 
     return filled
 
 
+_RULED_OUT = frozenset({Metric.RULED_OUT_OFFSIDE, Metric.RULED_OUT_FOUL, Metric.RULED_OUT_HANDBALL})
 _CALIBRATED = frozenset({Metric.SHOT_QUALITY, Metric.CHANCE_QUALITY})  # said in words only
 _SHARES = frozenset({Metric.TERRITORY, Metric.POSSESSION_CONTROL})  # 0–1, shown as a percentage
 

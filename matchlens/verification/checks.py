@@ -9,6 +9,10 @@ reads.
 What the frames showed is checked against the position readings Understanding took (Q48), as a
 signal is checked against its readings: the verifier holds no frame (invariant 1), so it checks a
 position claim says what its reading says, about the side or player the reading is about.
+
+A goal VAR ruled out (Q49) counts until its overturn and never after: a count of goals over a
+window ending after the overturn leaves it out, in `value` and in `entailment` alike, which reads
+the overturn off the record because the cited goal does not say it was taken back.
 """
 
 import math
@@ -30,6 +34,9 @@ from matchlens.models import (
     Ref,
     RefKind,
     SignalReading,
+    VarReason,
+    overturned,
+    standing_goals,
 )
 from matchlens.understanding.buildup import (
     BALL_WINNING,
@@ -62,8 +69,16 @@ _COUNTS = frozenset(
         Metric.SHOT_SAVED_BY,
         Metric.SHOT_BLOCKED_BY,
         Metric.OVERLOAD,
+        Metric.RULED_OUT_OFFSIDE,
+        Metric.RULED_OUT_FOUL,
+        Metric.RULED_OUT_HANDBALL,
     }
 )
+_RULED_OUT = {
+    Metric.RULED_OUT_OFFSIDE: VarReason.OFFSIDE,
+    Metric.RULED_OUT_FOUL: VarReason.FOUL,
+    Metric.RULED_OUT_HANDBALL: VarReason.HANDBALL,
+}
 _POSITIONS = frozenset({Metric.OVERLOAD, Metric.DECOY_RUN, Metric.EARLY_RUN})
 _SIGNALS = frozenset(
     {Metric.TERRITORY, Metric.POSSESSION_CONTROL, Metric.PRESSING_INTENSITY, Metric.CHANCE_QUALITY}
@@ -171,13 +186,23 @@ def recompute(o: Operand, record: Record) -> list[float]:
         return [
             float(
                 sum(
-                    e.outcome is Outcome.GOAL
-                    and getattr(e, key) == o.subject.id
-                    and start <= e.clock_ms <= end
-                    for e in record.events
+                    getattr(e, key) == o.subject.id and start <= e.clock_ms <= end
+                    for e in standing_goals(record.until(end))
                 )
             )
         ]
+    if o.metric in _RULED_OUT:
+        ruled = (
+            e
+            for e in record.until(end)
+            if e.action is Action.VAR_OVERTURNED
+            and e.var_reason is _RULED_OUT[o.metric]
+            and e.clock_ms == end
+            and (goal := record.event.get(e.overturns or "")) is not None
+            and goal.player == o.subject.id
+            and goal.clock_ms == start
+        )
+        return [float(any(ruled))]
     if o.metric in (Metric.BALL_LOST, Metric.BALL_LOST_BY_KEEPER, Metric.PRESSURED_LOSS):
         return [_ball_lost(o, record)]
     if o.metric in (Metric.ASSIST, Metric.SHOT_SAVED_BY, Metric.SHOT_BLOCKED_BY):
@@ -416,9 +441,10 @@ def _supports(o: Operand, record: Record) -> str | None:
         return f"{o.metric} is counted from events, but it cites a reading"
     if o.metric is Metric.GOALS:
         key = "player" if o.subject.kind is RefKind.PLAYER else "team"
+        gone = overturned(record.until(end))
         off = [e.event_id for e in events
                if e.outcome is not Outcome.GOAL or getattr(e, key) != subject
-               or not start <= e.clock_ms <= end]  # fmt: skip
+               or not start <= e.clock_ms <= end or e.event_id in gone]  # fmt: skip
         if off:
             return f"cites events that are not {subject}'s goals in the window: {', '.join(off)}"
         counted = float(len(events))
@@ -448,6 +474,17 @@ def _supports(o: Operand, record: Record) -> str | None:
         if (events[0].clock_ms, events[2].clock_ms) != (start, end):
             return "cites a combination at other clocks"
         counted = 3.0 if combination_of(events, events[2]) is not None else 0.0
+    elif o.metric in _RULED_OUT:
+        if len(events) != 2 or events[1].action is not Action.VAR_OVERTURNED:
+            return f"a goal ruled out cites the goal and the overturn, of {subject}'s goal"
+        goal, overturn = events
+        if goal.outcome is not Outcome.GOAL or goal.player != subject:
+            return f"cites an event that is not a goal by {subject}"
+        if overturn.overturns != goal.event_id or overturn.var_reason is not _RULED_OUT[o.metric]:
+            return "cites an overturn of another goal, or for another reason"
+        if (goal.clock_ms, overturn.clock_ms) != (start, end):
+            return "cites a goal and an overturn at other clocks"
+        counted = 1.0
     elif o.metric is Metric.ASSIST:
         if len(events) != 2 or not is_shot(events[1]) or events[0].player != subject:
             return f"an assist cites the pass by {subject} and the shot it set up"
