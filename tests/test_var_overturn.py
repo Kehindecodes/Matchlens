@@ -21,7 +21,7 @@ from matchlens.models import (
     Verdict,
     standing_goals,
 )
-from matchlens.rendering import Card
+from matchlens.rendering import Card, MomentOutcome
 from matchlens.source import MatchSetup, simulate
 from matchlens.spotting import Spotter
 from matchlens.understanding import Movement, Understanding
@@ -41,12 +41,40 @@ def overturn(demo: Played) -> Event:
 
 
 @pytest.fixture(scope="module")
-def cards(demo: Played) -> list[Card]:
-    pipeline = Pipeline()
+def played_out(demo: Played) -> tuple[list[Card], list[MomentOutcome]]:
+    outcomes: list[MomentOutcome] = []
+    pipeline = Pipeline(report=outcomes.append)
     try:
-        return [card for item in demo.items for card in pipeline.process(item)]
+        return [card for item in demo.items for card in pipeline.process(item)], outcomes
     finally:
         pipeline.close()
+
+
+@pytest.fixture(scope="module")
+def cards(played_out) -> list[Card]:
+    return played_out[0]
+
+
+def test_the_var_card_is_shown_but_spends_no_rate_limit(played_out):
+    # Q49: Kehinde, 27 Oct. Each lens's count at a moment is its counted cards in the ten minutes
+    # before it, and the VAR card is never one of them.
+    _, outcomes = played_out
+    counted: dict[str, list[int]] = {}
+    seen_var = False
+    for outcome in outcomes:
+        for lens in outcome.outcomes:
+            if outcome.moment_type is MomentType.GOAL_DISALLOWED:
+                assert not lens.rendition.suppressed
+                seen_var = True
+            elif not lens.rendition.suppressed:
+                counted.setdefault(lens.lens_id, []).append(outcome.clock_ms)
+            window = [
+                c
+                for c in counted.get(lens.lens_id, [])
+                if outcome.clock_ms - 600_000 < c <= outcome.clock_ms
+            ]
+            assert lens.shown_in_window == len(window), (outcome.moment_id, lens.lens_id)
+    assert seen_var
 
 
 def _goal(demo: Played, event_id: str | None) -> Event:

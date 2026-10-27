@@ -33,13 +33,9 @@ Newest at the top. Kehinde answers inline and moves the resolved ones to `docs/D
 - **The moment.** `goal_disallowed`, fired on the overturn, citing it and the goal, weighted like the goal it took back, and a breakthrough type for all three lenses (`lenses.json`), so no lens rate-limits it. The goal's card is not changed: it went out at 84', and the new card follows at 85' (invariant 8). Catch-up tells it after the goal, in its place.
 - **The claims (`claims-8`).** Who had it ruled out and why (`ruled_out_offside`, `_foul`, `_handball`: 1 for the scorer, citing the goal and the overturn, over the review), then the score after. The verifier checks the overturn names that goal for that reason, and a goal count over a window that ends after the overturn leaves the goal out, in `value` and in `entailment` (which reads the overturn off the record: the cited goal cannot say it was taken back).
 - **What each lens says (`templates-7`).** Casual: "No goal after all. Dale Ashley's goal is ruled out for offside. It is all square." Analyst: "Goal overturned: Riverside Athletic. Overturned for offside: Dale Ashley's goal, after a 70 s review. Riverside Athletic 2, Redfern United 2." My team (Riverside): "Riverside Athletic have a goal ruled out. Dale Ashley was offside, and the goal is taken away. Level at 2–2." Had it been the other side's goal, the team lens reads "Reprieve for …" and names nobody of theirs.
-- **One card fewer for casual.** The 84' goal and the VAR card both count towards casual's three cards in ten minutes, with the 88' chance and the 89' winner, so the 93' chance is now rate-limited: the first time casual is silent on the demo for its limit rather than its threshold. `test_casual_is_silent_because_of_its_threshold_not_a_limit` now allows exactly that one. Say if a VAR card should not count towards the limit.
+- **The VAR card spends no rate limit.** A `goal_disallowed` card is shown but not counted towards a lens's cards in ten minutes (`selection._UNCOUNTED`). The 93' casual chance is still rate-limited: the 84' goal (the one later ruled out), the 88' chance and the 89' winner are three in ten minutes, casual's limit. `test_casual_is_silent_because_of_its_threshold_not_a_limit` allows exactly that one.
 
-**Open, yours to decide:** `Event` now has five action-specific fields. DATA-MODEL's rule says the fourth is the moment to move them into a discriminated `detail` union. I did not do that refactor today. Options: A, do it after the deadline (touches every `Event` constructor and reader); B, accept five and amend the rule.
-
-**What you need to do:** rebuild the explainer cache and the overlay sample (`claims-8`, `templates-7`, `explainer-5`, and the match changed after 84'), then a full run.
-
-**Answer:**
+**Answer (Kehinde, 27 Oct):** B, accept five action-specific fields on `Event` and amend the rule; DATA-MODEL's rule is now five, and a sixth means the `detail` union. And a VAR card should not count towards the rate limit: done as above.
 
 ---
 

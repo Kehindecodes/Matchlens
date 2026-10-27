@@ -175,10 +175,9 @@ class Event(_Record):
     names the goal event that no longer stands and `var_reason` says why. The goal itself is never
     edited; `standing_goals` is how every reader of the score leaves it out.
 
-    Three action-specific nullable fields (`receiver`, `player_on`, `added_time_ms`) was the
-    limit, and `overturns` and `var_reason` make five (Q49): the next one is the signal to move
-    them into a discriminated `detail` union rather than widening this model again
-    (docs/DATA-MODEL.md).
+    Five action-specific nullable fields (`receiver`, `player_on`, `added_time_ms`, `overturns`,
+    `var_reason`) is the limit (Q49: it was three). A sixth is the signal to move them into a
+    discriminated `detail` union rather than widening this model again (docs/DATA-MODEL.md).
 
     `frame_ref` is the `seq` of the Frame this event aligns to. It is mandatory, so positional
     context is always recoverable. `receiver` is set for passes; `body_part` for actions where

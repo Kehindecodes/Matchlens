@@ -95,7 +95,7 @@ Selection must happen *after* the record is complete. If the log only held inter
 | `body_part` | Foot, head, other. Feeds shot quality |
 | `frame_ref` | The frame this aligns to, so positional context can be recovered |
 
-> **Rule of three on action-specific fields.** `receiver`, `player_on` and `added_time_ms` are each nullable and meaningful for one action. Three is the limit. **A fourth is the signal to switch to a discriminated payload union** — `ShotDetail`, `SubstitutionDetail`, `AddedTimeDetail` under one `detail` field — rather than widening `Event` again. Do not do that refactor pre-emptively; do it the moment a fourth is needed. **Q49 added a fourth and a fifth (`overturns`, `var_reason`) without it, on the deadline day: the refactor is owed, and open in Q49.**
+> **Rule of five on action-specific fields.** `receiver`, `player_on`, `added_time_ms`, `overturns` and `var_reason` are each nullable and meaningful for one action. Five is the limit: it was three until Q49 needed two more, and Kehinde chose to accept five and amend the rule rather than refactor (27 Oct). **A sixth is the signal to switch to a discriminated payload union** — `ShotDetail`, `SubstitutionDetail`, `AddedTimeDetail`, `OverturnDetail` under one `detail` field — rather than widening `Event` again. Do not do that refactor pre-emptively; do it the moment a sixth is needed.
 
 ---
 
