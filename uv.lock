@@ -1702,57 +1702,6 @@ wheels = [
 ]
 
 [[package]]
-name = "matchlens"
-version = "0.1.0"
-source = { editable = "." }
-dependencies = [
-    { name = "azure-monitor-opentelemetry" },
-    { name = "fastapi" },
-    { name = "numpy" },
-    { name = "opentelemetry-api" },
-    { name = "opentelemetry-sdk" },
-    { name = "pydantic" },
-    { name = "pydantic-settings" },
-    { name = "uvicorn" },
-]
-
-[package.dev-dependencies]
-agents = [
-    { name = "agent-framework" },
-    { name = "azure-ai-projects" },
-]
-dev = [
-    { name = "httpx" },
-    { name = "pyright" },
-    { name = "pytest" },
-    { name = "ruff" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "azure-monitor-opentelemetry", specifier = "==1.8.11" },
-    { name = "fastapi", specifier = "==0.141.1" },
-    { name = "numpy", specifier = "==2.5.3" },
-    { name = "opentelemetry-api", specifier = "==1.45.1" },
-    { name = "opentelemetry-sdk", specifier = "==1.45.1" },
-    { name = "pydantic", specifier = "==2.14.0" },
-    { name = "pydantic-settings", specifier = "==2.15.0" },
-    { name = "uvicorn", specifier = "==0.54.0" },
-]
-
-[package.metadata.requires-dev]
-agents = [
-    { name = "agent-framework", specifier = "==1.21.0" },
-    { name = "azure-ai-projects", specifier = "==2.7.0" },
-]
-dev = [
-    { name = "httpx", specifier = "==0.28.1" },
-    { name = "pyright", specifier = "==1.1.414" },
-    { name = "pytest", specifier = "==9.1.1" },
-    { name = "ruff", specifier = "==0.16.10" },
-]
-
-[[package]]
 name = "mcp"
 version = "1.30.0"
 source = { registry = "https://pypi.org/simple" }
@@ -2501,6 +2450,57 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/7d/fa/3944b40b07da9ce895c0e6303a5ab7d53da063554f534556b134a54d6093/packaging-26.3.tar.gz", hash = "sha256:94edc256424af38762eb31306eed28beb9f0efc50a8837492c9d6fd6004aed79", size = 313412, upload-time = "2026-08-04T18:15:28.737Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/63/34/ba1c580383c9eada3711951fef0795c80b829a078d72188184bcab9dd527/packaging-26.3-py3-none-any.whl", hash = "sha256:d7193f7c8e4e93f444fde0262bf90af30e16fa0ad0ad44cb553c87339b23cd1c", size = 129956, upload-time = "2026-08-04T18:15:27.159Z" },
+]
+
+[[package]]
+name = "parallax"
+version = "0.1.0"
+source = { editable = "." }
+dependencies = [
+    { name = "azure-monitor-opentelemetry" },
+    { name = "fastapi" },
+    { name = "numpy" },
+    { name = "opentelemetry-api" },
+    { name = "opentelemetry-sdk" },
+    { name = "pydantic" },
+    { name = "pydantic-settings" },
+    { name = "uvicorn" },
+]
+
+[package.dev-dependencies]
+agents = [
+    { name = "agent-framework" },
+    { name = "azure-ai-projects" },
+]
+dev = [
+    { name = "httpx" },
+    { name = "pyright" },
+    { name = "pytest" },
+    { name = "ruff" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "azure-monitor-opentelemetry", specifier = "==1.8.11" },
+    { name = "fastapi", specifier = "==0.141.1" },
+    { name = "numpy", specifier = "==2.5.3" },
+    { name = "opentelemetry-api", specifier = "==1.45.1" },
+    { name = "opentelemetry-sdk", specifier = "==1.45.1" },
+    { name = "pydantic", specifier = "==2.14.0" },
+    { name = "pydantic-settings", specifier = "==2.15.0" },
+    { name = "uvicorn", specifier = "==0.54.0" },
+]
+
+[package.metadata.requires-dev]
+agents = [
+    { name = "agent-framework", specifier = "==1.21.0" },
+    { name = "azure-ai-projects", specifier = "==2.7.0" },
+]
+dev = [
+    { name = "httpx", specifier = "==0.28.1" },
+    { name = "pyright", specifier = "==1.1.414" },
+    { name = "pytest", specifier = "==9.1.1" },
+    { name = "ruff", specifier = "==0.16.10" },
 ]
 
 [[package]]
