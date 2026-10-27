@@ -97,6 +97,14 @@ def _read(claim: Claim, language: str) -> tuple[str, Mapping[str, str | None]] |
         return "lost", {}
     if metric is Metric.BALL_LOST_BY_KEEPER:
         return "keeper_lost", {}
+    if metric is Metric.PRESSURED_LOSS:
+        return "pressured", {}
+    if metric is Metric.SWITCH_OF_PLAY:
+        return "switch", {}
+    if metric is Metric.REGAIN:
+        return "regain", {}
+    if metric is Metric.COMBINATION:
+        return "combination", {}
     if metric is Metric.ASSIST:
         return "assist", {}
     if metric is Metric.SHOT_SAVED_BY:

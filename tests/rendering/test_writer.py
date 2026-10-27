@@ -180,7 +180,7 @@ def test_the_model_words_follow_the_templates_opening_and_say_who_wrote_them():
     assert rendition.headline is not None and "deficit" in rendition.headline
     assert l3.body is not None and l3.body.startswith("Quick attack")
     assert rendition.body == written.text
-    assert (rendition.model, rendition.model_version) == ("scripted", "s1+writer-7")
+    assert (rendition.model, rendition.model_version) == ("scripted", "s1+writer-8")
     assert (l3.model, l3.model_version) == (templates.MODEL, templates.MODEL_VERSION)
     assert rendition.surviving_claim_ids == l3.surviving_claim_ids
 

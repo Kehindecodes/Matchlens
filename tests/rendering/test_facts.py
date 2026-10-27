@@ -282,3 +282,23 @@ def test_a_save_is_told_differently_to_the_side_that_shot_and_the_side_that_kept
     blocked = _claim(_operand(Metric.SHOT_BLOCKED_BY, 1, subject=SCORER))
     assert _said_from(blocked, "for") == "Blocked by Ada Quill."
     assert _said_from(blocked, "against") == "Ada Quill blocks it."
+
+
+# --- how the attack was made --------------------------------------------------------------------
+
+
+def test_a_switch_a_regain_a_combination_and_a_pressured_loss_are_said_without_a_cause():
+    switch = _claim(_operand(Metric.SWITCH_OF_PLAY, 41.2))
+    assert "switched across the pitch" in _said(switch, Depth.CASUAL)
+    assert "41.2 m" in _said(switch, Depth.ANALYST)
+    regain = _claim(_operand(Metric.REGAIN, 5.5, start_ms=100_000, end_ms=105_500))
+    assert "straight back" in _said(regain, Depth.CASUAL)
+    assert "within 6 seconds" in _said(regain, Depth.ENGAGED)
+    assert "5.5 s" in _said(regain, Depth.ANALYST)
+    combination = _claim(_operand(Metric.COMBINATION, 3, start_ms=100_000, end_ms=102_000))
+    assert not re.search(r"\d", _said(combination, Depth.CASUAL))
+    assert "3 players in 2 s" in _said(combination, Depth.ANALYST)
+    pressed = _claim(_operand(Metric.PRESSURED_LOSS, 1, subject=SCORER))
+    assert "Ada Quill gave it away under pressure" in _said(pressed, Depth.ENGAGED)
+    for claim in (switch, regain, combination, pressed):
+        assert not re.search(r"\bbecause\b", _said(claim, Depth.ANALYST))  # since, never because

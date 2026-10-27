@@ -44,6 +44,10 @@ __all__ = [
 _BEFORE_DEGRADED = (SuppressionReason.OUT_OF_SCOPE, SuppressionReason.MUTED)
 
 
+# The ways a player gave the ball away, most telling first.
+_LOSSES = (Metric.BALL_LOST_BY_KEEPER, Metric.PRESSURED_LOSS, Metric.BALL_LOST)
+
+
 def _spoken(lens: Lens) -> int:
     """How many selected claims a card speaks, by how much detail the lens wants. A card is read
     in seconds, so even the fullest lens speaks a few; Catch-up's `in_full` speaks them all."""
@@ -225,7 +229,7 @@ def _words(
         (claim, text)
         for claim in _in_order(selection.claims, moment, lens, pick)
         if (focus is None or not _names_their_player(claim, moment, side))
-        and (focus is None or limit is None or _for_a_supporter(claim, moment))
+        and (focus is None or limit is None or _for_a_supporter(claim, moment, side))
         and (
             text := sentence(
                 claim,
@@ -278,13 +282,23 @@ def _state(moment: Moment, claims: tuple[Claim, ...]) -> str | None:
 # who gave it away and where it was won, a person and a place; one who wants the mechanism is
 # told where it was won, how fast it was punished and how far out it was struck, and the person
 # after. A depth that is not casual is the second: the order is a register, not a lens (D31).
-_HOW_CASUAL = (Metric.BALL_WON_THIRD, Metric.ASSIST, Metric.SHOT_DISTANCE)  # then the build-up
+_HOW_CASUAL = (
+    Metric.BALL_WON_THIRD,
+    Metric.REGAIN,
+    Metric.ASSIST,
+    Metric.SWITCH_OF_PLAY,
+    Metric.COMBINATION,
+    Metric.SHOT_DISTANCE,
+)  # then the build-up
 _HOW_CLOSER = (
     Metric.BALL_WON_THIRD,
+    Metric.REGAIN,
     Metric.BUILD_UP_PASSES,
+    Metric.SWITCH_OF_PLAY,
+    Metric.COMBINATION,
     Metric.ASSIST,
     Metric.SHOT_DISTANCE,
-    Metric.BALL_LOST,
+    *_LOSSES,
 )
 
 
@@ -300,30 +314,35 @@ def _names_their_player(claim: Claim, moment: Moment, side: str | None) -> bool:
     scorer = metric is Metric.GOALS and claim.operands[0].subject.kind is RefKind.PLAYER
     if moment.type is MomentType.GOAL:
         if side == "for":
-            return metric in (Metric.BALL_LOST, Metric.BALL_LOST_BY_KEEPER)
+            return metric in _LOSSES
         return scorer or metric is Metric.ASSIST
     if moment.type is MomentType.CHANCE and side == "for":
         return metric in _STOPPERS
     return False
 
 
-def _for_a_supporter(claim: Claim, moment: Moment) -> bool:
+def _for_a_supporter(claim: Claim, moment: Moment, side: str | None) -> bool:
     """What a lens that follows a side speaks: what happened to its side, and who did it.
 
     A goal: the score it left, who scored, who set it up, and who gave the ball away for it. A
-    chance: the run it is part of, and who saved or blocked it. A shift: what moved. How the move
-    began, or how far out the shot was, is for the lenses that want the mechanism.
+    chance: the run it is part of, and who saved or blocked it. A shift: what moved. For their
+    own side's attack, also how it was made: won straight back, switched, a quick combination.
+    How far out the shot was is for the lenses that want the mechanism.
     """
     first = claim.operands[0]
     if moment.type is MomentType.GOAL:
         scorer = first.metric is Metric.GOALS and first.subject.kind is RefKind.PLAYER
-        return _is_score(claim) or scorer or first.metric in _GOAL_PEOPLE
+        attack = side == "for" and first.metric in _ATTACK
+        return _is_score(claim) or scorer or first.metric in _GOAL_PEOPLE or attack
     if moment.type is MomentType.CHANCE:
-        return first.metric is Metric.CHANCES or first.metric in _STOPPERS
+        attack = side == "for" and first.metric in _ATTACK
+        return first.metric is Metric.CHANCES or first.metric in _STOPPERS or attack
     return True
 
 
-_GOAL_PEOPLE = frozenset({Metric.ASSIST, Metric.BALL_LOST, Metric.BALL_LOST_BY_KEEPER})
+_GOAL_PEOPLE = frozenset({Metric.ASSIST, *_LOSSES})
+# How the side's own attack was made: told to a supporter for their side's goals and chances.
+_ATTACK = frozenset({Metric.REGAIN, Metric.SWITCH_OF_PLAY, Metric.COMBINATION})
 _STOPPERS = frozenset({Metric.SHOT_SAVED_BY, Metric.SHOT_BLOCKED_BY})
 
 
@@ -349,7 +368,7 @@ def _rank(claim: Claim, moment: Moment, lens: Lens, pick: int) -> int:
     if lens.focus_team is not None and moment.type is MomentType.GOAL:
         # Where it leaves the side, then who scored, who set it up, and who gave it away.
         scorer = first.metric is Metric.GOALS and first.subject.kind is RefKind.PLAYER
-        people = (Metric.ASSIST, Metric.BALL_LOST_BY_KEEPER, Metric.BALL_LOST)
+        people = (Metric.ASSIST, *_LOSSES, *sorted(_ATTACK, key=lambda m: m.value))
         if scorer:
             return 1
         if first.metric in people:

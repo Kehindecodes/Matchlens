@@ -4,8 +4,9 @@ Each moment type gets the claims D30 lists for it, in the order a lens that spea
 them should hear them:
 
 - goal: the scorer's goals, the score (or the team's goals while the other side has none, Q26
-  2a), how it came about (the build-up, where the ball was won, who gave it away, how far out the
-  shot was), who set it up, the shot's quality
+  2a), how it came about (the build-up, where the ball was won, how fast it was regained, who
+  gave it away, a switch of play, a quick combination, how far out the shot was), who set it up,
+  the shot's quality
 - chance: the run of big chances, the run set against the opponent's over the same window when
   they had one too, how it came about, who saved or blocked it, the shot's quality
 - tactical shift: the signal that fired, read as a judgement, then compared with the same team
@@ -42,15 +43,19 @@ from matchlens.understanding.buildup import (
     BALL_WINNING,
     assist_of,
     ball_loser,
+    combination_of,
+    lateral,
+    regain_of,
     shot_distance,
     stopper_of,
+    switch_of,
     win_third,
 )
 from matchlens.understanding.possession import from_events
 from matchlens.understanding.shot_value import is_shot, value
 
 MODEL = "deterministic"
-MODEL_VERSION = "claims-5"  # bump by hand whenever a rule below changes (invariant 7)
+MODEL_VERSION = "claims-6"  # bump by hand whenever a rule below changes (invariant 7)
 
 
 def explain_moment(
@@ -211,18 +216,58 @@ def _how(
                     evidence_ids=_events([first]),
                 )
             )
+            if (regained := regain_of(match, events, move)) is not None:
+                lost_it, won_it = regained
+                operands.append(
+                    Operand(
+                        subject=_team(move.team),
+                        metric=Metric.REGAIN,
+                        window=Window(start_ms=lost_it.clock_ms, end_ms=won_it.clock_ms),
+                        value=(won_it.clock_ms - lost_it.clock_ms) / 1000,
+                        evidence_ids=_events([lost_it, won_it]),
+                    )
+                )
             if (lost := ball_loser(match, events, move)) is not None:
                 assert lost.player is not None  # `ball_loser` only returns an event with a player
                 keeper = any(p.player_id == lost.player and p.position == "GK" for p in players)
+                metric = (
+                    Metric.BALL_LOST_BY_KEEPER
+                    if keeper
+                    else Metric.PRESSURED_LOSS
+                    if lost.under_pressure
+                    else Metric.BALL_LOST
+                )
                 operands.append(
                     Operand(
                         subject=Ref(kind=RefKind.PLAYER, id=lost.player),
-                        metric=Metric.BALL_LOST_BY_KEEPER if keeper else Metric.BALL_LOST,
+                        metric=metric,
                         window=Window(start_ms=lost.clock_ms, end_ms=lost.clock_ms),
                         value=1.0,
                         evidence_ids=_events([lost]),
                     )
                 )
+    if move is not None and (switch := switch_of(events, move)) is not None:
+        width = lateral(switch)
+        assert width is not None  # `switch_of` only returns a pass with positions
+        operands.append(
+            Operand(
+                subject=_team(move.team),
+                metric=Metric.SWITCH_OF_PLAY,
+                window=Window(start_ms=switch.clock_ms, end_ms=switch.clock_ms),
+                value=width,
+                evidence_ids=_events([switch]),
+            )
+        )
+    if (passes := combination_of(events, shot)) is not None:
+        operands.append(
+            Operand(
+                subject=_team(shot.team or ""),
+                metric=Metric.COMBINATION,
+                window=Window(start_ms=passes[0].clock_ms, end_ms=shot.clock_ms),
+                value=3.0,
+                evidence_ids=_events([*passes, shot]),
+            )
+        )
     operands.append(
         Operand(
             subject=_team(shot.team or ""),

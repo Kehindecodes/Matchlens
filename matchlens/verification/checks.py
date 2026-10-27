@@ -29,7 +29,10 @@ from matchlens.models import (
 from matchlens.understanding.buildup import (
     BALL_WINNING,
     assist_of,
+    combination_of,
+    lateral,
     losses,
+    regain_of,
     shot_distance,
     stopper_of,
     win_third,
@@ -48,6 +51,8 @@ _COUNTS = frozenset(
         Metric.BALL_WON_THIRD,
         Metric.BALL_LOST,
         Metric.BALL_LOST_BY_KEEPER,
+        Metric.PRESSURED_LOSS,
+        Metric.COMBINATION,
         Metric.ASSIST,
         Metric.SHOT_SAVED_BY,
         Metric.SHOT_BLOCKED_BY,
@@ -164,11 +169,37 @@ def recompute(o: Operand, record: Record) -> list[float]:
                 )
             )
         ]
-    if o.metric in (Metric.BALL_LOST, Metric.BALL_LOST_BY_KEEPER):
+    if o.metric in (Metric.BALL_LOST, Metric.BALL_LOST_BY_KEEPER, Metric.PRESSURED_LOSS):
         return [_ball_lost(o, record)]
     if o.metric in (Metric.ASSIST, Metric.SHOT_SAVED_BY, Metric.SHOT_BLOCKED_BY):
         return [_around_a_shot(o, record)]
     team = _team_only(o)
+    if o.metric is Metric.SWITCH_OF_PLAY:
+        passes = [
+            e
+            for e in record.events
+            if e.team == team
+            and e.action is Action.PASS
+            and e.outcome is Outcome.COMPLETE
+            and e.clock_ms == end == start
+        ]
+        widths = [width for e in passes if (width := lateral(e)) is not None]
+        if not widths:
+            raise _Unrecomputable(f"{team} completed no pass at {end} ms")
+        return widths
+    if o.metric is Metric.REGAIN:
+        moves = from_events(match, record.events)
+        for move in (m for m in moves if m.team == team and m.start_clock_ms == end):
+            found = regain_of(match, record.events, move)
+            if found is not None and found[0].clock_ms == start:
+                return [(end - start) / 1000]
+        raise _Unrecomputable(f"{team} did not win the ball back at {end} ms from {start} ms")
+    if o.metric is Metric.COMBINATION:
+        for shot in (e for e in record.events if is_shot(e) and e.team == team):
+            found = combination_of(record.events, shot)
+            if shot.clock_ms == end and found is not None and found[0].clock_ms == start:
+                return [3.0]
+        raise _Unrecomputable(f"{team} made no quick combination ending at {end} ms")
     if o.metric is Metric.BALL_WON_THIRD:
         wins = [
             e
@@ -267,11 +298,14 @@ def _ball_lost(o: Operand, record: Record) -> float:
     keeper = record.player.get(o.subject.id)
     if o.metric is Metric.BALL_LOST_BY_KEEPER and (keeper is None or keeper.position != "GK"):
         return 0.0
+    pressured = o.metric is Metric.PRESSURED_LOSS
     end = o.window.end_ms
     # The whole record, not the events up to the loss: a loss is only one when the other side
     # takes the ball next, and that event comes after it.
     gave = (
-        lost.player == o.subject.id and lost.clock_ms == end
+        lost.player == o.subject.id
+        and lost.clock_ms == end
+        and (lost.under_pressure is True or not pressured)
         for _, lost in losses(record.match, record.events)
     )
     return float(any(gave))  # two moves can follow one loss; it is still one loss
@@ -335,10 +369,32 @@ def _supports(o: Operand, record: Record) -> str | None:
         if off:
             return f"cites events that are not {subject}'s goals in the window: {', '.join(off)}"
         counted = float(len(events))
-    elif o.metric in (Metric.BALL_LOST, Metric.BALL_LOST_BY_KEEPER):
+    elif o.metric in (Metric.BALL_LOST, Metric.BALL_LOST_BY_KEEPER, Metric.PRESSURED_LOSS):
         if len(events) != 1 or events[0].player != subject or events[0].clock_ms != end:
             return f"a loss cites that one event by {subject} at {end} ms"
-        counted = 1.0
+        pressed = events[0].under_pressure is True or o.metric is not Metric.PRESSURED_LOSS
+        counted = 1.0 if pressed else 0.0
+    elif o.metric is Metric.SWITCH_OF_PLAY:
+        if len(events) != 1 or events[0].team != subject or events[0].action is not Action.PASS:
+            return f"a switch cites that one pass by {subject}"
+        if events[0].outcome is not Outcome.COMPLETE or events[0].clock_ms != end:
+            return "cites a pass that was not completed at that clock"
+        counted = lateral(events[0]) or 0.0
+    elif o.metric is Metric.REGAIN:
+        if len(events) != 2 or any(e.team != subject for e in events):
+            return f"a regain cites the loss and the win, both by {subject}"
+        if events[1].action not in BALL_WINNING or (events[0].clock_ms, events[1].clock_ms) != (
+            start,
+            end,
+        ):
+            return "cites a loss and a win that do not match"
+        counted = (end - start) / 1000
+    elif o.metric is Metric.COMBINATION:
+        if len(events) != 3 or not is_shot(events[2]) or events[0].team != subject:
+            return f"a combination cites two passes and the shot, by {subject}"
+        if (events[0].clock_ms, events[2].clock_ms) != (start, end):
+            return "cites a combination at other clocks"
+        counted = 3.0 if combination_of(events, events[2]) is not None else 0.0
     elif o.metric is Metric.ASSIST:
         if len(events) != 2 or not is_shot(events[1]) or events[0].player != subject:
             return f"an assist cites the pass by {subject} and the shot it set up"

@@ -45,6 +45,9 @@ class Settings(BaseSettings):
     # Claims and the words they allow (D30). Standard values, not tuned per match. The big-chance
     # bar is `spotter_chance_quality` and plain interpretive wording `spotter_z_threshold`.
     claim_chance_window_ms: int = 600_000  # "big chances in the last ten minutes"
+    claim_switch_min_m: float = 35.0  # a completed pass this far across the pitch is a switch
+    claim_regain_max_ms: int = 8_000  # won back this soon after it was lost is a regain
+    claim_combination_max_ms: int = 4_000  # pass, pass and shot inside this is a quick combination
     claim_strong_z: float = 2.0  # |z_match| for strong words: "much harder", "by far"
     wording_chance_run: int = 3  # a run of big chances is spoken from the third
     wording_quick_attack_ms: int = 20_000  # ball won in open play to the shot

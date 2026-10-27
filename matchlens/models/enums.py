@@ -134,6 +134,10 @@ class Metric(StrEnum):
     SHOT_SAVED_BY = "shot_saved_by"  # 1 for the keeper whose save was the next event after a shot
     SHOT_BLOCKED_BY = "shot_blocked_by"  # 1 for the player whose block was the next event
     BALL_LOST_BY_KEEPER = "ball_lost_by_keeper"  # `ball_lost`, by a goalkeeper
+    PRESSURED_LOSS = "pressured_loss"  # `ball_lost`, on an event the log marks under pressure
+    SWITCH_OF_PLAY = "switch_of_play"  # metres a completed pass crossed the pitch, in a move
+    REGAIN = "regain"  # seconds from a side losing the ball to winning it straight back
+    COMBINATION = "combination"  # players in a quick pass-pass-shot move: always three
 
 
 class ClaimType(StrEnum):

@@ -31,7 +31,7 @@ from matchlens.rendering import templates
 
 logger = logging.getLogger(__name__)
 
-PROMPT_VERSION = "writer-7"  # bump by hand whenever the instructions or the prompt change
+PROMPT_VERSION = "writer-8"  # bump by hand whenever the instructions or the prompt change
 
 # The abbreviation invariant 12 bans, spelt so that no file here contains it: the model has to
 # be told the word it may not use, and the check has to look for it.
@@ -92,7 +92,7 @@ Rules. A passage that breaks one is thrown away and the viewer gets the sentence
   match: they have seen the goal or the shot, and a headline above your words already says what
   it did. Never say that it happened, and never repeat the headline. Say only what the
   sentences add to it, as one sentence of at most 20 words. A sentence that is already short
-  and natural can be left as it is.
+  and natural is returned as it is. Never answer with an empty passage.
 
 How to write it. These are freedoms, and the rules above still bind every one of them.
 - Do not just join the sentences. Rewrite them as connected prose in the register below.

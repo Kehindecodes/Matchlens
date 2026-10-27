@@ -29,7 +29,7 @@ from matchlens.source import MatchSetup, simulate
 from matchlens.source.archetypes import ARCHETYPES
 from matchlens.spotting import Spotter
 from matchlens.understanding import Understanding
-from matchlens.understanding.buildup import BALL_WINNING, shot_distance, win_third
+from matchlens.understanding.buildup import BALL_WINNING, lateral, shot_distance, win_third
 from matchlens.understanding.shot_value import is_shot, value
 
 SIGNALS = {Metric.TERRITORY, Metric.POSSESSION_CONTROL, Metric.PRESSING_INTENSITY,
@@ -149,6 +149,22 @@ def _recount(operand, played: Played) -> float:
         wanted = Action.SAVE if operand.metric is Metric.SHOT_SAVED_BY else Action.BLOCK
         assert is_shot(shot) and stop.action is wanted and stop.team != shot.team
         return 1.0
+    if operand.metric is Metric.PRESSURED_LOSS:
+        [lost] = cited
+        assert lost.player == operand.subject.id and lost.under_pressure is True
+        return 1.0
+    if operand.metric is Metric.SWITCH_OF_PLAY:
+        [pass_] = cited
+        assert pass_.action is Action.PASS and pass_.team == operand.subject.id
+        return lateral(pass_) or 0.0
+    if operand.metric is Metric.REGAIN:
+        lost, won = cited
+        assert lost.team == won.team == operand.subject.id and won.action in BALL_WINNING
+        return (won.clock_ms - lost.clock_ms) / 1000
+    if operand.metric is Metric.COMBINATION:
+        first, second, shot = cited
+        assert is_shot(shot) and first.receiver == second.player and second.receiver == shot.player
+        return 3.0
     raise AssertionError(operand.metric)
 
 
@@ -240,7 +256,7 @@ def test_the_same_seed_makes_identical_claims(seed_1):
 def test_every_claim_says_which_rules_made_it(seed_1):
     for x in seed_1.explained:
         for claim in x.claims:
-            assert (claim.model, claim.model_version) == ("deterministic", "claims-5")
+            assert (claim.model, claim.model_version) == ("deterministic", "claims-6")
 
 
 @pytest.mark.slow
